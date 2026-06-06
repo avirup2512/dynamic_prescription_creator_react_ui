@@ -78,11 +78,21 @@ const TemplateSlice = createSlice({
             if (!section) return;
             if (!state.CurrentTemplate.header?.id) {
                 state.CurrentTemplate.header = section;
-            } else if (Array.isArray(section.rows)) {
-                state.CurrentTemplate.header.rows = [
-                    ...state.CurrentTemplate.header.rows,
-                    ...section.rows,
-                ];
+                const headerRef: any = state.CurrentTemplate.header;
+                headerRef._sections = headerRef._sections || [];
+                headerRef._sections.push({ id: section.id, name: section.name, visible: true });
+            } else {
+                // if the incoming section has rows, append them
+                if (Array.isArray(section.rows)) {
+                    state.CurrentTemplate.header.rows = [
+                        ...(state.CurrentTemplate.header.rows || []),
+                        ...section.rows,
+                    ];
+                }
+                // always track appended section metadata so UI shows multiple additions
+                const headerRef: any = state.CurrentTemplate.header;
+                headerRef._sections = headerRef._sections || [];
+                headerRef._sections.push({ id: section.id, name: section.name });
             }
         },
         AppendBodyTemplate:(state, action) => {
@@ -90,21 +100,57 @@ const TemplateSlice = createSlice({
             if (!section) return;
             if (!state.CurrentTemplate.body?.id) {
                 state.CurrentTemplate.body = section;
-            } else if (Array.isArray(section.rows)) {
-                state.CurrentTemplate.body.rows = [
-                    ...state.CurrentTemplate.body.rows,
-                    ...section.rows,
-                ];
+                const bodyRef: any = state.CurrentTemplate.body;
+                bodyRef._sections = bodyRef._sections || [];
+                bodyRef._sections.push({ id: section.id, name: section.name, visible: true });
+            } else {
+                if (Array.isArray(section.rows)) {
+                    state.CurrentTemplate.body.rows = [
+                        ...(state.CurrentTemplate.body.rows || []),
+                        ...section.rows,
+                    ];
+                }
+                const bodyRef: any = state.CurrentTemplate.body;
+                bodyRef._sections = bodyRef._sections || [];
+                bodyRef._sections.push({ id: section.id, name: section.name });
             }
         },
-        SelectFooterTemplate:(state, action) => {
-            state.CurrentTemplate.footer = action.payload;
+        AppendFooterTemplate:(state, action) => {
+            const section = action.payload;
+            if (!section) return;
+            if (!state.CurrentTemplate.footer?.id) {
+                state.CurrentTemplate.footer = section;
+                const footerRef: any = state.CurrentTemplate.footer;
+                footerRef._sections = [{ id: section.id, name: section.name }];
+            } else if (Array.isArray(section.rows)) {
+                state.CurrentTemplate.footer.rows = [
+                    ...(state.CurrentTemplate.footer.rows || []),
+                    ...section.rows,
+                ];
+                const footerRef: any = state.CurrentTemplate.footer;
+                footerRef._sections = footerRef._sections || [];
+                footerRef._sections.push({ id: section.id, name: section.name });
+            }
         },
         SetTemplateVisibility:(state, action) => {
             state.CurrentTemplate = {
                 ...state.CurrentTemplate,
                 ...action.payload,
             };
+        },
+        ToggleAppendedSectionVisibility:(state, action) => {
+            const { sectionType, sectionId } = action.payload;
+            const ref: any = sectionType === 'header' ? state.CurrentTemplate.header : sectionType === 'body' ? state.CurrentTemplate.body : state.CurrentTemplate.footer;
+            if (!ref || !ref._sections) return;
+            const idx = ref._sections.findIndex((s: any) => s.id === sectionId);
+            if (idx === -1) return;
+            ref._sections[idx].visible = !ref._sections[idx].visible;
+        },
+        RemoveAppendedSection:(state, action) => {
+            const { sectionType, sectionId } = action.payload;
+            const ref: any = sectionType === 'header' ? state.CurrentTemplate.header : sectionType === 'body' ? state.CurrentTemplate.body : state.CurrentTemplate.footer;
+            if (!ref || !ref._sections) return;
+            ref._sections = ref._sections.filter((s: any) => s.id !== sectionId);
         },
         AddInputTypeToTemplate:(state,action)=>{
             const {rowIndex, columnIndex,sectionType,input} = action.payload
@@ -398,7 +444,9 @@ export const {
     EditExtraNoteInTemplate,
     AppendBodyTemplate,
     AppendHeaderTemplate,
-    SelectFooterTemplate,
+    AppendFooterTemplate,
+    ToggleAppendedSectionVisibility,
+    RemoveAppendedSection,
     SetTemplateVisibility
 } = TemplateSlice.actions;
 

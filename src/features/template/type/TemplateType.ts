@@ -45,6 +45,7 @@ export type Section = {
    name:string,
    rows:Array<Rows>
    createdAt?:string,
+  _sections?: Array<{ id: string, name: string, visible?: boolean }>
 }
 export type TemplateDataType = {
   id: string,

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Button } from '../../../components/ui/button'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Eye, EyeOff, Trash2 } from 'lucide-react'
 import TemplateSectionDetails from '../components/TemplateSectionDetails'
 import { useSelector,useDispatch } from 'react-redux';
-import { AddQuantityTextValueToTemplate, AddQuantityValueToTemplate, SelectBodyTemplate, AppendBodyTemplate, AppendHeaderTemplate, SelectFooterTemplate, SetCurrentTemplate, SetTemplateVisibility, AddDropdownOptionValueToTemplate, AddDropdownOptionValueToBodyTemplate, onDeleteInputFromTemplate } from '../store/TemplateSlice';
+import { AddQuantityTextValueToTemplate, AddQuantityValueToTemplate, SelectBodyTemplate, AppendBodyTemplate, AppendHeaderTemplate, AppendFooterTemplate, SetCurrentTemplate, SetTemplateVisibility, AddDropdownOptionValueToTemplate, AddDropdownOptionValueToBodyTemplate, onDeleteInputFromTemplate, ToggleAppendedSectionVisibility, RemoveAppendedSection } from '../store/TemplateSlice';
 import type { Section } from '../type/TemplateType';
 import { INPUT_TYPE } from '../../../constant/inputType.enum';
 import TemplateService from "../service/TemplateService";
@@ -13,6 +13,7 @@ import QuantityService from '@/features/inputEntityType/services/quantityService
 import { useNavigate, useParams } from 'react-router-dom';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../../components/ui/dialog'
 import CreatePrescription from '@/features/prescription/pages/CreatePrescription';
+import TemplateSectionManager from '../components/TemplateSectionManager';
 const cloneTemplateObject = <T,>(value: T): T => JSON.parse(JSON.stringify(value))
 
 export default function CreateTemplate() {
@@ -81,7 +82,7 @@ export default function CreateTemplate() {
       
     }
   }
-   async function getTemplateInfoById(id: any)
+  async function getTemplateInfoById(id: any)
   {
     try {
       const fetchedTemplateData = await templateService.getTemplateById(id);
@@ -112,28 +113,40 @@ export default function CreateTemplate() {
     setTemplate((prev: any) => ({ ...prev, [name]: value }))
   }
 
-  const handleAddSection = (sectionId: string, sectionType: 'header' | 'body' | 'footer') => {
+  const handleAddSection = async (sectionId: string, sectionType: 'header' | 'body' | 'footer') => {
     if (!sectionId) {
       return
     }
 
-    const selectedSection = savedSectionList.find((section) => section.id === sectionId)
-    if (!selectedSection) {
+    const selectedSection = await sectionService.getSectionById(sectionId);
+
+    if (!selectedSection || selectedSection.success === false) {
       return
     }
 
     if (sectionType === 'header') {
-      dispatch(AppendHeaderTemplate(selectedSection))
+      dispatch(AppendHeaderTemplate(selectedSection.data))
       setHeaderPickerOpen(false)
       setSelectedHeaderSectionId('')
     } else if (sectionType === 'body') {
-      dispatch(AppendBodyTemplate(selectedSection))
+      dispatch(AppendBodyTemplate(selectedSection.data))
       setBodyPickerOpen(false)
       setSelectedBodySectionId('')
     } else {
-      dispatch(SelectFooterTemplate(selectedSection))
+      dispatch(AppendFooterTemplate(selectedSection.data))
       setFooterPickerOpen(false)
       setSelectedFooterSectionId('')
+    }
+  }
+
+  const handleRemoveSection = (sectionType: 'header' | 'body' | 'footer') => {
+    const emptySection = { id: '', name: '', rows: [] }
+    if (sectionType === 'header') {
+      dispatch(SetCurrentTemplate({ ...TemplateState.CurrentTemplate, header: emptySection }))
+    } else if (sectionType === 'body') {
+      dispatch(SetCurrentTemplate({ ...TemplateState.CurrentTemplate, body: emptySection }))
+    } else {
+      dispatch(SetCurrentTemplate({ ...TemplateState.CurrentTemplate, footer: emptySection }))
     }
   }
 
@@ -325,182 +338,9 @@ export default function CreateTemplate() {
           </div>
 
           <div className="md:col-span-2 grid gap-6 md:grid-cols-3">
-            <section className="rounded-2xl border border-border bg-slate-50 p-5">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div>
-                  <h4 className="text-sm font-semibold text-slate-900">Header</h4>
-                  <p className="text-sm text-slate-500">Show/hide header block and add saved sections.</p>
-                </div>
-                <label className="flex items-center gap-2 text-sm text-slate-600">
-                  <input
-                    type="checkbox"
-                    checked={TemplateState.CurrentTemplate.show_header}
-                    onChange={(event) => handleToggleSectionVisibility('show_header', event.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-slate-700"
-                  />
-                  Show
-                </label>
-              </div>
-
-              <div className="mb-4 rounded-2xl border border-border bg-white p-3 text-sm">
-                <div className="text-xs uppercase tracking-[0.12em] text-slate-500">Current section</div>
-                <div className="mt-2 font-medium text-slate-800">
-                  {TemplateState.CurrentTemplate.header?.name || 'No section added'}
-                </div>
-              </div>
-
-              <Button type="button" variant="outline" onClick={() => setHeaderPickerOpen((prev) => !prev)}>
-                Add section
-              </Button>
-
-              {headerPickerOpen && (
-                <div className="mt-4 rounded-2xl border border-border bg-white p-4 shadow-sm">
-                  <label className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Choose saved section</label>
-                  <select
-                    value={selectedHeaderSectionId}
-                    onChange={(event) => setSelectedHeaderSectionId(event.target.value)}
-                    className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
-                  >
-                    <option value="">Choose a section...</option>
-                    {savedSectionList.map((section) => (
-                      <option key={section.id} value={section.id}>
-                        {section.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="mt-3 flex gap-2">
-                    <Button
-                      type="button"
-                      disabled={!selectedHeaderSectionId}
-                      onClick={() => handleAddSection(selectedHeaderSectionId, 'header')}
-                    >
-                      Add
-                    </Button>
-                    <Button type="button" variant="ghost" onClick={() => setHeaderPickerOpen(false)}>
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </section>
-
-            <section className="rounded-2xl border border-border bg-slate-50 p-5">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div>
-                  <h4 className="text-sm font-semibold text-slate-900">Body</h4>
-                  <p className="text-sm text-slate-500">Show/hide body block and add saved sections.</p>
-                </div>
-                <label className="flex items-center gap-2 text-sm text-slate-600">
-                  <input
-                    type="checkbox"
-                    checked={TemplateState.CurrentTemplate.show_body}
-                    onChange={(event) => handleToggleSectionVisibility('show_body', event.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-slate-700"
-                  />
-                  Show
-                </label>
-              </div>
-
-              <div className="mb-4 rounded-2xl border border-border bg-white p-3 text-sm">
-                <div className="text-xs uppercase tracking-[0.12em] text-slate-500">Current section</div>
-                <div className="mt-2 font-medium text-slate-800">
-                  {TemplateState.CurrentTemplate.body?.name || 'No section added'}
-                </div>
-              </div>
-
-              <Button type="button" variant="outline" onClick={() => setBodyPickerOpen((prev) => !prev)}>
-                Add section
-              </Button>
-
-              {bodyPickerOpen && (
-                <div className="mt-4 rounded-2xl border border-border bg-white p-4 shadow-sm">
-                  <label className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Choose saved section</label>
-                  <select
-                    value={selectedBodySectionId}
-                    onChange={(event) => setSelectedBodySectionId(event.target.value)}
-                    className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
-                  >
-                    <option value="">Choose a section...</option>
-                    {savedSectionList.map((section) => (
-                      <option key={section.id} value={section.id}>
-                        {section.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="mt-3 flex gap-2">
-                    <Button
-                      type="button"
-                      disabled={!selectedBodySectionId}
-                      onClick={() => handleAddSection(selectedBodySectionId, 'body')}
-                    >
-                      Add
-                    </Button>
-                    <Button type="button" variant="ghost" onClick={() => setBodyPickerOpen(false)}>
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </section>
-
-            <section className="rounded-2xl border border-border bg-slate-50 p-5">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div>
-                  <h4 className="text-sm font-semibold text-slate-900">Footer</h4>
-                  <p className="text-sm text-slate-500">Show/hide footer block and add saved sections.</p>
-                </div>
-                <label className="flex items-center gap-2 text-sm text-slate-600">
-                  <input
-                    type="checkbox"
-                    checked={TemplateState.CurrentTemplate.show_footer}
-                    onChange={(event) => handleToggleSectionVisibility('show_footer', event.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-slate-700"
-                  />
-                  Show
-                </label>
-              </div>
-
-              <div className="mb-4 rounded-2xl border border-border bg-white p-3 text-sm">
-                <div className="text-xs uppercase tracking-[0.12em] text-slate-500">Current section</div>
-                <div className="mt-2 font-medium text-slate-800">
-                  {TemplateState.CurrentTemplate.footer?.name || 'No section added'}
-                </div>
-              </div>
-
-              <Button type="button" variant="outline" onClick={() => setFooterPickerOpen((prev) => !prev)}>
-                Add section
-              </Button>
-
-              {footerPickerOpen && (
-                <div className="mt-4 rounded-2xl border border-border bg-white p-4 shadow-sm">
-                  <label className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Choose saved section</label>
-                  <select
-                    value={selectedFooterSectionId}
-                    onChange={(event) => setSelectedFooterSectionId(event.target.value)}
-                    className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
-                  >
-                    <option value="">Choose a section...</option>
-                    {savedSectionList.map((section) => (
-                      <option key={section.id} value={section.id}>
-                        {section.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="mt-3 flex gap-2">
-                    <Button
-                      type="button"
-                      disabled={!selectedFooterSectionId}
-                      onClick={() => handleAddSection(selectedFooterSectionId, 'footer')}
-                    >
-                      Add
-                    </Button>
-                    <Button type="button" variant="ghost" onClick={() => setFooterPickerOpen(false)}>
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </section>
+            <TemplateSectionManager handleToggleSectionVisibility={handleToggleSectionVisibility} handleRemoveSection={handleRemoveSection} savedSectionList={savedSectionList} setHeaderPickerOpen={setHeaderPickerOpen} selectedHeaderSectionId={selectedHeaderSectionId} handleAddSection={handleAddSection} setSelectedHeaderSectionId={setSelectedHeaderSectionId}/>
+            <TemplateSectionManager handleToggleSectionVisibility={handleToggleSectionVisibility} handleRemoveSection={handleRemoveSection} savedSectionList={savedSectionList} setHeaderPickerOpen={setHeaderPickerOpen} selectedHeaderSectionId={selectedHeaderSectionId} handleAddSection={handleAddSection} setSelectedHeaderSectionId={setSelectedHeaderSectionId}/>
+            <TemplateSectionManager handleToggleSectionVisibility={handleToggleSectionVisibility} handleRemoveSection={handleRemoveSection} savedSectionList={savedSectionList} setHeaderPickerOpen={setHeaderPickerOpen} selectedHeaderSectionId={selectedHeaderSectionId} handleAddSection={handleAddSection} setSelectedHeaderSectionId={setSelectedHeaderSectionId}/>
           </div>
         </div>
         <TemplateSectionDetails
