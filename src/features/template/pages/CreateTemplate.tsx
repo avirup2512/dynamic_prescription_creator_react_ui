@@ -3,7 +3,7 @@ import { Button } from '../../../components/ui/button'
 import { ArrowRight } from 'lucide-react'
 import TemplateSectionDetails from '../components/TemplateSectionDetails'
 import { useSelector,useDispatch } from 'react-redux';
-import { AddQuantityTextValueToTemplate, AddQuantityValueToTemplate, SelectBodyTemplate, SelectHeaderTemplate, saveTemplate, AddDropdownOptionValueToTemplate, AddDropdownOptionValueToBodyTemplate, onDeleteInputFromTemplate, SetCurrentTemplate } from '../store/TemplateSlice';
+import { AddQuantityTextValueToTemplate, AddQuantityValueToTemplate, SelectBodyTemplate, AppendBodyTemplate, AppendHeaderTemplate, SelectFooterTemplate, SetCurrentTemplate, SetTemplateVisibility, AddDropdownOptionValueToTemplate, AddDropdownOptionValueToBodyTemplate, onDeleteInputFromTemplate } from '../store/TemplateSlice';
 import type { Section } from '../type/TemplateType';
 import { INPUT_TYPE } from '../../../constant/inputType.enum';
 import TemplateService from "../service/TemplateService";
@@ -11,12 +11,9 @@ import SectionService from '@/features/section/service/SectionService';
 import InputEntityTypeService from '@/features/inputEntityType/services/InputEntityTypeService';
 import QuantityService from '@/features/inputEntityType/services/quantityService';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../../components/ui/dialog'
+import CreatePrescription from '@/features/prescription/pages/CreatePrescription';
 const cloneTemplateObject = <T,>(value: T): T => JSON.parse(JSON.stringify(value))
-
-const availableFooters = [
-  { id: 'footer_1', name: 'Footer1', code: 'FOOTER_1', description: 'Standard footer section' },
-  { id: 'footer_2', name: 'Footer2', code: 'FOOTER_2', description: 'Additional notes footer' },
-]
 
 export default function CreateTemplate() {
   const dispatch = useDispatch();
@@ -30,9 +27,15 @@ export default function CreateTemplate() {
 
   const TemplateState = useSelector((state: any) => state.template);
   const [savedSectionList, setSavedSectionList] = useState<Section[]>([]);
-
+  const [headerPickerOpen, setHeaderPickerOpen] = useState(false)
+  const [bodyPickerOpen, setBodyPickerOpen] = useState(false)
+  const [footerPickerOpen, setFooterPickerOpen] = useState(false)
+  const [selectedHeaderSectionId, setSelectedHeaderSectionId] = useState('')
+  const [selectedBodySectionId, setSelectedBodySectionId] = useState('')
+  const [selectedFooterSectionId, setSelectedFooterSectionId] = useState('')
 
   const [savedInputList,setSavedInputList] = useState<any>({ input:[], dropdown:[], quantity:[], textbox:[]});
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   
 
   useEffect(()=>{
@@ -104,22 +107,38 @@ export default function CreateTemplate() {
     dispatch(SelectBodyTemplate(nextBody))
   }
 
-  const handleChange = async (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    const selectedSection:Section = savedSectionList.find((section: Section) => section.id == value) as Section;
-    console.log(selectedSection.id);
-    if (selectedSection.id)
-    {
-      const getSelectedSectionDetails:any = await sectionService.getSectionById(selectedSection.id);
-      if (getSelectedSectionDetails && getSelectedSectionDetails.success)
-      {
-        if(name === 'header'){
-            dispatch(SelectHeaderTemplate(getSelectedSectionDetails.data));
-        }else if(name === 'body'){
-            dispatch(SelectBodyTemplate(getSelectedSectionDetails.data));
-        }
-      }
+    setTemplate((prev: any) => ({ ...prev, [name]: value }))
+  }
+
+  const handleAddSection = (sectionId: string, sectionType: 'header' | 'body' | 'footer') => {
+    if (!sectionId) {
+      return
     }
+
+    const selectedSection = savedSectionList.find((section) => section.id === sectionId)
+    if (!selectedSection) {
+      return
+    }
+
+    if (sectionType === 'header') {
+      dispatch(AppendHeaderTemplate(selectedSection))
+      setHeaderPickerOpen(false)
+      setSelectedHeaderSectionId('')
+    } else if (sectionType === 'body') {
+      dispatch(AppendBodyTemplate(selectedSection))
+      setBodyPickerOpen(false)
+      setSelectedBodySectionId('')
+    } else {
+      dispatch(SelectFooterTemplate(selectedSection))
+      setFooterPickerOpen(false)
+      setSelectedFooterSectionId('')
+    }
+  }
+
+  const handleToggleSectionVisibility = (key: 'show_header' | 'show_body' | 'show_footer', value: boolean) => {
+    dispatch(SetTemplateVisibility({ [key]: value }))
   }
 
   const handleCodeGenerate = () => {
@@ -252,6 +271,10 @@ export default function CreateTemplate() {
     dispatch(onDeleteInputFromTemplate({rowIndex, columnIndex:sectionKey, inputIndex, sectionType}));
   }
 
+  const handleTemplateNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(SetCurrentTemplate({ ...TemplateState.CurrentTemplate, name: e.target.value }))
+  }
+
   return (
     <div className="p-6">
       <div className="mb-6">
@@ -272,7 +295,7 @@ export default function CreateTemplate() {
               type="text"
               name="name"
               value={TemplateState.CurrentTemplate.name || template.name || ''}
-              onChange={()=>{dispatch(SetCurrentTemplate({...TemplateState.CurrentTemplate, name: event?.target?.value}))}}
+              onChange={handleTemplateNameChange}
               placeholder="e.g., Standard Prescription"
               className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/20"
             />
@@ -301,91 +324,185 @@ export default function CreateTemplate() {
             </div>
           </div>
 
-          {/* Header Selection */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Select Header *</label>
-            <select
-              name="header"
-              value={template.header}
-              onChange={handleChange}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/20"
-            >
-              <option value="">Choose a header template</option>
-              {savedSectionList.map((section) => (
-                <option key={section.id} value={section.id}>
-                  {section.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Body Selection */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Select Body *</label>
-            <select
-              name="body"
-              value={template.body}
-              onChange={handleChange}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/20"
-            >
-              <option value="">Choose a body template</option>
-              {savedSectionList.map((section) => (
-                <option key={section.id} value={section.id}>
-                  {section.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Footer Selection */}
-          <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium">Select Footer (optional)</label>
-            <select
-              name="footer"
-              value={template.footer}
-              onChange={handleChange}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/20"
-            >
-              <option value="">Choose a footer template</option>
-              {availableFooters.map((footer) => (
-                <option key={footer.id} value={footer.id}>
-                  {footer.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Template Preview */}
-        {template.header && template.body && (
-          <div className="mt-8 border-t border-border pt-6">
-            <h3 className="mb-4 text-sm font-semibold">Template Preview</h3>
-            <div className="space-y-3 rounded-lg bg-muted/30 p-4">
-              <div className="rounded bg-blue-50 p-3 text-sm">
-                <span className="font-medium text-blue-700">Header:</span>
-                {' '}
-                {TemplateState?.CurrentTemplate?.header?.name || 'No header selected'}
-              </div>
-              <div className="rounded bg-amber-50 p-3 text-sm">
-                <span className="font-medium text-amber-700">Body:</span>
-                {' '}
-                {TemplateState?.CurrentTemplate?.body?.name || 'No body selected'}
-              </div>
-              {template.footer ? (
-                <div className="rounded bg-purple-50 p-3 text-sm">
-                  <span className="font-medium text-purple-700">Footer:</span>
-                  {' '}
-                  {availableFooters.find((f) => f.id === template.footer)?.name}
+          <div className="md:col-span-2 grid gap-6 md:grid-cols-3">
+            <section className="rounded-2xl border border-border bg-slate-50 p-5">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <h4 className="text-sm font-semibold text-slate-900">Header</h4>
+                  <p className="text-sm text-slate-500">Show/hide header block and add saved sections.</p>
                 </div>
-              ) : (
-                <div className="rounded bg-slate-50 p-3 text-sm text-slate-600">
-                  Footer is optional and will be included if selected.
+                <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={TemplateState.CurrentTemplate.show_header}
+                    onChange={(event) => handleToggleSectionVisibility('show_header', event.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 text-slate-700"
+                  />
+                  Show
+                </label>
+              </div>
+
+              <div className="mb-4 rounded-2xl border border-border bg-white p-3 text-sm">
+                <div className="text-xs uppercase tracking-[0.12em] text-slate-500">Current section</div>
+                <div className="mt-2 font-medium text-slate-800">
+                  {TemplateState.CurrentTemplate.header?.name || 'No section added'}
+                </div>
+              </div>
+
+              <Button type="button" variant="outline" onClick={() => setHeaderPickerOpen((prev) => !prev)}>
+                Add section
+              </Button>
+
+              {headerPickerOpen && (
+                <div className="mt-4 rounded-2xl border border-border bg-white p-4 shadow-sm">
+                  <label className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Choose saved section</label>
+                  <select
+                    value={selectedHeaderSectionId}
+                    onChange={(event) => setSelectedHeaderSectionId(event.target.value)}
+                    className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                  >
+                    <option value="">Choose a section...</option>
+                    {savedSectionList.map((section) => (
+                      <option key={section.id} value={section.id}>
+                        {section.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="mt-3 flex gap-2">
+                    <Button
+                      type="button"
+                      disabled={!selectedHeaderSectionId}
+                      onClick={() => handleAddSection(selectedHeaderSectionId, 'header')}
+                    >
+                      Add
+                    </Button>
+                    <Button type="button" variant="ghost" onClick={() => setHeaderPickerOpen(false)}>
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
               )}
-            </div>
-          </div>
-        )}
+            </section>
 
+            <section className="rounded-2xl border border-border bg-slate-50 p-5">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <h4 className="text-sm font-semibold text-slate-900">Body</h4>
+                  <p className="text-sm text-slate-500">Show/hide body block and add saved sections.</p>
+                </div>
+                <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={TemplateState.CurrentTemplate.show_body}
+                    onChange={(event) => handleToggleSectionVisibility('show_body', event.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 text-slate-700"
+                  />
+                  Show
+                </label>
+              </div>
+
+              <div className="mb-4 rounded-2xl border border-border bg-white p-3 text-sm">
+                <div className="text-xs uppercase tracking-[0.12em] text-slate-500">Current section</div>
+                <div className="mt-2 font-medium text-slate-800">
+                  {TemplateState.CurrentTemplate.body?.name || 'No section added'}
+                </div>
+              </div>
+
+              <Button type="button" variant="outline" onClick={() => setBodyPickerOpen((prev) => !prev)}>
+                Add section
+              </Button>
+
+              {bodyPickerOpen && (
+                <div className="mt-4 rounded-2xl border border-border bg-white p-4 shadow-sm">
+                  <label className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Choose saved section</label>
+                  <select
+                    value={selectedBodySectionId}
+                    onChange={(event) => setSelectedBodySectionId(event.target.value)}
+                    className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                  >
+                    <option value="">Choose a section...</option>
+                    {savedSectionList.map((section) => (
+                      <option key={section.id} value={section.id}>
+                        {section.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="mt-3 flex gap-2">
+                    <Button
+                      type="button"
+                      disabled={!selectedBodySectionId}
+                      onClick={() => handleAddSection(selectedBodySectionId, 'body')}
+                    >
+                      Add
+                    </Button>
+                    <Button type="button" variant="ghost" onClick={() => setBodyPickerOpen(false)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </section>
+
+            <section className="rounded-2xl border border-border bg-slate-50 p-5">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <h4 className="text-sm font-semibold text-slate-900">Footer</h4>
+                  <p className="text-sm text-slate-500">Show/hide footer block and add saved sections.</p>
+                </div>
+                <label className="flex items-center gap-2 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={TemplateState.CurrentTemplate.show_footer}
+                    onChange={(event) => handleToggleSectionVisibility('show_footer', event.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 text-slate-700"
+                  />
+                  Show
+                </label>
+              </div>
+
+              <div className="mb-4 rounded-2xl border border-border bg-white p-3 text-sm">
+                <div className="text-xs uppercase tracking-[0.12em] text-slate-500">Current section</div>
+                <div className="mt-2 font-medium text-slate-800">
+                  {TemplateState.CurrentTemplate.footer?.name || 'No section added'}
+                </div>
+              </div>
+
+              <Button type="button" variant="outline" onClick={() => setFooterPickerOpen((prev) => !prev)}>
+                Add section
+              </Button>
+
+              {footerPickerOpen && (
+                <div className="mt-4 rounded-2xl border border-border bg-white p-4 shadow-sm">
+                  <label className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Choose saved section</label>
+                  <select
+                    value={selectedFooterSectionId}
+                    onChange={(event) => setSelectedFooterSectionId(event.target.value)}
+                    className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                  >
+                    <option value="">Choose a section...</option>
+                    {savedSectionList.map((section) => (
+                      <option key={section.id} value={section.id}>
+                        {section.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="mt-3 flex gap-2">
+                    <Button
+                      type="button"
+                      disabled={!selectedFooterSectionId}
+                      onClick={() => handleAddSection(selectedFooterSectionId, 'footer')}
+                    >
+                      Add
+                    </Button>
+                    <Button type="button" variant="ghost" onClick={() => setFooterPickerOpen(false)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </section>
+          </div>
+        </div>
         <TemplateSectionDetails
           onAddDropdownOptionsValue={onAddDropdownOptionsValue}
           onAddQuantityValue={onAddQuantityValue}
@@ -399,6 +516,9 @@ export default function CreateTemplate() {
           header={TemplateState.CurrentTemplate.header}
           body={TemplateState.CurrentTemplate.body}
           footer={TemplateState.CurrentTemplate.footer}
+          showHeader={TemplateState.CurrentTemplate.show_header}
+          showBody={TemplateState.CurrentTemplate.show_body}
+          showFooter={TemplateState.CurrentTemplate.show_footer}
           onDeleteInput={onDeleteInput}
         />
 
@@ -413,11 +533,33 @@ export default function CreateTemplate() {
             Save Template
             <ArrowRight className="size-4" />
           </Button>
+          <Button type="button" variant="outline" onClick={() => setIsPreviewOpen(true)}>
+            Preview
+          </Button>
           <Button type="button" variant="outline">
             Cancel
           </Button>
         </div>
       </div>
+
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-[90vw] sm:max-w-[80vw] lg:max-w-[1200px] h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Template Preview</DialogTitle>
+            <DialogDescription>
+              Preview your current template as a prescription document.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <CreatePrescription initialTemplate={TemplateState.CurrentTemplate} />
+          </div>
+          <DialogFooter showCloseButton>
+            <Button type="button" onClick={() => setIsPreviewOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

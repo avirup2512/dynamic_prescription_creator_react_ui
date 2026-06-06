@@ -21,6 +21,7 @@ export type ColumnInputItem = {
   quantity_option_values?: Array<any>
   quantity_option_id?: string
   input_entity_value?: string,
+  template_input_value?: string,
   extra_note_value?: string,
   dropdown_option_values?: Array<any>
   dropdown_option_id?: string
@@ -50,6 +51,9 @@ export type TemplateDataType = {
     name: string,
     created_by?: string,
     created_at?: string,
+    show_header?: boolean,
+    show_body?: boolean,
+    show_footer?: boolean,
     header:Section
     body:Section
     footer?:Section

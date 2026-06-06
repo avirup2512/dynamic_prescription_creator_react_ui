@@ -5,12 +5,20 @@ function EditableInputField({ input, onChange }: any) {
     const [inputValue, setInputValue] = useState(input?.value || '');
     const [isEditMode, setIsEditMode] = useState(false);
     useEffect(() => {
-        setInputValue(input?.input_entity_value || '');
+        setInputValue(getInputValue(input));
     }, [input])
     const handleInputChange = () => {
         onChange(inputValue);
         setIsEditMode(false);
     }
+    const getInputValue = (input: any) => {
+        if (input?.input_entity_value && input.input_entity_value.trim() !== "''") {
+            return input.input_entity_value;
+        }else if(input?.template_input_value && input.template_input_value.trim() !== "''"){
+            return input.template_input_value;
+        }
+        return '';
+    };
     return (
     <>
         {
@@ -43,7 +51,7 @@ function EditableInputField({ input, onChange }: any) {
         </div>
         ): (
             <div className="flex items-center justify-between">
-                <span className="text-sm text-green-600">{input.input_entity_value}</span>
+                <span className="text-sm text-green-600">{getInputValue(input)}</span>
                 <Button
                     onClick={() => setIsEditMode(true)}
                     size="icon-lg"
@@ -51,7 +59,7 @@ function EditableInputField({ input, onChange }: any) {
                     variant="outline"
                     className="h-6 w-6 hover:bg-none-100"
                     >
-                { input?.input_entity_value ? <Edit2Icon className="size-3 text-success-600" /> : <PlusIcon className="size-3 text-success-600" />}
+                { getInputValue(input) ? <Edit2Icon className="size-3 text-success-600" /> : <PlusIcon className="size-3 text-success-600" />}
                 </Button>
             </div>
         )

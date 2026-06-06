@@ -29,6 +29,7 @@ function PrescriptionHeader({headerData}:any)
                                     }
                         </div>
                     </div>
+                    <hr></hr>
                 </>
                     )
                 })

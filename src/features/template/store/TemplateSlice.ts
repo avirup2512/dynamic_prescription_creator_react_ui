@@ -11,6 +11,10 @@ export const INPUT_TYPES = [
 
 const CurrentTemplate: TemplateDataType = {
     id:"",
+    name: "",
+    show_header: true,
+    show_body: true,
+    show_footer: true,
     header:{
         id:"",
         name:"",
@@ -69,6 +73,39 @@ const TemplateSlice = createSlice({
         SelectBodyTemplate:(state,action)=>{
             state.CurrentTemplate.body = action.payload
         },
+        AppendHeaderTemplate:(state, action) => {
+            const section = action.payload;
+            if (!section) return;
+            if (!state.CurrentTemplate.header?.id) {
+                state.CurrentTemplate.header = section;
+            } else if (Array.isArray(section.rows)) {
+                state.CurrentTemplate.header.rows = [
+                    ...state.CurrentTemplate.header.rows,
+                    ...section.rows,
+                ];
+            }
+        },
+        AppendBodyTemplate:(state, action) => {
+            const section = action.payload;
+            if (!section) return;
+            if (!state.CurrentTemplate.body?.id) {
+                state.CurrentTemplate.body = section;
+            } else if (Array.isArray(section.rows)) {
+                state.CurrentTemplate.body.rows = [
+                    ...state.CurrentTemplate.body.rows,
+                    ...section.rows,
+                ];
+            }
+        },
+        SelectFooterTemplate:(state, action) => {
+            state.CurrentTemplate.footer = action.payload;
+        },
+        SetTemplateVisibility:(state, action) => {
+            state.CurrentTemplate = {
+                ...state.CurrentTemplate,
+                ...action.payload,
+            };
+        },
         AddInputTypeToTemplate:(state,action)=>{
             const {rowIndex, columnIndex,sectionType,input} = action.payload
             const rows = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
@@ -100,6 +137,7 @@ const TemplateSlice = createSlice({
                 const targetColumn = targetRows.columns[columnIndex];
                 if(targetColumn && targetColumn.inputs){
                     targetColumn.inputs[inputIndex].input_entity_value = input.value;
+                    targetColumn.inputs[inputIndex].template_input_value = input.value;
                     targetColumn.inputs[inputIndex].label = input.label;
                 }
             }
@@ -357,7 +395,11 @@ export const {
     EditFontSizeInTemplate,
     SetCurrentTemplate,
     EditExtraNoteValueInTemplate,
-    EditExtraNoteInTemplate
+    EditExtraNoteInTemplate,
+    AppendBodyTemplate,
+    AppendHeaderTemplate,
+    SelectFooterTemplate,
+    SetTemplateVisibility
 } = TemplateSlice.actions;
 
 export default TemplateSlice.reducer;

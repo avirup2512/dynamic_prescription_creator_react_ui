@@ -1,11 +1,9 @@
 import TemplateSectionInput from "./TemplateSectionInput";
 import HeaderUtilService from "../../header/utils/utilsService";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import SectionUtilsService from "../../section/utils/SectionUtilsService"
-import { AddCoulmnToSection,UpdateWidthOfColumn } from "../store/TemplateSlice";
+import { AddCoulmnToSection, UpdateWidthOfColumn } from "../store/TemplateSlice";
 const renderHeaderRow = (row: any, rowIndex: number,onAddInputValue: (payload: any) => void,onAddQuantityValue: (payload: any) => void,onAddQuantityTextValue: (payload: any) => void,sectionType: string,onAddDropdownOptionsValue: (payload: any) => void,onDeleteInput: (rowIndex: number, sectionKey: string, inputIndex: number) => void,TemplateState:any,SectionState:any, addColumnToTemplate:any) => {
   const columns = row?.columns || [];
   const addColumn = () => {
@@ -101,19 +99,29 @@ function TemplateSection({ sectionData, sectionType, onAddInputValue, onAddQuant
   const SectionState = useSelector((state: any) => state.section);
   const dispatch = useDispatch();
     const [rows, setRows] = useState(sectionData?.rows || [])
+
     useEffect(() => {
       setRows(sectionData?.rows || [])
       console.log(sectionData)
     }, [sectionData, sectionType])
+
   const addColumnToTemplate = (index:any,data:any,width:any) => {
       dispatch(AddCoulmnToSection({ rowIndex:index, columnData:data , sectionType}));
       dispatch(UpdateWidthOfColumn({ rowIndex:index, width,sectionType }))
   }
+
     return(
         <section className="rounded-2xl border border-border bg-slate-50 p-5">
-            <h4 className="mb-3 text-sm font-semibold text-slate-900">
-              {sectionType === 'header' ? 'Header' : 'Body'} Details
-            </h4>
+            <div className="mb-4">
+              <div>
+                <h4 className="text-sm font-semibold text-slate-900">
+                  {sectionType === 'header' ? 'Header' : sectionType === 'body' ? 'Body' : 'Footer'} Details
+                </h4>
+                <p className="text-sm text-slate-500">
+                  Review the current section content and edit input rows below.
+                </p>
+              </div>
+            </div>
             <div className="grid gap-3 sm:grid-cols-2">
             <div>
                 <div className="text-xs uppercase tracking-[0.16em] text-slate-500">ID</div>

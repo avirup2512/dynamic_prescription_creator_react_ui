@@ -2,17 +2,27 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import TemplateService from '@/features/template/service/TemplateService';
 import PrescriptionHeader from '../components/PrescriptionHeader';
-function CreatePrescription() {
+
+interface CreatePrescriptionProps {
+  initialTemplate?: any;
+}
+
+function CreatePrescription({ initialTemplate }: CreatePrescriptionProps) {
   const { id } = useParams();
   const isEditMode = Boolean(id);
   const templateService = TemplateService;
   const [currentTemplateList, setCurrentTemplateList] = useState<any[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
-  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(initialTemplate ?? null);
 
   useEffect(() => {
-    getAllTemplateList()
-  }, []);
+    if (initialTemplate) {
+      setSelectedTemplate(initialTemplate);
+    } else {
+      getAllTemplateList();
+    }
+  }, [initialTemplate]);
+
   const getAllTemplateList = async ()=> {
       try {
         const fetchedALlTemplate = await templateService.getAllTemplates();
@@ -39,83 +49,80 @@ function CreatePrescription() {
       console.error('Error fetching template data:', error);
     }
   };
+  const previewTemplate = initialTemplate || selectedTemplate;
+
   return (
-    <div className="p-6">
-      <div className="space-y-6">
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-primary">Create prescription</p>
-            <h1 className="text-2xl font-semibold">Select a saved template first</h1>
-            <p className="text-sm text-muted-foreground">
-              Choose a template from the list below before you continue with the prescription details.
-            </p>
-          </div>
-
-          <div className="mt-6 space-y-2">
-            <label className="text-sm font-medium">Template list *</label>
-            <select
-              value={selectedTemplateId}
-              onChange={handleTemplateChange}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/20"
-            >
-              <option value="">Choose a template</option>
-              {currentTemplateList.map((template: any) => {
-                const displayName =
-                  template?.name ||
-                  template?.header?.name ||
-                  template?.body?.name ||
-                  `Template ${template.id}`;
-
-                return (
-                  <option key={template.id} value={String(template.id)}>
-                    {displayName}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
+    <div className="min-h-[80vh] bg-slate-100 p-6 flex justify-center">
+      <div className="w-full max-w-[980px] bg-white px-10 py-10 shadow-sm">
+        <div className="space-y-4 border-b border-slate-200 pb-6">
+          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Prescription document</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Prescription</h1>
+          <p className="max-w-3xl text-sm leading-6 text-slate-600">
+            A simple letter-style preview without section cards, using clean margins and minimal formatting.
+          </p>
         </div>
 
-        {selectedTemplate ? (
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-            <div className="mb-4 flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-primary">Template preview</p>
-                <h2 className="text-lg font-semibold">
-                  {/* {selectedTemplate.header?.name || selectedTemplate.body?.name || selectedTemplate.name} */}
-                </h2>
-              </div>
-              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                {selectedTemplateId}
-              </span>
-            </div>
-
-            <div className="overflow-hidden rounded-xl border border-border bg-background">
-              <div className="border-b border-border bg-muted/30 px-4 py-3 text-sm font-medium">
-                Rendered document preview
-              </div>
-              <div className="p-4">
-                <div
-                  className="prose prose-sm max-w-none"
-                  // dangerouslySetInnerHTML={{ __html: previewHtmlHeader }}
-                  >
-                  <PrescriptionHeader headerData={selectedTemplate?.header || {}} />
+        <div className="mt-8 space-y-6">
+          {!initialTemplate && (
+            <div className="rounded-3xl bg-slate-50 p-6">
+              <div className="space-y-3">
+                <p className="text-sm font-semibold uppercase tracking-[0.15em] text-slate-700">Prescription</p>
+                <div className="grid gap-4">
+                  <h2 className="text-2xl font-semibold text-slate-900">Select a saved template</h2>
+                  <p className="text-sm leading-6 text-slate-600">
+                    Choose a template from the list below before you continue with the prescription details.
+                  </p>
                 </div>
               </div>
-              <div className="p-4">
-                <div
-                  className="prose prose-sm max-w-none"
+
+              <div className="mt-8 grid gap-4">
+                <label className="text-sm font-medium text-slate-800">Template list *</label>
+                <select
+                  value={selectedTemplateId}
+                  onChange={handleTemplateChange}
+                  className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
                 >
-                  <PrescriptionHeader headerData={selectedTemplate?.header || {}} />
-                  </div>
+                  <option value="">Choose a template</option>
+                  {currentTemplateList.map((template: any) => {
+                    const displayName =
+                      template?.name ||
+                      template?.header?.name ||
+                      template?.body?.name ||
+                      `Template ${template.id}`;
+
+                    return (
+                      <option key={template.id} value={String(template.id)}>
+                        {displayName}
+                      </option>
+                    );
+                  })}
+                </select>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-sm text-muted-foreground">
-            Select a template to render its document preview here.
-          </div>
-        )}
+          )}
+
+          {previewTemplate ? (
+            <div className="space-y-6">
+              {/* <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.15em] text-slate-700">Template preview</p>
+                <h2 className="text-2xl font-semibold text-slate-900">
+                  {previewTemplate?.header?.name || previewTemplate?.body?.name || previewTemplate?.name || 'Rendered template preview'}
+                </h2>
+              </div> */}
+
+              <div className="bg-white px-8 py-10 text-slate-900">
+                <div className="space-y-8 text-slate-900">
+                  <PrescriptionHeader headerData={previewTemplate?.header || {}} />
+                  {previewTemplate?.body && <PrescriptionHeader headerData={previewTemplate?.body || {}} />}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-3xl bg-white p-8 text-sm text-slate-500">
+              Select a template to render its document preview here.
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

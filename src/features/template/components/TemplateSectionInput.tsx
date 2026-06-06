@@ -148,11 +148,11 @@ function TemplateSectionInput({sectionType,inputs,rowIndex,columnIndex,onAddQuan
                                     input?.show_label === 1 && <span className="label">{input?.input_entity_name}</span>
                                 }
                                 {
-                                    input.input_type_name === INPUT_TYPE.INPUTTYPE_1 && input?.input_entity_value ? (
+                                    input.input_type_name === INPUT_TYPE.INPUTTYPE_1  ? (
                                         <>
                                             <EditableInputField input={input} onChange={(value) => AddInputValue(inputIndex, {...input, value})} />
                                         </>
-                                    ) : input.input_type_name === INPUT_TYPE.INPUTTYPE_2 && input?.dropdown_option_values ? (
+                                    ) : input.input_type_name === INPUT_TYPE.INPUTTYPE_2 ? (
                                         <>
                                         <select
                                                 value={input?.dropdownValue}
@@ -168,7 +168,7 @@ function TemplateSectionInput({sectionType,inputs,rowIndex,columnIndex,onAddQuan
                                                 {/* <option value="Add"> <Plus className="size-4" /> Add New</option> */}
                                         </select>
                                         </>
-                                    ) : input.input_type_name === INPUT_TYPE.INPUTTYPE_3 && input?.input_entity_value ? (
+                                    ) : input.input_type_name === INPUT_TYPE.INPUTTYPE_3  ? (
                                         <span className="text-sm text-green-600">{input.input_entity_value}</span>
                                     ) : (
                                         <span className="text-sm text-red-600">No value selected</span>
