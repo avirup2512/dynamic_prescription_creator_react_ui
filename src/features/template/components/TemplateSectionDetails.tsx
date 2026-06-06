@@ -22,6 +22,9 @@ const TemplateSectionDetails = ({
   header,
   body,
   footer,
+  showHeader = true,
+  showBody = true,
+  showFooter = true,
   onAddQuantityValue,
   onAddInputValue,
   onAddDropdownOptionsValue,
@@ -31,6 +34,9 @@ const TemplateSectionDetails = ({
   header?: SavedHeader
   body?: SavedBody
   footer?: any
+  showHeader?: boolean
+  showBody?: boolean
+  showFooter?: boolean
   onAddQuantityValue?: any
   onAddInputValue?: any
   onAddQuantityTextValue?: any
@@ -43,7 +49,7 @@ const TemplateSectionDetails = ({
   onBodyAddInput?: (inputType: any, rowIndex: number, sectionKey: string,sectionType:string) => void
   onAddDropdownOptionsValue?: any
 }) => {
-  const hasAnySelection = Boolean(header || body || footer)
+  const hasAnySelection = Boolean((header && header.id) || (body && body.id) || (footer && footer.id))
 
   return (
     <div className="mt-8 rounded-2xl border border-border bg-background p-6 shadow-sm">
@@ -54,51 +60,72 @@ const TemplateSectionDetails = ({
       ) : (
         <div className="space-y-6">
           {header ? (
-            <TemplateSection
-              onAddDropdownOptionsValue={onAddDropdownOptionsValue}
-              onAddQuantityValue={onAddQuantityValue}
-              onAddInputValue={onAddInputValue}
-              onAddQuantityTextValue={onAddQuantityTextValue}
-              sectionData={header}
-              sectionType="header"
-              onDeleteInput={onDeleteInput}
-            />
+            showHeader ? (
+              <TemplateSection
+                onAddDropdownOptionsValue={onAddDropdownOptionsValue}
+                onAddQuantityValue={onAddQuantityValue}
+                onAddInputValue={onAddInputValue}
+                onAddQuantityTextValue={onAddQuantityTextValue}
+                sectionData={header}
+                sectionType="header"
+                onDeleteInput={onDeleteInput}
+              />
+            ) : (
+              <section className="rounded-2xl border border-border bg-slate-50 p-5">
+                <h4 className="text-sm font-semibold text-slate-900">Header Hidden</h4>
+                <p className="mt-2 text-sm text-slate-600">The header is marked hidden and will be excluded from the template output.</p>
+              </section>
+            )
           ) : null}
 
           {body ? (
-            <TemplateSection
-              onAddDropdownOptionsValue={onAddDropdownOptionsValue}
-              sectionData={body}
-              onAddQuantityValue={onAddQuantityValue}
-              onAddInputValue={onAddInputValue}
-              onAddQuantityTextValue={onAddQuantityTextValue}
-              sectionType="body"
-              onDeleteInput={onDeleteInput}
-            />
+            showBody ? (
+              <TemplateSection
+                onAddDropdownOptionsValue={onAddDropdownOptionsValue}
+                sectionData={body}
+                onAddQuantityValue={onAddQuantityValue}
+                onAddInputValue={onAddInputValue}
+                onAddQuantityTextValue={onAddQuantityTextValue}
+                sectionType="body"
+                onDeleteInput={onDeleteInput}
+              />
+            ) : (
+              <section className="rounded-2xl border border-border bg-slate-50 p-5">
+                <h4 className="text-sm font-semibold text-slate-900">Body Hidden</h4>
+                <p className="mt-2 text-sm text-slate-600">The body is marked hidden and will be excluded from the template output.</p>
+              </section>
+            )
           ) : null}
 
           {footer ? (
-            <section className="rounded-2xl border border-border bg-slate-50 p-5">
-              <h4 className="mb-3 text-sm font-semibold text-slate-900">Footer Details</h4>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <div className="text-xs uppercase tracking-[0.16em] text-slate-500">ID</div>
-                  <div className="mt-1 text-sm text-slate-800">{footer.id || 'N/A'}</div>
-                </div>
-                <div>
-                  <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Name</div>
-                  <div className="mt-1 text-sm text-slate-800">{footer.name || 'N/A'}</div>
-                </div>
-              </div>
-              {Object.entries(footer)
-                .filter(([key]) => key !== 'id' && key !== 'name')
-                .map(([key, value]) => (
-                  <div key={key} className="mt-4">
-                    <div className="text-xs uppercase tracking-[0.12em] text-slate-500">{key}</div>
-                    <div className="mt-1 text-sm text-slate-700">{renderValue(value)}</div>
+            showFooter ? (
+              <section className="rounded-2xl border border-border bg-slate-50 p-5">
+                <h4 className="mb-3 text-sm font-semibold text-slate-900">Footer Details</h4>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.16em] text-slate-500">ID</div>
+                    <div className="mt-1 text-sm text-slate-800">{footer.id || 'N/A'}</div>
                   </div>
-                ))}
-            </section>
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Name</div>
+                    <div className="mt-1 text-sm text-slate-800">{footer.name || 'N/A'}</div>
+                  </div>
+                </div>
+                {Object.entries(footer)
+                  .filter(([key]) => key !== 'id' && key !== 'name')
+                  .map(([key, value]) => (
+                    <div key={key} className="mt-4">
+                      <div className="text-xs uppercase tracking-[0.12em] text-slate-500">{key}</div>
+                      <div className="mt-1 text-sm text-slate-700">{renderValue(value)}</div>
+                    </div>
+                  ))}
+              </section>
+            ) : (
+              <section className="rounded-2xl border border-border bg-slate-50 p-5">
+                <h4 className="text-sm font-semibold text-slate-900">Footer Hidden</h4>
+                <p className="mt-2 text-sm text-slate-600">The footer is marked hidden and will be excluded from the template output.</p>
+              </section>
+            )
           ) : null}
         </div>
       )}
