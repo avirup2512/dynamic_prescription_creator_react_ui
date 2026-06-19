@@ -179,6 +179,23 @@ const TemplateSlice = createSlice({
                 }
             }
         },
+        RemoveInputGroupFromTemplate: (state, action) => {
+            const { sectionIndex, rowIndex, columnIndex, sectionType, inputGroupIndex } = action.payload
+            const currentSection = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const section = currentSection[sectionIndex];
+            const targetRow = section.rows[rowIndex];
+            if (targetRow) {
+                const currentColumn = targetRow.columns[columnIndex];
+                if (currentColumn && currentColumn?.inputGroup && Array.isArray(currentColumn.inputGroup)) {
+                    currentColumn.inputGroup.splice(inputGroupIndex, 1);
+                }
+                if (currentColumn && currentColumn.inputGroup) {
+                    currentColumn.inputGroup.forEach((item: any, idx: number) => {
+                        item.input_group_order = idx + 1; // or idx if you use 0-based ordering
+                    });
+                }
+            }
+        },
         AddInputValueToTemplate: (state, action) => {
             const { sectionIndex, rowIndex, columnIndex, inputGroupIndex, inputIndex, input, sectionType } = action.payload;
             console.log(action.payload)
@@ -488,22 +505,22 @@ const TemplateSlice = createSlice({
                 currentSection.isVisible = !currentSection.isVisible;
             }
         },
-        ReorderInputsInTemplate: (state, action) => {
+        ReorderInputsGroupInTemplate: (state, action) => {
             const { sectionIndex, rowIndex, columnIndex, fromIndex, toIndex, sectionType } = action.payload;
             const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
             const currentSection = currentTemplate[sectionIndex];
             const targetRow = currentSection.rows[rowIndex];
             if (targetRow) {
                 const targetColumn = targetRow.columns[columnIndex];
-                if (targetColumn && targetColumn.inputs && Array.isArray(targetColumn.inputs)) {
+                if (targetColumn && targetColumn.inputGroup && Array.isArray(targetColumn.inputGroup)) {
                     if (fromIndex === toIndex) return;
-                    if (fromIndex < 0 || fromIndex >= targetColumn.inputs.length) return;
-                    if (toIndex < 0 || toIndex >= targetColumn.inputs.length) return;
-                    const [movedInput] = targetColumn.inputs.splice(fromIndex, 1);
-                    targetColumn.inputs.splice(toIndex, 0, movedInput);
+                    if (fromIndex < 0 || fromIndex >= targetColumn.inputGroup.length) return;
+                    if (toIndex < 0 || toIndex >= targetColumn.inputGroup.length) return;
+                    const [movedInput] = targetColumn.inputGroup.splice(fromIndex, 1);
+                    targetColumn.inputGroup.splice(toIndex, 0, movedInput);
                     // Update input_order for all inputs
-                    targetColumn.inputs.forEach((input, idx) => {
-                        input.input_order = idx + 1;
+                    targetColumn.inputGroup.forEach((input, idx) => {
+                        input.input_group_order = idx + 1;
                     });
                 }
             }
@@ -575,9 +592,10 @@ export const {
     ToggleVisibilityInTemplate,
     AddSameTypeOfInputInTemplateSectionInOrCondition,
     AddSameTypeOfInputGroupInTemplateSectionInOrCondition,
-    ReorderInputsInTemplate,
+    ReorderInputsGroupInTemplate,
     CopySectionInTemplate,
-    AddNewDropdownEntityToTemplate
+    AddNewDropdownEntityToTemplate,
+    RemoveInputGroupFromTemplate
 } = TemplateSlice.actions;
 
 export default TemplateSlice.reducer;

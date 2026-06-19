@@ -35,7 +35,8 @@ import {
     AddNewDropdownEntityToTemplate,
     AddSameTypeOfInputInTemplateSectionInOrCondition,
     AddSameTypeOfInputGroupInTemplateSectionInOrCondition,
-    UpdateQuantityOptionsOnlyInTemplate
+    UpdateQuantityOptionsOnlyInTemplate,
+    RemoveInputGroupFromTemplate
 } from "../store/TemplateSlice";
 import EditableInputField from "./EditableInputField";
 import { InputUtilityOptions } from "@/components/shared/InputUtilityOptions";
@@ -614,6 +615,10 @@ function TemplateSectionInput({
             }
         } catch (error) { }
     };
+    const handleDeleteInputGroup = (inputGroupIndex: number) => {
+        const payload = { sectionIndex, rowIndex, columnIndex, sectionType, inputGroupIndex };
+        dispatch(RemoveInputGroupFromTemplate(payload))
+    }
     return (
         <>
             {hasInputs() ? (
