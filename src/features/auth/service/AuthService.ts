@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://freelancecollab.com/api/";
 
 export interface RegisterPayload {
   firstname: string;
@@ -48,7 +48,7 @@ interface ErrorResponse {
 // and throws a plain Error using the API's message on non-2xx responses.
 async function apiFetch<T>(
   endpoint: string,
-  options: RequestInit = {credentials: "include"},
+  options: RequestInit = { credentials: "include" },
   fallbackError: string
 ): Promise<T> {
   const token = localStorage.getItem('auth_token');
@@ -81,13 +81,13 @@ async function apiFetch<T>(
 
 export const authService = {
   async register(payload: RegisterPayload): Promise<User> {
-     const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       credentials: "include",
-      body:JSON.stringify({...payload})
+      body: JSON.stringify({ ...payload })
     });
     return response.json();
   },
@@ -99,7 +99,7 @@ export const authService = {
         "Content-Type": "application/json",
       },
       credentials: "include",
-      body:JSON.stringify({...payload})
+      body: JSON.stringify({ ...payload })
     });
     return response.json();
   },
@@ -122,7 +122,7 @@ export const authService = {
     return message;
   },
   async logout() {
-   const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+    const response = await fetch(`${API_BASE_URL}/auth/logout`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -140,7 +140,7 @@ export const authService = {
       credentials: "include",
     });
     return response.json();
-}
+  }
 };
 
 export default authService;

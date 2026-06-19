@@ -5,20 +5,20 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://freelancecollab.com/api/";
 
 class TemplateService {
   constructor() {
-        
+
   }
-  async createTemplate({ data }: { data:any }): Promise<ApiResponse<any>> {
+  async createTemplate({ data }: { data: any }): Promise<ApiResponse<any>> {
     const response = await fetch(`${API_BASE_URL}/templates`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       credentials: "include",
-      body: JSON.stringify({data}),
+      body: JSON.stringify({ data }),
     });
     return response.json();
   }
@@ -42,7 +42,7 @@ class TemplateService {
     });
     return response.json();
   }
-  async updateTemplate(id: string, { data }: { data:any }): Promise<ApiResponse<any>> {
+  async updateTemplate(id: string, { data }: { data: any }): Promise<ApiResponse<any>> {
     const response = await fetch(`${API_BASE_URL}/templates/${id}`, {
       method: "PUT",
       headers: {

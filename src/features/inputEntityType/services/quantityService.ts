@@ -5,11 +5,11 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://freelancecollab.com/api/";
 
 class QuantityService {
   constructor() {
-        
+
   }
   async createQuantity({ name, type, value }: { name: string; type: string; value: string }): Promise<ApiResponse<any>> {
     const response = await fetch(`${API_BASE_URL}/quantities`, {
@@ -42,14 +42,14 @@ class QuantityService {
     });
     return response.json();
   }
-  async updateQuantity(id: string, { name,newAddedOptions, existingOptions,removedOptionIds }: { name: string; newAddedOptions: string,existingOptions:string,removedOptionIds:string }): Promise<ApiResponse<any>> {
+  async updateQuantity(id: string, { name, newAddedOptions, existingOptions, removedOptionIds }: { name: string; newAddedOptions: string, existingOptions: string, removedOptionIds: string }): Promise<ApiResponse<any>> {
     const response = await fetch(`${API_BASE_URL}/quantities/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
       credentials: "include",
-      body: JSON.stringify({ name,newAddedOptions,existingOptions,removedOptionIds }),
+      body: JSON.stringify({ name, newAddedOptions, existingOptions, removedOptionIds }),
     });
     return response.json();
   }

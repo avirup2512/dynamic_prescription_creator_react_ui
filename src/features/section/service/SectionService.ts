@@ -5,20 +5,20 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://freelancecollab.com/api/";
 
 class SectionService {
   constructor() {
-        
+
   }
-  async createSection({ data }: { data:any }): Promise<ApiResponse<any>> {
+  async createSection({ data }: { data: any }): Promise<ApiResponse<any>> {
     const response = await fetch(`${API_BASE_URL}/sections`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       credentials: "include",
-      body: JSON.stringify({data}),
+      body: JSON.stringify({ data }),
     });
     return response.json();
   }
@@ -42,7 +42,7 @@ class SectionService {
     });
     return response.json();
   }
-  async updateSection(id: string, { data }: { data:any }): Promise<ApiResponse<any>> {
+  async updateSection(id: string, { data }: { data: any }): Promise<ApiResponse<any>> {
     const response = await fetch(`${API_BASE_URL}/sections/${id}`, {
       method: "PUT",
       headers: {
