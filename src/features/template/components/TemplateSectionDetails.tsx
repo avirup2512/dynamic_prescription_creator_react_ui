@@ -1,6 +1,7 @@
 import TemplateSection from './TemplateSection'
 import type { SavedBody } from '@/features/body/type/BodySectionType'
 import type { SavedHeader } from '@/features/header/type/HeaderSectionType'
+import type { Section } from '../type/TemplateType'
 
 const renderValue = (value: any) => {
   if (value === null || value === undefined) {
@@ -31,8 +32,8 @@ const TemplateSectionDetails = ({
   onAddQuantityTextValue,
   onDeleteInput 
 }: {
-  header?: SavedHeader
-  body?: SavedBody
+  header?: Section[]
+  body?: Section[]
   footer?: any
   showHeader?: boolean
   showBody?: boolean
@@ -49,8 +50,10 @@ const TemplateSectionDetails = ({
   onBodyAddInput?: (inputType: any, rowIndex: number, sectionKey: string,sectionType:string) => void
   onAddDropdownOptionsValue?: any
 }) => {
-  const hasAnySelection = Boolean((header && header.id) || (body && body.id) || (footer && footer.id))
-
+  const hasAnySelection = Boolean((header && header.length) || (body && body.length) || (footer && footer.length))
+  console.log(header)
+  console.log(hasAnySelection);
+  console.log(showHeader)
   return (
     <div className="mt-8 rounded-2xl border border-border bg-background p-6 shadow-sm">
       <h3 className="mb-4 text-lg font-semibold tracking-tight">Selected Section Details</h3>
@@ -58,46 +61,59 @@ const TemplateSectionDetails = ({
       {!hasAnySelection ? (
         <p className="text-sm text-muted-foreground">Select a header and body to view full section details. Footer is optional.</p>
       ) : (
-        <div className="space-y-6">
-          {header ? (
-            showHeader ? (
-              <TemplateSection
-                onAddDropdownOptionsValue={onAddDropdownOptionsValue}
-                onAddQuantityValue={onAddQuantityValue}
-                onAddInputValue={onAddInputValue}
-                onAddQuantityTextValue={onAddQuantityTextValue}
-                sectionData={header}
-                sectionType="header"
-                onDeleteInput={onDeleteInput}
-              />
-            ) : (
+          <div className="space-y-6">
+          {header && header.length && (
+              showHeader ? <>
+                {
+                  header.map((h: any,sectionIndex:number) => 
+                  (
+                    <TemplateSection
+                    sectionIndex={sectionIndex}
+                    onAddDropdownOptionsValue={onAddDropdownOptionsValue}
+                    onAddQuantityValue={onAddQuantityValue}
+                    onAddInputValue={onAddInputValue}
+                    onAddQuantityTextValue={onAddQuantityTextValue}
+                    sectionData={h}
+                    sectionType="header"
+                    onDeleteInput={onDeleteInput}
+                  />
+                )
+              ) 
+                }
+              </> : (
               <section className="rounded-2xl border border-border bg-slate-50 p-5">
                 <h4 className="text-sm font-semibold text-slate-900">Header Hidden</h4>
                 <p className="mt-2 text-sm text-slate-600">The header is marked hidden and will be excluded from the template output.</p>
               </section>
             )
-          ) : null}
-
-          {body ? (
-            showBody ? (
-              <TemplateSection
-                onAddDropdownOptionsValue={onAddDropdownOptionsValue}
-                sectionData={body}
-                onAddQuantityValue={onAddQuantityValue}
-                onAddInputValue={onAddInputValue}
-                onAddQuantityTextValue={onAddQuantityTextValue}
-                sectionType="body"
-                onDeleteInput={onDeleteInput}
-              />
-            ) : (
+          )}
+          {body&& body.length && (
+            showBody ? <>
+                {
+                  body.map((body: any,sectionIndex:number) =>
+                  (
+                    <TemplateSection
+                    sectionIndex={sectionIndex}
+                    onAddDropdownOptionsValue={onAddDropdownOptionsValue}
+                    onAddQuantityValue={onAddQuantityValue}
+                    onAddInputValue={onAddInputValue}
+                    onAddQuantityTextValue={onAddQuantityTextValue}
+                    sectionData={body}
+                    sectionType="body"
+                    onDeleteInput={onDeleteInput}
+                  />
+                )
+              ) 
+                }
+              </> : (
               <section className="rounded-2xl border border-border bg-slate-50 p-5">
                 <h4 className="text-sm font-semibold text-slate-900">Body Hidden</h4>
                 <p className="mt-2 text-sm text-slate-600">The body is marked hidden and will be excluded from the template output.</p>
               </section>
             )
-          ) : null}
+          )}
 
-          {footer ? (
+          {/* {footer ? (
             showFooter ? (
               <section className="rounded-2xl border border-border bg-slate-50 p-5">
                 <h4 className="mb-3 text-sm font-semibold text-slate-900">Footer Details</h4>
@@ -126,7 +142,7 @@ const TemplateSectionDetails = ({
                 <p className="mt-2 text-sm text-slate-600">The footer is marked hidden and will be excluded from the template output.</p>
               </section>
             )
-          ) : null}
+          ) : null} */}
         </div>
       )}
     </div>

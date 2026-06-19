@@ -4,367 +4,541 @@ import type { TemplateDataType } from "../type/TemplateType";
 import { INPUT_TYPE } from "../../../constant/inputType.enum";
 
 export const INPUT_TYPES = [
-  { id: INPUT_TYPE.INPUTTYPE_1, name: "Input", color: "bg-blue-50 border-blue-200", icon: Type },
-  { id: INPUT_TYPE.INPUTTYPE_2, name: "Dropdown", color: "bg-purple-50 border-purple-200", icon: ChevronDown },
-  { id: INPUT_TYPE.INPUTTYPE_3, name: "Textbox", color: "bg-amber-50 border-amber-200", icon: FileText },
+    { id: INPUT_TYPE.INPUTTYPE_1, name: "Input", color: "bg-blue-50 border-blue-200", icon: Type },
+    { id: INPUT_TYPE.INPUTTYPE_2, name: "Dropdown", color: "bg-purple-50 border-purple-200", icon: ChevronDown },
+    { id: INPUT_TYPE.INPUTTYPE_3, name: "Textbox", color: "bg-amber-50 border-amber-200", icon: FileText },
 ];
 
-const CurrentTemplate: TemplateDataType = {
-    id:"",
+export const CurrentTemplate: TemplateDataType = {
+    id: "",
     name: "",
     show_header: true,
     show_body: true,
     show_footer: true,
-    header:{
-        id:"",
-        name:"",
-        rows:[
-            {
-                id:"",
-                name:"",
-                columns:[]
-            }
-        ],
-    },
-    body:{
-        id:"",
-        name:"",
-        rows:[
-            {
-                id:"",
-                name:"",
-                columns:[]
-            }
-        ]
-    }
+    header: [],
+    body: [],
+    footer: []
+}
+
+const sectionTypes = ["header", "body", "footer"] as const;
+
+function getTemplateSectionArray(currentTemplate: any, sectionType: "header" | "body" | "footer") {
+    return currentTemplate?.[sectionType];
+}
+
+function recalculateSectionOrder(currentTemplate: any) {
+    let sectionOrder = 1;
+
+    sectionTypes.forEach((sectionType) => {
+        const sections = getTemplateSectionArray(currentTemplate, sectionType);
+        if (!Array.isArray(sections)) return;
+
+        currentTemplate[sectionType] = sections.map((section: any) => {
+            if (!section) return section;
+
+            const orderedSection = {
+                ...section,
+                SectionOrder: sectionOrder,
+            };
+            sectionOrder += 1;
+            return orderedSection;
+        });
+    });
 }
 
 const TemplateSlice = createSlice({
-  name: "template",
-  initialState: {
-    INPUT_TYPES,
-    allTemplates: [],
-    allSavedBody: [],
-    CurrentTemplate,
-    currentSavedBody: {},
-  },
+    name: "template",
+    initialState: {
+        INPUT_TYPES,
+        allTemplates: [],
+        allSavedBody: [],
+        CurrentTemplate,
+        currentSavedBody: {},
+    },
     reducers: {
         SetAllTemplateList: (state, action) => {
             state.allTemplates = action.payload;
         },
-        SelectHeaderTemplate:(state,action)=> {
+        SelectHeaderTemplate: (state, action) => {
             state.CurrentTemplate.header = action.payload;
+            recalculateSectionOrder(state.CurrentTemplate);
         },
         SetCurrentTemplate: (state, action) => {
             const { header, body, footer, created_by, created_at, name } = action.payload;
             console.log(action.payload)
-            state.CurrentTemplate = {...state.CurrentTemplate, header, body, footer, created_by, created_at, name};
+            state.CurrentTemplate = { ...state.CurrentTemplate, header, body, footer, created_by, created_at, name };
+            recalculateSectionOrder(state.CurrentTemplate);
         },
         AddCoulmnToSection: (state: any, action: any) => {
-            const { columnData, rowIndex, sectionType } = action.payload;
+            const { columnData, sectionIndex, rowIndex, sectionType } = action.payload;
             console.log(action.payload)
-            const rows = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            console.log(rows.rows[rowIndex])
-            const targetRow = rows.rows[rowIndex];
-        if(targetRow) {
-            targetRow.columns.push(columnData);
-        }
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRow = currentSection.rows[rowIndex];
+            if (targetRow) {
+                targetRow.columns.push(columnData);
+            }
         },
-        SelectBodyTemplate:(state,action)=>{
+        SelectBodyTemplate: (state, action) => {
             state.CurrentTemplate.body = action.payload
+            recalculateSectionOrder(state.CurrentTemplate);
         },
-        AppendHeaderTemplate:(state, action) => {
-            const section = action.payload;
-            if (!section) return;
-            if (!state.CurrentTemplate.header?.id) {
-                state.CurrentTemplate.header = section;
-            } else if (Array.isArray(section.rows)) {
-                state.CurrentTemplate.header.rows = [
-                    ...state.CurrentTemplate.header.rows,
-                    ...section.rows,
-                ];
+        AppendSectionInTemplate: (state, action) => {
+            const { section, sectionType } = action.payload;
+            console.log(action.payload)
+            if (!section || !sectionType) return;
+            const currentSection: any = getTemplateSectionArray(state.CurrentTemplate, sectionType);
+            if (currentSection) {
+                section.isVisible = true;
+                currentSection.push({ ...section });
+                recalculateSectionOrder(state.CurrentTemplate);
             }
         },
-        AppendBodyTemplate:(state, action) => {
-            const section = action.payload;
-            if (!section) return;
-            if (!state.CurrentTemplate.body?.id) {
-                state.CurrentTemplate.body = section;
-            } else if (Array.isArray(section.rows)) {
-                state.CurrentTemplate.body.rows = [
-                    ...state.CurrentTemplate.body.rows,
-                    ...section.rows,
-                ];
+        UpdateSectionInTemplate: (state, action) => {
+            const { section, sectionType, sectionIndex } = action.payload;
+            if (!section || !sectionType || sectionIndex === undefined || sectionIndex === null) return;
+            const currentSection: any = getTemplateSectionArray(state.CurrentTemplate, sectionType);
+            if (currentSection && Array.isArray(currentSection) && currentSection[sectionIndex]) {
+                currentSection[sectionIndex] = { ...section };
+                recalculateSectionOrder(state.CurrentTemplate);
             }
         },
-        SelectFooterTemplate:(state, action) => {
-            state.CurrentTemplate.footer = action.payload;
+        RemoveSectionFromTemplate: (state, action) => {
+            const { sectionType } = action.payload;
+            const sectionIndex = action.payload.sectionIndex ?? action.payload.rowIndex;
+            console.log(action.payload)
+            const currentSection: any = getTemplateSectionArray(state.CurrentTemplate, sectionType);
+            if (!currentSection || !Array.isArray(currentSection)) return;
+            if (typeof sectionIndex !== "number") return;
+            if (sectionIndex < 0 || sectionIndex >= currentSection.length) return;
+            currentSection.splice(sectionIndex, 1);
+            recalculateSectionOrder(state.CurrentTemplate);
         },
-        SetTemplateVisibility:(state, action) => {
+        MoveSectionInTemplate: (state, action) => {
+            const { sectionType, fromIndex, toIndex } = action.payload;
+            const currentSection: any = getTemplateSectionArray(state.CurrentTemplate, sectionType);
+            if (!currentSection || !Array.isArray(currentSection)) return;
+            if (typeof fromIndex !== 'number' || typeof toIndex !== 'number') return;
+            if (fromIndex === toIndex) return;
+            if (fromIndex < 0 || fromIndex >= currentSection.length) return;
+            if (toIndex < 0 || toIndex >= currentSection.length) return;
+            const [movedSection] = currentSection.splice(fromIndex, 1);
+            currentSection.splice(toIndex, 0, movedSection);
+            recalculateSectionOrder(state.CurrentTemplate);
+        },
+        SetTemplateVisibility: (state, action) => {
+            console.log(action.payload)
             state.CurrentTemplate = {
                 ...state.CurrentTemplate,
                 ...action.payload,
             };
         },
-        AddInputTypeToTemplate:(state,action)=>{
-            const {rowIndex, columnIndex,sectionType,input} = action.payload
-            const rows = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const targetRow = rows.rows[rowIndex];
-            if(targetRow){
+        AddInputTypeToTemplate: (state, action) => {
+            const { sectionIndex, rowIndex, columnIndex, inputGroupIndex, sectionType, sameGroup, input } = action.payload
+            const currentSection = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const section = currentSection[sectionIndex];
+            const targetRow = section.rows[rowIndex];
+            let lastIndex = inputGroupIndex;
+            if (targetRow) {
                 const currentColumn = targetRow.columns[columnIndex];
-                if(currentColumn && currentColumn?.inputs && Array.isArray(currentColumn.inputs)){
-                    currentColumn.inputs.push(input);
+                if (currentColumn && currentColumn?.inputGroup && Array.isArray(currentColumn.inputGroup)) {
+                    if (!sameGroup) {
+                        const inputGroup = { id: 'group' + Date.now(), input_group_order: currentColumn.inputGroup.length + 1, inputs: [input] };
+                        currentColumn.inputGroup.push(inputGroup);
+                        lastIndex = currentColumn.inputGroup.length - 1;
+                    } else {
+                        if (currentColumn.inputGroup[inputGroupIndex]) {
+                            currentColumn.inputGroup[inputGroupIndex].inputs?.push(input);
+                        }
+                    }
+                    if (
+                        lastIndex !== undefined &&
+                        lastIndex !== null &&
+                        currentColumn?.inputGroup
+                    ) {
+                        const inputGroup = currentColumn.inputGroup[lastIndex];
+
+                        if (inputGroup?.inputs?.length) {
+                            inputGroup.inputs.forEach((item: any, idx: number) => {
+                                item.input_order = idx + 1;
+                            });
+                        }
+                    }
                 }
             }
         },
-        RemoveInputTypeFromTemplate:(state,action)=>{
-            const {rowIndex, columnIndex,sectionType,inputIndex} = action.payload
-            const rows = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const targetRow = rows.rows[rowIndex];
-            if(targetRow){
+        RemoveInputTypeFromTemplate: (state, action) => {
+            const { sectionIndex, rowIndex, columnIndex, sectionType, inputIndex } = action.payload
+            const currentSection = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const section = currentSection[sectionIndex];
+            const targetRow = section.rows[rowIndex];
+            if (targetRow) {
                 const currentColumn = targetRow.columns[columnIndex];
-                if(currentColumn && currentColumn?.inputs && Array.isArray(currentColumn.inputs)){
-                    currentColumn.inputs.splice(inputIndex,1);
+                if (currentColumn && currentColumn?.inputGroup && Array.isArray(currentColumn.inputGroup)) {
+                    currentColumn.inputGroup.splice(inputIndex, 1);
                 }
             }
         },
-        AddInputValueToTemplate:(state,action)=>{
-            const { rowIndex, columnIndex, inputIndex, input, sectionType } = action.payload;
-            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const targetRows = currentTemplate.rows[rowIndex];
-            if (targetRows) {
-                console.log(action.payload)
-                const targetColumn = targetRows.columns[columnIndex];
-                if(targetColumn && targetColumn.inputs){
-                    targetColumn.inputs[inputIndex].input_entity_value = input.value;
-                    targetColumn.inputs[inputIndex].template_input_value = input.value;
-                    targetColumn.inputs[inputIndex].label = input.label;
-                }
-            }
-        },
-        AddDropdownValueToTemplate:(state,action)=>{
-            const { rowIndex, columnIndex, inputIndex, input, sectionType } = action.payload
-            const rows = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const targetRow = rows.rows[rowIndex];
-             if(targetRow){
-                const targetColumn = targetRow.columns[columnIndex];
-                if(targetColumn.inputs){
-                    targetColumn.inputs[inputIndex].value = input.value;
-                    targetColumn.inputs[inputIndex].label = input.label;
-                 }
-            }
-        },
-        AddDropdownOptionValueToTemplate:(state,action)=>{
-            const {rowIndex, columnIndex, inputIndex, dropdownOptions,sectionType} = action.payload
-            const rows = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const targetHeaderRow = rows.rows[rowIndex];
-            console.log(rowIndex, columnIndex, inputIndex, dropdownOptions,sectionType)
-            if(targetHeaderRow){
-                const targetHeaderSection = targetHeaderRow.columns[columnIndex];
-                if(targetHeaderSection.inputs){
-                    console.log(dropdownOptions)
-                    targetHeaderSection.inputs[inputIndex].dropdown_option_id = dropdownOptions;
-                }
-            }
-        },
-        AddQuantityValueToTemplate:(state,action)=>{
-            const { rowIndex, columnIndex, inputIndex, quantity,sectionType } = action.payload;
+        AddInputValueToTemplate: (state, action) => {
+            const { sectionIndex, rowIndex, columnIndex, inputGroupIndex, inputIndex, input, sectionType } = action.payload;
             console.log(action.payload)
-            const rows = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const targetRow = rows.rows[rowIndex];
-            console.log(targetRow.columns)
-            console.log(targetRow.columns[columnIndex])
-            if(targetRow){
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRows = currentSection.rows[rowIndex];
+            if (targetRows) {
+                const targetColumn = targetRows.columns[columnIndex];
+                if (targetColumn && targetColumn.inputGroup && Array.isArray(targetColumn.inputGroup) &&
+                    targetColumn.inputGroup[inputGroupIndex].inputs && Array.isArray(targetColumn.inputGroup[inputGroupIndex].inputs) &&
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex]
+                ) {
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].input_entity_value = input.value;
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].template_input_value = input.value;
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].label = input.label;
+                }
+            }
+        },
+        AddDropdownValueToTemplate: (state, action) => {
+            const { sectionIndex, rowIndex, columnIndex, inputIndex, input, sectionType } = action.payload
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRow = currentSection.rows[rowIndex];
+            if (targetRow) {
                 const targetColumn = targetRow.columns[columnIndex];
-                if(targetColumn.inputs){
-                    console.log(action.payload)
-                    targetColumn.inputs[inputIndex].quantity_option_id = quantity;
+                if (targetColumn.inputGroup) {
+                    targetColumn.inputGroup[inputIndex].value = input.value;
+                    targetColumn.inputGroup[inputIndex].label = input.label;
+                }
+            }
+        },
+        AddDropdownOptionValueToTemplate: (state, action) => {
+            console.log(action.payload)
+            const { sectionIndex, rowIndex, columnIndex, inputIndex, inputGroupIndex, dropdownOptions, sectionType } = action.payload
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRow = currentSection.rows[rowIndex];
+            if (targetRow) {
+                const targetColumn = targetRow.columns[columnIndex];
+                if (targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] &&
+                    targetColumn.inputGroup[inputGroupIndex].inputs && targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex]
+                ) {
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].dropdown_option_id = dropdownOptions;
+                }
+            }
+        },
+        AddEditDropdownTextValueToTemplate: (state, action) => {
+            const { sectionIndex, rowIndex, columnIndex, inputIndex, inputGroupIndex, dropdownOptionsText, sectionType } = action.payload
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRow = currentSection.rows[rowIndex];
+            if (targetRow) {
+                const targetColumn = targetRow.columns[columnIndex];
+                if (targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] &&
+                    targetColumn.inputGroup[inputGroupIndex].inputs && targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex]
+                ) {
+                    console.log(dropdownOptionsText)
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].dropdown_option_text = dropdownOptionsText;
+                }
+            }
+        },
+        UpdateDropdownOptionsInTemplate: (state, action) => {
+            const { sectionIndex, rowIndex, columnIndex, inputIndex, inputGroupIndex, dropdownName, dropdownOptionValues, dropdownOptionId, dropdownOptionText, sectionType } = action.payload
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRow = currentSection.rows[rowIndex];
+            if (targetRow) {
+                const targetColumn = targetRow.columns[columnIndex];
+                if (targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] && targetColumn.inputGroup[inputGroupIndex].inputs && targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex]) {
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].input_entity_name = dropdownName;
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].dropdown_option_values = dropdownOptionValues;
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].dropdown_option_id = dropdownOptionId;
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].dropdown_option_text = dropdownOptionText;
+                }
+            }
+        },
+        AddQuantityValueToTemplate: (state, action) => {
+            console.log(action.payload)
+            const { sectionIndex, rowIndex, columnIndex, inputIndex, inputGroupIndex, quantity, sectionType } = action.payload;
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRow = currentSection.rows[rowIndex];
+            if (targetRow) {
+                const targetColumn = targetRow.columns[columnIndex];
+                if (targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] && targetColumn.inputGroup[inputGroupIndex].inputs) {
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].quantity_option_id = quantity;
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].template_input_quantity_option_id = quantity;
+                }
+            }
+        },
+        UpdateQuantityOptionsInTemplate: (state, action) => {
+            const { sectionIndex, rowIndex, columnIndex, inputIndex, inputGroupIndex, quantityId, quantityName, quantityOptionValues, quantityOptionId, sectionType } = action.payload;
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRow = currentSection.rows[rowIndex];
+            if (targetRow) {
+                const targetColumn = targetRow.columns[columnIndex];
+                if (targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] && targetColumn.inputGroup[inputGroupIndex].inputs) {
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].quantity_id = quantityId;
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].quantity_name = quantityName;
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].quantity_option_values = quantityOptionValues;
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].quantity_option_id = quantityOptionId;
+                }
+            }
+        },
+        UpdateQuantityOptionsOnlyInTemplate: (state, action) => {
+            const { sectionIndex, rowIndex, columnIndex, inputIndex, inputGroupIndex, quantityOptionValues, sectionType } = action.payload;
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRow = currentSection.rows[rowIndex];
+            if (targetRow) {
+                const targetColumn = targetRow.columns[columnIndex];
+                if (targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] && targetColumn.inputGroup[inputGroupIndex].inputs) {
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].quantity_option_values = quantityOptionValues;
                 }
             }
         },
         AddQuantityTextValueToTemplate: (state, action) => {
             console.log(action.payload)
-            const {rowIndex, columnIndex, inputIndex, quantityText,sectionType} = action.payload
-            const rows = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const targetRow = rows.rows[rowIndex];
-            if(targetRow){
+            const { sectionIndex, rowIndex, columnIndex, inputIndex, inputGroupIndex, quantityText, sectionType } = action.payload
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRow = currentSection.rows[rowIndex];
+            if (targetRow) {
                 const targetColumn = targetRow.columns[columnIndex];
-                if(targetColumn.inputs){
-                    targetColumn.inputs[inputIndex].quantityTextValue = quantityText;
+                if (targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] && targetColumn.inputGroup[inputGroupIndex].inputs) {
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].quantityTextValue = quantityText;
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].template_quantity_value = quantityText;
                 }
             }
         },
-        AddQuantityFieldToTemplate:(state,action)=>{
-            const { rowIndex, columnIndex, inputIndex, quantity,sectionType } = action.payload;
-            console.log(action.payload)
-            const rows = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const targetRow = rows.rows[Number(rowIndex)];
-            if(targetRow){
+        AddQuantityFieldToTemplate: (state, action) => {
+            const { sectionIndex, rowIndex, columnIndex, inputIndex, inputGroupIndex, quantity, sectionType } = action.payload;
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRow = currentSection.rows[Number(rowIndex)];
+            if (targetRow) {
                 const targetColumn = targetRow.columns[columnIndex];
-                if(targetColumn && targetColumn.inputs){
-                    targetColumn.inputs[inputIndex].show_quantity = quantity;
+                if (targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] && targetColumn.inputGroup[inputGroupIndex].inputs) {
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].show_quantity = quantity;
                 }
             }
         },
-        onDeleteInputFromTemplate:(state,action)=>{
+        onDeleteInputFromTemplate: (state, action) => {
             console.log(action.payload)
-            const {rowIndex, columnIndex, inputIndex ,sectionType} = action.payload
-            const targetHeaderRow = sectionType === 'header' ? state.CurrentTemplate.header.rows[rowIndex] : state.CurrentTemplate.body.rows[rowIndex];
-            if(targetHeaderRow){
-                const targetHeaderSection = targetHeaderRow.columns[columnIndex];
-                if(targetHeaderSection.inputs){
-                    targetHeaderSection.inputs.splice(inputIndex,1);
+            const { sectionIndex, rowIndex, columnIndex, inputIndex, inputGroupIndex, sectionType } = action.payload
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRow = currentSection.rows[Number(rowIndex)];
+            if (targetRow) {
+                const targetHeaderSection = targetRow.columns[columnIndex];
+                if (targetHeaderSection.inputGroup && targetHeaderSection.inputGroup[inputGroupIndex] && targetHeaderSection.inputGroup[inputGroupIndex].inputs) {
+                    targetHeaderSection.inputGroup[inputGroupIndex].inputs.splice(inputIndex, 1);
                 }
             }
-        },
-        AddInputValueToBodyTemplate:(state,action)=>{
-            const {bodyRowIndex, bodySectionIndex, inputIndex, input} = action.payload
-            const targetBodyRow = state.CurrentTemplate.body.bodyRows[bodyRowIndex];
-            if(targetBodyRow){
-                const targetBodySection = targetBodyRow.bodySections[bodySectionIndex];
-                if(targetBodySection){
-                    targetBodySection.inputs[inputIndex].value = input.value;
-                    targetBodySection.inputs[inputIndex].label = input.label;
-                }
-            }
-        },
-        AddDropdownValueToBodyTemplate:(state,action)=>{
-            const {bodyRowIndex, bodySectionIndex, inputIndex, input} = action.payload
-            const targetBodyRow = state.CurrentTemplate.body.bodyRows[bodyRowIndex];
-            if(targetBodyRow){
-                const targetBodySection = targetBodyRow.bodySections[bodySectionIndex];
-                if(targetBodySection){
-                    targetBodySection.inputs[inputIndex].value = input.value;
-                    targetBodySection.inputs[inputIndex].label = input.label;
-                }
-            }
-        },
-        AddQuantityValueToBodyTemplate:(state,action)=>{
-            const {bodyRowIndex, bodySectionIndex, inputIndex, quantity} = action.payload
-            const targetBodyRow = state.CurrentTemplate.body.bodyRows[bodyRowIndex];
-            if(targetBodyRow){
-                const targetBodySection = targetBodyRow.bodySections[bodySectionIndex];
-                if(targetBodySection){
-                    targetBodySection.inputs[inputIndex].quantityValue = quantity;
-                }
-            }
-        },
-        AddQuantityTextValueToBodyTemplate:(state,action)=>{
-            const {bodyRowIndex, bodySectionIndex, inputIndex, quantityText} = action.payload
-            const targetBodyRow = state.CurrentTemplate.body.bodyRows[bodyRowIndex];
-            if(targetBodyRow){
-                const targetBodySection = targetBodyRow.bodySections[bodySectionIndex];
-                if(targetBodySection){
-                    targetBodySection.inputs[inputIndex].quantityTextValue = quantityText;
-                }
-            }
-        },
-        AddQuantityFieldToBodyTemplate:(state,action)=>{
-            const {bodyRowIndex, bodySectionIndex, inputIndex, quantity} = action.payload
-            const targetBodyRow = state.CurrentTemplate.body.bodyRows[bodyRowIndex];
-            if(targetBodyRow){
-                const targetBodySection = targetBodyRow.bodySections[bodySectionIndex];
-                if(targetBodySection){
-                    targetBodySection.inputs[inputIndex].show_quantity = quantity;
-                }
-            }
-        },
-        AddDropdownOptionValueToBodyTemplate:(state,action)=>{
-            const {bodyRowIndex, bodySectionIndex, inputIndex, dropdownOptions} = action.payload
-            const targetBodyRow = state.CurrentTemplate.body.bodyRows[bodyRowIndex];
-            console.log(bodyRowIndex, bodySectionIndex, inputIndex, dropdownOptions)
-            if(targetBodyRow){
-                const targetBodySection = targetBodyRow.bodySections[bodySectionIndex];
-                if(targetBodySection){
-                    console.log(dropdownOptions)
-                    targetBodySection.inputs[inputIndex].dropdownValue = dropdownOptions;
-                }
-            }
-        },
-        onDeleteInputFromBodyTemplate:(state,action)=>{
-            console.log(action.payload)
-            const {bodyRowIndex, bodySectionIndex, inputIndex} = action.payload
-            const targetBodyRow = state.CurrentTemplate.body.bodyRows[bodyRowIndex];
-            if(targetBodyRow){
-                const targetBodySection = targetBodyRow.bodySections[bodySectionIndex];
-                if(targetBodySection){
-                    targetBodySection.inputs.splice(inputIndex,1);
-                }
-            }
-        },
-        saveTemplate:(state,action)=>{
-            state.allTemplates.push(action?.payload);
-            const allTemplate = JSON.parse(localStorage.getItem("savedGeneralTemplateList")) || [];
-            allTemplate.push(action?.payload);
-            localStorage.setItem("savedGeneralTemplateList",JSON.stringify(allTemplate));
         },
         UpdateWidthOfColumn: (state: any, action: any) => {
-            const { width, rowIndex, sectionType } = action.payload;
-            const currentSection = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            if (currentSection?.rows && currentSection?.rows?.[rowIndex] && currentSection?.rows?.[rowIndex].columns &&currentSection?.rows?.[rowIndex].columns.length > 0) {
+            const { width, sectionIndex, rowIndex, sectionType } = action.payload;
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const currentSection = currentTemplate[sectionIndex];
+            if (currentSection?.rows && currentSection?.rows?.[rowIndex] && currentSection?.rows?.[rowIndex].columns && currentSection?.rows?.[rowIndex].columns.length > 0) {
                 currentSection?.rows?.[rowIndex].columns.forEach((e: any) => {
-                e.width = width;
-            })
-        }
+                    e.width = width;
+                })
+            }
         },
-        EditShowLabelInTemplate:(state,action)=>{
-            const { rowIndex, columnIndex, inputIndex, show_label, sectionType } = action.payload
+        EditShowLabelInTemplate: (state, action) => {
+            const { sectionIndex, rowIndex, columnIndex, inputIndex, inputGroupIndex, show_label, sectionType } = action.payload
             console.log(action.payload)
             const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const targetRow = currentTemplate.rows[rowIndex];
-            if(targetRow){
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRow = currentSection.rows[rowIndex];
+            if (targetRow) {
                 const targetColumn = targetRow.columns[columnIndex];
-                if (targetColumn && targetColumn.inputs) {
+                if (targetColumn && targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] && targetColumn.inputGroup[inputGroupIndex].inputs) {
                     console.log("JI")
-                    targetColumn.inputs[inputIndex].show_label = show_label;
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].show_label = show_label;
                 }
             }
         },
-        EditIsBoldInTemplate:(state,action)=>{
-            const {rowIndex, columnIndex, inputIndex, is_bold,sectionType} = action.payload
+        EditIsBoldInTemplate: (state, action) => {
+            const { sectionIndex, rowIndex, columnIndex, inputIndex, inputGroupIndex, is_bold, sectionType } = action.payload
             const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const targetRow = currentTemplate.rows[rowIndex];
-            if(targetRow){
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRow = currentSection.rows[rowIndex];
+            if (targetRow) {
                 const targetColumn = targetRow.columns[columnIndex];
-                if(targetColumn && targetColumn.inputs){
-                    targetColumn.inputs[inputIndex].is_bold = is_bold;
+                if (targetColumn && targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] && targetColumn.inputGroup[inputGroupIndex].inputs) {
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].is_bold = is_bold;
                 }
             }
         },
-        EditExtraNoteInTemplate:(state,action)=>{
-            const { rowIndex, columnIndex, inputIndex, extra_note, sectionType } = action.payload
+        EditExtraNoteInTemplate: (state, action) => {
+            const { sectionIndex, rowIndex, columnIndex, inputIndex, inputGroupIndex, extra_note, sectionType } = action.payload
             const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const targetRow = currentTemplate.rows[rowIndex];
-            if(targetRow){
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRow = currentSection.rows[rowIndex];
+            if (targetRow) {
                 const targetColumn = targetRow.columns[columnIndex];
-                if(targetColumn && targetColumn.inputs){
-                    targetColumn.inputs[inputIndex].extra_note = extra_note;
+                if (targetColumn && targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] && targetColumn.inputGroup[inputGroupIndex].inputs) {
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].extra_note = extra_note;
                 }
             }
         },
         EditFontSizeInTemplate: (state, action) => {
-            const { rowIndex, columnIndex, inputIndex, font_size, sectionType } = action.payload
+            const { sectionIndex, rowIndex, columnIndex, inputIndex, inputGroupIndex, font_size, sectionType } = action.payload
             const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const targetRow = currentTemplate.rows[rowIndex];
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRow = currentSection.rows[rowIndex];
             if (targetRow) {
                 const targetColumn = targetRow.columns[columnIndex];
-                if (targetColumn && targetColumn.inputs) {
-                    targetColumn.inputs[inputIndex].font_size = font_size;
+                if (targetColumn && targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] && targetColumn.inputGroup[inputGroupIndex].inputs) {
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].font_size = font_size;
                 }
             }
         },
         EditExtraNoteValueInTemplate: (state, action) => {
-            const { rowIndex, columnIndex, inputIndex, extra_note_value, sectionType } = action.payload
+            const { sectionIndex, rowIndex, columnIndex, inputIndex, inputGroupIndex, extra_note_value, sectionType } = action.payload
             const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const targetRow = currentTemplate.rows[rowIndex];
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRow = currentSection.rows[rowIndex];
             if (targetRow) {
                 const targetColumn = targetRow.columns[columnIndex];
-                if (targetColumn && targetColumn.inputs) {
-                    targetColumn.inputs[inputIndex].extra_note_value = extra_note_value;
+                if (targetColumn && targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] && targetColumn.inputGroup[inputGroupIndex].inputs) {
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].extra_note_value = extra_note_value;
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].template_input_extranotes = extra_note_value;
                 }
             }
         },
-    }
+        AddSameTypeOfInputInTemplateSection: (state: any, action: any) => {
+            {
+                const { sectionIndex, rowIndex, columnIndex, input, index, inputGroupIndex, sectionType, sameGroup } = action.payload
+                const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+                const currentSection = currentTemplate[sectionIndex];
+                const targetRow = currentSection.rows[rowIndex];
+                if (targetRow) {
+                    const targetColumn = targetRow.columns[columnIndex];
+                    console.log(action.payload)
+                    if (sameGroup) {
+                        if (targetColumn && targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] && Array.isArray(targetColumn.inputGroup[inputGroupIndex].inputs)) {
+                            delete input.input_id;
+                            if (!targetColumn.inputGroup[inputGroupIndex].template_input_group_id) {
+                                targetColumn.inputGroup[inputGroupIndex].template_input_group_id = `group-${Date.now()}`; // Assign a unique ID if it doesn't exist
+                            }
+                            targetColumn.inputGroup[inputGroupIndex].inputs.push(input);
+                            targetColumn.inputGroup[inputGroupIndex].inputs.forEach((item: any, idx: number) => {
+                                item.input_order = idx + 1; // or idx if you use 0-based ordering
+                            });
+                        }
+                    } else {
+                        console.log(Array.isArray(targetColumn.inputGroup))
+                        if (targetColumn && targetColumn.inputGroup && Array.isArray(targetColumn.inputGroup)) {
+                            const newInputGroup = {
+                                inputs: [],
+                                template_input_group_id: `group-${Date.now()}`,
+                                input_group_order: targetColumn.inputGroup.length + 1,
+                            }
+                            targetColumn.inputGroup.push(newInputGroup);
+                            const inputGroupIndex2 = targetColumn.inputGroup.length - 1;
+                            targetColumn.inputGroup[inputGroupIndex2].inputs.push(input);
+                            targetColumn.inputGroup[inputGroupIndex2].inputs.forEach((item: any, idx: number) => {
+                                item.input_order = idx + 1; // or idx if you use 0-based ordering
+                            });
+                        }
+                    }
+                }
+            }
+        },
+        AddSameTypeOfInputInTemplateSectionInOrCondition: (state: any, action: any) => {
+            const { sectionIndex, rowIndex, columnIndex, input, index, inputGroupIndex, sectionType } = action.payload
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRow = currentSection.rows[rowIndex];
+            if (targetRow) {
+                const targetColumn = targetRow.columns[columnIndex];
+                if (targetColumn && targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] && Array.isArray(targetColumn.inputGroup[inputGroupIndex].inputs)) {
+                    delete input.input_id;
+                    targetColumn.inputGroup[inputGroupIndex].inputs.splice(index, 0, input);
+                    targetColumn.inputGroup[inputGroupIndex].inputs.forEach((item: any, idx: number) => {
+                        item.input_order = idx + 1; // or idx if you use 0-based ordering
+                    });
+                }
+            }
+        },
+        AddSameTypeOfInputGroupInTemplateSectionInOrCondition: (state: any, action: any) => {
+            const { sectionIndex, rowIndex, columnIndex, inputGroup, inputGroupIndex, sectionType } = action.payload
+            console.log(action.payload)
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRow = currentSection.rows[rowIndex];
+            if (targetRow) {
+                const targetColumn = targetRow.columns[columnIndex];
+                if (targetColumn && targetColumn.inputGroup && targetColumn.inputGroup && Array.isArray(targetColumn.inputGroup)) {
+                    delete inputGroup.template_input_group_id;
+                    targetColumn.inputGroup.splice(inputGroupIndex + 1, 0, inputGroup);
+                    targetColumn.inputGroup.forEach((item: any, idx: number) => {
+                        item.input_group_order = idx + 1; // or idx if you use 0-based ordering
+                    });
+                }
+            }
+        },
+        ToggleVisibilityInTemplate: (state, action) => {
+            const { sectionIndex, isVisible, sectionType } = action.payload;
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const currentSection = currentTemplate[sectionIndex];
+            if (currentSection) {
+                currentSection.isVisible = !currentSection.isVisible;
+            }
+        },
+        ReorderInputsInTemplate: (state, action) => {
+            const { sectionIndex, rowIndex, columnIndex, fromIndex, toIndex, sectionType } = action.payload;
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRow = currentSection.rows[rowIndex];
+            if (targetRow) {
+                const targetColumn = targetRow.columns[columnIndex];
+                if (targetColumn && targetColumn.inputs && Array.isArray(targetColumn.inputs)) {
+                    if (fromIndex === toIndex) return;
+                    if (fromIndex < 0 || fromIndex >= targetColumn.inputs.length) return;
+                    if (toIndex < 0 || toIndex >= targetColumn.inputs.length) return;
+                    const [movedInput] = targetColumn.inputs.splice(fromIndex, 1);
+                    targetColumn.inputs.splice(toIndex, 0, movedInput);
+                    // Update input_order for all inputs
+                    targetColumn.inputs.forEach((input, idx) => {
+                        input.input_order = idx + 1;
+                    });
+                }
+            }
+        },
+        CopySectionInTemplate: (state, action) => {
+            const { sectionIndex, sectionType } = action.payload;
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const currentSection = currentTemplate[sectionIndex];
+            if (currentSection) {
+                const newSection = JSON.parse(JSON.stringify(currentSection));
+                newSection.id = `section-${Date.now()}`;
+                newSection.name = action.payload.sectionName || `${currentSection.name} Copy`;
+                currentTemplate.push(newSection);
+                recalculateSectionOrder(state.CurrentTemplate);
+            }
+        },
+        AddNewDropdownEntityToTemplate: (state, action) => {
+            const { sectionIndex, rowIndex, columnIndex, inputIndex, dropdownName, inputGroupIndex, input_entity_id, sectionType } = action.payload
+            console.log(action.payload)
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const currentSection = currentTemplate[sectionIndex];
+            const targetRow = currentSection.rows[rowIndex];
+            if (targetRow) {
+                const targetColumn = targetRow.columns[columnIndex];
+                if (targetColumn) {
+                    const targetInputGroup = targetColumn.inputGroup ? targetColumn.inputGroup[inputGroupIndex] : null;
+                    const targetInput = targetInputGroup && targetInputGroup.inputs ? targetInputGroup.inputs[inputIndex] : null;
+                    if (targetInput) {
+                        targetInput.input_entity_id = input_entity_id;
+                        targetInput.input_entity_name = dropdownName;
+                    }
+                }
+            }
+        }
+    },
 });
 
 export const {
@@ -379,15 +553,7 @@ export const {
     AddDropdownValueToTemplate,
     AddDropdownOptionValueToTemplate,
     AddQuantityFieldToTemplate,
-    AddQuantityValueToBodyTemplate,
-    AddQuantityTextValueToBodyTemplate,
-    AddQuantityFieldToBodyTemplate,
-    AddInputValueToBodyTemplate,
-    AddDropdownValueToBodyTemplate,
-    AddDropdownOptionValueToBodyTemplate,
-    onDeleteInputFromBodyTemplate,
     onDeleteInputFromTemplate,
-    saveTemplate,
     AddCoulmnToSection,
     UpdateWidthOfColumn,
     EditShowLabelInTemplate,
@@ -396,10 +562,22 @@ export const {
     SetCurrentTemplate,
     EditExtraNoteValueInTemplate,
     EditExtraNoteInTemplate,
-    AppendBodyTemplate,
-    AppendHeaderTemplate,
-    SelectFooterTemplate,
-    SetTemplateVisibility
+    AppendSectionInTemplate,
+    UpdateSectionInTemplate,
+    RemoveSectionFromTemplate,
+    SetTemplateVisibility,
+    AddSameTypeOfInputInTemplateSection,
+    AddEditDropdownTextValueToTemplate,
+    UpdateDropdownOptionsInTemplate,
+    UpdateQuantityOptionsInTemplate,
+    UpdateQuantityOptionsOnlyInTemplate,
+    MoveSectionInTemplate,
+    ToggleVisibilityInTemplate,
+    AddSameTypeOfInputInTemplateSectionInOrCondition,
+    AddSameTypeOfInputGroupInTemplateSectionInOrCondition,
+    ReorderInputsInTemplate,
+    CopySectionInTemplate,
+    AddNewDropdownEntityToTemplate
 } = TemplateSlice.actions;
 
 export default TemplateSlice.reducer;

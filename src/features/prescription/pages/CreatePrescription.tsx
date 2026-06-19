@@ -1,27 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import TemplateService from '@/features/template/service/TemplateService';
-import PrescriptionHeader from '../components/PrescriptionHeader';
+import PrescriptionSection from '../components/PrescriptionSection';
+import type { Section } from '@/features/template/type/TemplateType';
 
 interface CreatePrescriptionProps {
   initialTemplate?: any;
 }
 
 function CreatePrescription({ initialTemplate }: CreatePrescriptionProps) {
-  const { id } = useParams();
-  const isEditMode = Boolean(id);
+  console.log("initialTemplate", initialTemplate);
   const templateService = TemplateService;
   const [currentTemplateList, setCurrentTemplateList] = useState<any[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [selectedTemplate, setSelectedTemplate] = useState<any>(initialTemplate ?? null);
 
-  useEffect(() => {
-    if (initialTemplate) {
-      setSelectedTemplate(initialTemplate);
-    } else {
-      getAllTemplateList();
-    }
-  }, [initialTemplate]);
 
   const getAllTemplateList = async ()=> {
       try {
@@ -33,6 +26,9 @@ function CreatePrescription({ initialTemplate }: CreatePrescriptionProps) {
       } catch (error) {
         
       }
+  }
+  const hasData = () => {
+    return initialTemplate?.header.length || initialTemplate?.body.length || initialTemplate?.footer.length;
   }
   const handleTemplateChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
     const nextTemplateId = event.target.value;
@@ -49,7 +45,6 @@ function CreatePrescription({ initialTemplate }: CreatePrescriptionProps) {
       console.error('Error fetching template data:', error);
     }
   };
-  const previewTemplate = initialTemplate || selectedTemplate;
 
   return (
     <div className="min-h-[80vh] bg-slate-100 p-6 flex justify-center">
@@ -57,9 +52,9 @@ function CreatePrescription({ initialTemplate }: CreatePrescriptionProps) {
         <div className="space-y-4 border-b border-slate-200 pb-6">
           <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Prescription document</p>
           <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Prescription</h1>
-          <p className="max-w-3xl text-sm leading-6 text-slate-600">
+          {/* <p className="max-w-3xl text-sm leading-6 text-slate-600">
             A simple letter-style preview without section cards, using clean margins and minimal formatting.
-          </p>
+          </p> */}
         </div>
 
         <div className="mt-8 space-y-6">
@@ -101,19 +96,20 @@ function CreatePrescription({ initialTemplate }: CreatePrescriptionProps) {
             </div>
           )}
 
-          {previewTemplate ? (
+          {initialTemplate ? (
             <div className="space-y-6">
-              {/* <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.15em] text-slate-700">Template preview</p>
-                <h2 className="text-2xl font-semibold text-slate-900">
-                  {previewTemplate?.header?.name || previewTemplate?.body?.name || previewTemplate?.name || 'Rendered template preview'}
-                </h2>
-              </div> */}
-
               <div className="bg-white px-8 py-10 text-slate-900">
                 <div className="space-y-8 text-slate-900">
-                  <PrescriptionHeader headerData={previewTemplate?.header || {}} />
-                  {previewTemplate?.body && <PrescriptionHeader headerData={previewTemplate?.body || {}} />}
+                  {
+                    initialTemplate?.header && initialTemplate.header.map((section: Section, index:number) =>
+                      <PrescriptionSection key={index} section={section || []} />
+                    )
+                  }
+                  {
+                    initialTemplate?.body && initialTemplate.body.map((section: Section, index:number) =>
+                      <PrescriptionSection key={index} section={section || []} />
+                    )
+                  }
                 </div>
               </div>
             </div>
@@ -122,6 +118,10 @@ function CreatePrescription({ initialTemplate }: CreatePrescriptionProps) {
               Select a template to render its document preview here.
             </div>
           )}
+          {
+            !hasData() && 
+            <p className=' text-center text-sm leading-6 text-slate-600'>No Data</p>
+          }
         </div>
       </div>
     </div>

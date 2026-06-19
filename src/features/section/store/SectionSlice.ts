@@ -16,7 +16,7 @@ const SectionSlice = createSlice({
           id:"untitled_column",
           name:"untitled_column",
           width: 100,
-          inputs:[]
+          inputGroup:[]
         }]
     }
       ]
@@ -29,7 +29,7 @@ const SectionSlice = createSlice({
           id:"untitled_column",
           name:"untitled_column",
           width: 100,
-          inputs:[]
+          inputGroup:[]
         }]
     },
     defaultColumn: {
@@ -37,7 +37,7 @@ const SectionSlice = createSlice({
       name:"untitled_column",
       width: 100,
       column_order: 0,
-      inputs:[]
+      inputGroup:[]
     },
     currentSection: {},
   },
@@ -81,11 +81,27 @@ const SectionSlice = createSlice({
         state.currentSection.rows[action.payload.rowIndex].name = action.payload.rowName;
     },
     AddInputToSections: (state: any, action: any) => {
-      const { rowIndex, columnIndex, input } = action.payload;
-      console.log(input)
-      if(state.currentSection?.rows?.[rowIndex]?.columns?.[columnIndex] )
+      console.log(action.payload)
+      const { rowIndex, columnIndex, input, inputGroupIndex, sameGroup } = action.payload;
+      let lastInsertIndex = inputGroupIndex;
+      if(state.currentSection?.rows?.[rowIndex]?.columns?.[columnIndex]?.inputGroup )
       {
-        state.currentSection?.rows?.[rowIndex].columns[columnIndex]?.inputs.push(input);
+        if (sameGroup)
+        {
+          if(state.currentSection?.rows?.[rowIndex]?.columns?.[columnIndex]?.inputGroup[inputGroupIndex] && state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup[inputGroupIndex].inputs)
+          {
+            state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup[inputGroupIndex].inputs.push(input);
+          }
+        } else {
+          if(!state.currentSection?.rows?.[rowIndex]?.columns?.[columnIndex]?.inputGroup)
+          state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup = [];
+          const inputGroup = {id:'group'+Date.now() ,input_group_order: state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup.length+1, inputs: [input]};
+          state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup.push(inputGroup);
+          lastInsertIndex = state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup.length - 1;
+        }
+        state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup[lastInsertIndex].inputs.forEach((input: any, index: number) => {
+          input.input_order = index + 1;
+        })
       }
     },
     DeleteColumn:(state:any,action:any)=>{
@@ -95,11 +111,18 @@ const SectionSlice = createSlice({
         state.currentSection.rows[rowIndex].columns = state.currentSection.rows[rowIndex].columns.filter((e:any,i:number) => i !== columnIndex)
       }
     },
+    RemoveInputGroupFromSections: (state: any, action: any) => {
+      const { rowIndex, columnIndex, inputGroupIndex } = action.payload;
+      console.log(action.payload)
+      if(state.currentSection?.rows?.[rowIndex]?.columns?.[columnIndex]?.inputGroup)
+      state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup = 
+      state.currentSection.rows[rowIndex].columns[columnIndex]?.inputGroup?.filter((input:any,i:number) => i !== inputGroupIndex)
+    },
     RemoveInputFromSections: (state: any, action: any) => {
-      const { rowIndex, columnIndex, inputIndex } = action.payload;
-      if(state.currentSection?.rows?.[rowIndex]?.columns?.[columnIndex]?.inputs)
-      state.currentSection.rows[rowIndex].columns[columnIndex].inputs = 
-      state.currentSection.rows[rowIndex].columns[columnIndex]?.inputs?.filter((input:any,i:number) => i !== inputIndex)
+      const { rowIndex, columnIndex, inputIndex,inputGroupIndex } = action.payload;
+      if(state.currentSection?.rows?.[rowIndex]?.columns?.[columnIndex]?.inputGroup && state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup[inputGroupIndex] && state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup[inputGroupIndex]?.inputs)
+      state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup[inputGroupIndex].inputs = 
+      state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup[inputGroupIndex]?.inputs?.filter((input:any,i:number) => i !== inputIndex)
     },
     AddCoulmnToSection: (state: any, action: any) => {
       const { columnData, rowIndex } = action.payload;
@@ -150,17 +173,17 @@ const SectionSlice = createSlice({
       }
     },
     HandleInputChange: (state: any, action: any) => {  
-      const { rowIndex, columnIndex, inputIndex, inputValue } = action.payload;
-      if(state?.currentSection?.rows[rowIndex]?.columns?.[columnIndex]?.inputs)
+      const { rowIndex, columnIndex, inputGroupIndex, inputIndex, inputValue } = action.payload;
+      if(state?.currentSection?.rows[rowIndex]?.columns?.[columnIndex]?.inputGroup?.[inputGroupIndex]?.inputs?.[inputIndex])
       {
-        state.currentSection.rows[rowIndex].columns[columnIndex].inputs[inputIndex].input_entity_id = inputValue;
+        state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup[inputGroupIndex].inputs[inputIndex].input_entity_id = inputValue;
       }
     },
     HandleInputQuantityChange: (state: any, action: any) => {  
-      const { rowIndex, columnIndex, inputIndex, inputValue } = action.payload;
-      if(state?.currentSection?.rows[rowIndex]?.columns?.[columnIndex]?.inputs)
+      const { rowIndex, columnIndex, inputGroupIndex, inputIndex, inputValue } = action.payload;
+      if(state?.currentSection?.rows[rowIndex]?.columns?.[columnIndex]?.inputGroup?.[inputGroupIndex]?.inputs?.[inputIndex])
       {
-        state.currentSection.rows[rowIndex].columns[columnIndex].inputs[inputIndex].quantity_id = inputValue;
+        state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup[inputGroupIndex].inputs[inputIndex].quantity_id = inputValue;
       }
     },
     EditSavedQuantityFieldInSection: (state: any, action: any) => {
@@ -188,16 +211,16 @@ const SectionSlice = createSlice({
       }
     },
     EditQuantityFieldInSection: (state: any, action: any) => {
-      const { rowIndex, columnIndex, inputIndex, show_quantity } = action.payload;
-      if (state.currentSection?.rows && state.currentSection?.rows?.[rowIndex] && state.currentSection?.rows?.[rowIndex].columns && state.currentSection?.rows?.[rowIndex].columns?.[columnIndex] && state.currentSection?.rows?.[rowIndex].columns[columnIndex]?.inputs && state.currentSection?.rows?.[rowIndex].columns[columnIndex]?.inputs?.[inputIndex]) {
-        state.currentSection.rows[rowIndex].columns[columnIndex].inputs[inputIndex].show_quantity = show_quantity;
+      const { rowIndex, columnIndex, inputIndex,inputGroupIndex, show_quantity } = action.payload;
+      if (state?.currentSection?.rows?.[rowIndex]?.columns?.[columnIndex]?.inputGroup?.[inputGroupIndex]?.inputs?.[inputIndex]) {
+        state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup[inputGroupIndex].inputs[inputIndex].show_quantity = show_quantity;
       }
     },
     EditShowLabelInSection: (state: any, action: any) => {
-      const { rowIndex, columnIndex, inputIndex, show_label } = action.payload;
-      console.log(show_label)
-      if (state.currentSection?.rows && state.currentSection?.rows?.[rowIndex] && state.currentSection?.rows?.[rowIndex].columns && state.currentSection?.rows?.[rowIndex].columns?.[columnIndex] && state.currentSection?.rows?.[rowIndex].columns[columnIndex]?.inputs && state.currentSection?.rows?.[rowIndex].columns[columnIndex]?.inputs?.[inputIndex]) {
-        state.currentSection.rows[rowIndex].columns[columnIndex].inputs[inputIndex].show_label = show_label;
+      const { rowIndex, columnIndex, inputIndex,inputGroupIndex, show_label } = action.payload;
+      console.log(action.payload)
+      if (state?.currentSection?.rows?.[rowIndex]?.columns?.[columnIndex]?.inputGroup?.[inputGroupIndex]?.inputs?.[inputIndex]) {
+        state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup[inputGroupIndex].inputs[inputIndex].show_label = show_label;
       }
     },
     recalculateRowOrder: (state: any) => {
@@ -214,32 +237,54 @@ const SectionSlice = createSlice({
     },
     recalculateInputOrder: (state: any, action: any) => {
       const { rowIndex, columnIndex } = action.payload;
-      state.currentSection.rows[rowIndex].columns[columnIndex].inputs.forEach((input: any, index: number) => {
-        input.input_order = index + 1;
+      state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup.forEach((inputGroup: any) => {
+        inputGroup.inputs.forEach((input: any, index: number) => {
+          input.input_order = index + 1;
+        });
       });
     },
     UpdateIsBoldInSection: (state: any, action: any) => {
-      const { rowIndex, columnIndex, inputIndex, is_bold } = action.payload;
+      const { rowIndex, columnIndex, inputIndex,inputGroupIndex, is_bold } = action.payload;
       console.log(action.payload)
-      if (state.currentSection?.rows && state.currentSection?.rows?.[rowIndex] && state.currentSection?.rows?.[rowIndex].columns && state.currentSection?.rows?.[rowIndex].columns?.[columnIndex] && state.currentSection?.rows?.[rowIndex].columns[columnIndex]?.inputs && state.currentSection?.rows?.[rowIndex].columns[columnIndex]?.inputs?.[inputIndex]) {
-        state.currentSection.rows[rowIndex].columns[columnIndex].inputs[inputIndex].is_bold = is_bold;
+      if (state.currentSection?.rows && state.currentSection?.rows?.[rowIndex] && state.currentSection?.rows?.[rowIndex].columns && state.currentSection?.rows?.[rowIndex].columns?.[columnIndex] && state.currentSection?.rows?.[rowIndex].columns[columnIndex]?.inputGroup && state.currentSection?.rows?.[rowIndex].columns[columnIndex]?.inputGroup?.[inputGroupIndex]?.inputs?.[inputIndex]) {
+        state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup[inputGroupIndex].inputs[inputIndex].is_bold = is_bold;
       }
     },
     UpdateFontSizeInSection: (state: any, action: any) => {
-      const { rowIndex, columnIndex, inputIndex, font_size } = action.payload;
-      if (state.currentSection?.rows && state.currentSection?.rows?.[rowIndex] && state.currentSection?.rows?.[rowIndex].columns && state.currentSection?.rows?.[rowIndex].columns?.[columnIndex] && state.currentSection?.rows?.[rowIndex].columns[columnIndex]?.inputs && state.currentSection?.rows?.[rowIndex].columns[columnIndex]?.inputs?.[inputIndex]) {
-        state.currentSection.rows[rowIndex].columns[columnIndex].inputs[inputIndex].font_size = font_size;
+      const { rowIndex, columnIndex, inputIndex,inputGroupIndex, font_size } = action.payload;
+      if (state.currentSection?.rows && state.currentSection?.rows?.[rowIndex] && state.currentSection?.rows?.[rowIndex].columns && state.currentSection?.rows?.[rowIndex].columns?.[columnIndex] && state.currentSection?.rows?.[rowIndex].columns[columnIndex]?.inputGroup && state.currentSection?.rows?.[rowIndex].columns[columnIndex]?.inputGroup?.[inputGroupIndex]?.inputs?.[inputIndex]) {
+        state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup[inputGroupIndex].inputs[inputIndex].font_size = font_size;
       }
     },
     UpdateExtraNoteInSection: (state: any, action: any) => {
-      const { rowIndex, columnIndex, inputIndex, extra_note } = action.payload;
-      if (state.currentSection?.rows && state.currentSection?.rows?.[rowIndex] && state.currentSection?.rows?.[rowIndex].columns && state.currentSection?.rows?.[rowIndex].columns?.[columnIndex] && state.currentSection?.rows?.[rowIndex].columns[columnIndex]?.inputs && state.currentSection?.rows?.[rowIndex].columns[columnIndex]?.inputs?.[inputIndex]) {
-        state.currentSection.rows[rowIndex].columns[columnIndex].inputs[inputIndex].extra_note = extra_note;
+      const { rowIndex, columnIndex, inputIndex,inputGroupIndex, extra_note } = action.payload;
+      if (state.currentSection?.rows && state.currentSection?.rows?.[rowIndex] && state.currentSection?.rows?.[rowIndex].columns && state.currentSection?.rows?.[rowIndex].columns?.[columnIndex] && state.currentSection?.rows?.[rowIndex].columns[columnIndex]?.inputGroup && state.currentSection?.rows?.[rowIndex].columns[columnIndex]?.inputGroup?.[inputGroupIndex]?.inputs?.[inputIndex]) {
+        state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup[inputGroupIndex].inputs[inputIndex].extra_note = extra_note;
       }
+    },
+    AddSameInputInColumn:(state: any, action: any) => {
+      const { rowIndex, columnIndex, inputGroupIndex, input, sameGroup } = action.payload;
+        if (state.currentSection?.rows && state.currentSection?.rows?.[rowIndex] && state.currentSection?.rows?.[rowIndex].columns && state.currentSection?.rows?.[rowIndex].columns?.[columnIndex] && state.currentSection?.rows?.[rowIndex].columns[columnIndex]?.inputGroup) {
+          delete input.input_id;
+          if (sameGroup)
+          {
+            state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup[inputGroupIndex].inputs.push(input);
+             state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup[inputGroupIndex].inputs.forEach((item: any, idx: number) => {
+                item.input_order = idx + 1; // or idx if you use 0-based ordering
+            });
+          } else {
+            const inputGroup = {id:'group'+Date.now(),input_group_order: state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup.length+1, inputs: [input]};
+            state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup.push(inputGroup);
+            const lastIndex = state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup.length - 1;
+            state.currentSection.rows[rowIndex].columns[columnIndex].inputGroup[lastIndex].inputs.forEach((item: any, idx: number) => {
+                item.input_order = idx + 1; // or idx if you use 0-based ordering
+            });
+          }
+        }
     },
   },
 });
 
-export const { SetCurrentSection,SetCurrentSavedHeader,AddRowsToSection, AddInputToSections,RemoveRows,AddCoulmnToSection,AddSectionTemplate,RemoveInputFromSections,EditSectionTemplate, AddInputToHeaderSectionsForSavedData,RemoveInputFromHeaderSectionsForSavedData,HandleInputChange,AddHeaderSection,RemoveHeaderSection,EditQuantityFieldInSection,HandleInputQuantityChange,EditSavedQuantityFieldInSection,EditSectionName,EditSectionRowsName,UpdateWidthOfColumn,DeleteColumn,recalculateRowOrder,recalculateColumnOrder,recalculateInputOrder,EditShowLabelInSection,SetSectionName,UpdateIsBoldInSection,UpdateFontSizeInSection,UpdateExtraNoteInSection } = SectionSlice.actions;
+export const { SetCurrentSection,SetCurrentSavedHeader,AddRowsToSection, AddInputToSections,RemoveRows,AddCoulmnToSection,AddSectionTemplate,RemoveInputFromSections,EditSectionTemplate, AddInputToHeaderSectionsForSavedData,RemoveInputFromHeaderSectionsForSavedData,HandleInputChange,AddHeaderSection,RemoveHeaderSection,EditQuantityFieldInSection,HandleInputQuantityChange,EditSavedQuantityFieldInSection,EditSectionName,EditSectionRowsName,UpdateWidthOfColumn,DeleteColumn,recalculateRowOrder,recalculateColumnOrder,recalculateInputOrder,EditShowLabelInSection,SetSectionName,UpdateIsBoldInSection,UpdateFontSizeInSection,UpdateExtraNoteInSection,AddSameInputInColumn,RemoveInputGroupFromSections } = SectionSlice.actions;
 
 export default SectionSlice.reducer;

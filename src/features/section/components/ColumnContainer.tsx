@@ -13,7 +13,7 @@ function ColumnContainer({
   onDeleteInput,
   onDeleteColumn,
 }: {
-  column: Array<ColumnType>
+  column: ColumnType
   rowIndex?:number
   columnIndex?:number
   onAddInput?: (sectionId: string, inputType: { id: string; name: string }) => void
@@ -44,7 +44,7 @@ function ColumnContainer({
       { <Column 
         columnIndex={columnIndex}
         rowIndex={rowIndex}
-        inputs={column}
+        inputGroup={column?.inputGroup}
         onAddInput={onAddInput}
         onDeleteInput={onDeleteInput}
       /> }

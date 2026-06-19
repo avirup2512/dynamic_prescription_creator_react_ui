@@ -49,21 +49,46 @@ export default function TemplateList()
             createLabel="New template"
             searchPlaceholder="Search templates"
             columns={[
-                { key: 'id', label: 'ID' },
                 { key: 'name', label: 'Name' },
-                { key: 'header', label: 'Header' },
-                { key: 'body', label: 'Body' },
-                { key: 'footer', label: 'Footer' },
                 {
-                    key: 'status',
-                    label: 'Status',
+                    key: 'header', label: 'Header',
                     render: (item) => (
+                        (item.is_header == 1 || item.is_header == true) &&
                         <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
-                            {item.status}
+                            { item?.section_name}
                         </span>
                     ),
-                },
-                { key: 'updatedAt', label: 'Updated' },
+                 },
+                { key: 'body', label: 'Body',
+                    render: (item) => (
+                        (item.is_body == 1 || item.is_body == true) &&
+                        <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
+                            { item?.section_name}
+                        </span>
+                    ), },
+                { key: 'footer', label: 'Footer',
+                    render: (item) => (
+                        (item.is_footer == 1 || item.is_footer == true) &&
+                        <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
+                            { item?.section_name}
+                        </span>
+                    ), },
+                // {
+                //     key: 'status',
+                //     label: 'Status',
+                //     render: (item) => (
+                //         <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
+                //             {item.status}
+                //         </span>
+                //     ),
+                // },
+                { key: 'updated_at', label: 'Updated',
+                    render: (item) => {
+                        const date = new Date(item?.updated_at).toUTCString();
+                        return (
+                            <span>{ date }</span>
+                        )
+                    }},
             ]}
             data={TemplateState.allTemplates}
             actions={actions}

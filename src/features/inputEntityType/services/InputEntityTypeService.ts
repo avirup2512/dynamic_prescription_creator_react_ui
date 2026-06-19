@@ -18,6 +18,7 @@ class InputEntityTypeService {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ name, type, value }),
+      credentials: "include",
     });
     return response.json();
   }
@@ -27,6 +28,7 @@ class InputEntityTypeService {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
     return response.json();
   }
@@ -36,6 +38,7 @@ class InputEntityTypeService {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
     return response.json();
   }
@@ -45,6 +48,7 @@ class InputEntityTypeService {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({ name,value }),
     });
     return response.json();
@@ -55,6 +59,7 @@ class InputEntityTypeService {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
     return response.json();
   }
@@ -64,16 +69,40 @@ class InputEntityTypeService {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
     return response.json();
   }
-  async updateDropdownInputEntity(id: string, { name, newAddedOptions, existingOptions,removedOptionIds }: { name: string; newAddedOptions: string,existingOptions:string,removedOptionIds:string }): Promise<ApiResponse<any>> {
+  async updateDropdownInputEntity(id: string, { name, newAddedOptions, existingOptions,removedOptionIds }: { name: string; newAddedOptions: any,existingOptions:any,removedOptionIds:any }): Promise<ApiResponse<any>> {
     const response = await fetch(`${API_BASE_URL}/input-entities/dropdown/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({ name, newAddedOptions,existingOptions,removedOptionIds }),
+    });
+    return response.json();
+  }
+  async addSingleDropdownEntity(id: string, option:any): Promise<ApiResponse<any>> {
+    const response = await fetch(`${API_BASE_URL}/input-entities/dropdown/addsingleOption/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ id,option }),
+    });
+    return response.json();
+  }
+    async getDropdownContentFromAI(text: string, inputType:string): Promise<ApiResponse<any>> {
+    const response = await fetch(`${API_BASE_URL}/input-entities/suggestdropdown`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ text,inputType }),
     });
     return response.json();
   }

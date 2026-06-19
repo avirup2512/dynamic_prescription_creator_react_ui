@@ -93,9 +93,9 @@ function SectionRow({
                 type="button"
                 variant="ghost"
                 className="h-6 w-6 hover:bg-red-100"
-              >
+            >
                 <Trash2 className="size-3 text-red-600" />
-              </Button>
+          </Button>
         </div>
       </div>
       <div className="grid grid-cols-12 gap-3 min-h-[200px]">

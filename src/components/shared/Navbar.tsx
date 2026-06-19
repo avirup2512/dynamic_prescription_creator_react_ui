@@ -1,10 +1,34 @@
-import { Bell, Search, UserRound } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Bell, LogOut, Search, UserRound } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { Button } from '../ui/button'
 import { ThemeToggle } from '../tiptap-templates/simple/theme-toggle'
+import { useDispatch, useSelector } from 'react-redux'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu'
+import AuthService from '@/features/auth/service/AuthService'
+import { SetLoggedInUser } from '@/features/auth/store/AuthSlice'
 
 function Navbar() {
+  const authSelector = useSelector((state:any) => state.auth);
+  const dispatch = useDispatch<any>();
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    try {
+      await AuthService.logout();
+    } finally {
+      localStorage.removeItem('auth_token');
+      dispatch((SetLoggedInUser as any)({ id: '', email: '' }));
+      navigate('/auth');
+    }
+  }
+
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 px-6 backdrop-blur">
       <div className="min-w-0">
@@ -26,14 +50,39 @@ function Navbar() {
           <Bell />
         </Button>
         <ThemeToggle />
-        <Button asChild variant="ghost" className="h-9 gap-2 px-2">
-          <Link to="/dashboard/profile">
-            <span className="flex size-7 items-center justify-center rounded-full bg-muted">
-              <UserRound className="size-4" />
-            </span>
-            <span className="hidden text-sm font-medium sm:inline">Account</span>
-          </Link>
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-9 gap-2 px-2">
+              {
+                authSelector?.loggedInUser && authSelector.loggedInUser.email ?
+                  <>
+                    <span className="flex size-7 items-center justify-center rounded-full bg-muted">
+                      {authSelector.loggedInUser.email[0]?.toUpperCase()}
+                    </span>
+                  </> :
+                  <>
+                  <span className="flex size-7 items-center justify-center rounded-full bg-muted">
+                    <UserRound className="size-4" />
+                  </span>
+                  </>
+              }
+              <span className="hidden text-sm font-medium sm:inline">Account</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link to="/dashboard/profile">
+                <UserRound className="size-4" />
+                Profile
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" onClick={handleLogout}>
+              <LogOut className="size-4" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   )

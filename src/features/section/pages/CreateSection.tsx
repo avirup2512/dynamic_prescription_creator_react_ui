@@ -1,5 +1,5 @@
 
-import { Plus} from 'lucide-react'
+import { Plus, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from '../../../components/ui/button'
 import { useDispatch, useSelector } from 'react-redux'
@@ -18,6 +18,7 @@ export default function CreateSection() {
   const { id } = useParams();
   const [isEditMode, setIsEditMode] = useState(Boolean(id));
   const [sectionName, setSectionName] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   useEffect(() => {
     if (isEditMode && id) {
       //  dispatch(SetCurrentSection(location.state.editData));
@@ -30,7 +31,6 @@ export default function CreateSection() {
   const getSectionById = async (id:string) => {
     try {
       const fetchedSection = await sectionService.getSectionById(id);
-      console.log(fetchedSection.data)
       if (fetchedSection && fetchedSection.success)
       {
         dispatch(SetCurrentSection(fetchedSection.data));
@@ -62,8 +62,8 @@ export default function CreateSection() {
     dispatch(AddInputToSections(payload));
   }
 
-  function handleDeleteInput(inputIndex: number,rowIndex: number,columnIndex: number) {
-    dispatch(RemoveInputFromSections({rowIndex,columnIndex,inputIndex}));
+  function handleDeleteInput(inputGroupIndex: number,rowIndex: number,columnIndex: number) {
+    dispatch(RemoveInputFromSections({rowIndex,columnIndex,inputGroupIndex}));
   }
   async function saveSectionTemplate()
   {
@@ -71,27 +71,34 @@ export default function CreateSection() {
         name:SectionState?.currentSection?.name,
         rows:SectionState?.currentSection?.rows
     };
-    if(isEditMode) {
-      // Handle update logic here
-      const updatedSection = await sectionService.updateSection(id as string,{data:templateObject});
-      console.log(updatedSection);
-      // dispatch(AddSectionTemplate(templateObject));
-      if(updatedSection && updatedSection.success) {
-        // Handle successful update
-        navigate('/section'); // Redirect to section templates list or show success message
+    setIsSaving(true);
+    try {
+      if(isEditMode) {
+        // Handle update logic here
+        const updatedSection = await sectionService.updateSection(id as string,{data:templateObject});
+        console.log(updatedSection);
+        // dispatch(AddSectionTemplate(templateObject));
+        if(updatedSection && updatedSection.success) {
+          // Handle successful update
+          navigate('/dashboard/section'); // Redirect to section templates list or show success message
+        }
+      } else {
+        const addedSection = await sectionService.createSection({data:templateObject});
+        console.log(templateObject);
+        // dispatch(AddSectionTemplate(templateObject));
+        if(addedSection && addedSection.success) {
+          // Handle successful creation
+          navigate('/dashboard/section'); // Redirect to section templates list or show success message
+        }
       }
-    } else {
-      const addedSection = await sectionService.createSection({data:templateObject});
-      console.log(templateObject);
-      // dispatch(AddSectionTemplate(templateObject));
-      if(addedSection && addedSection.success) {
-        // Handle successful creation
-        navigate('/section'); // Redirect to section templates list or show success message
-      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSaving(false);
     }
   }
   function handleAddHeaderSection(width: string, rowIndex: number) {
-    const headerSectionWidth = Object.values(SectionState?.currentSection?.rows?.headerRows[rowIndex]?.headerSections || {}).reduce(
+    const headerSectionWidth:any = Object.values(SectionState?.currentSection?.rows?.headerRows[rowIndex]?.headerSections || {}).reduce(
       (total:any, headerSection:any) => {
         const sectionWidth = headerSection.width ? parseInt(headerSection.width, 10) : 0
         return total + sectionWidth
@@ -117,9 +124,9 @@ export default function CreateSection() {
             Add header sections and reorder them inside the container.
           </p>
         </div>
-          <Button className="h-9 gap-2" type="button" onClick={saveSectionTemplate}>
-          <Plus className="size-4" />
-          {false ? "Update" : "Save"}
+          <Button className="h-9 gap-2" type="button" onClick={saveSectionTemplate} disabled={isSaving}>
+          {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
+          {isSaving ? "Saving..." : (false ? "Update" : "Save")}
         </Button>
       </div>
       <div className="space-y-2 mb-3">
@@ -133,13 +140,14 @@ export default function CreateSection() {
               placeholder="Enter name"
               defaultValue={SectionState?.currentSection?.name ?? ''}
               required
-                            type="text"
+              type="text"
+              disabled={isSaving}
               onChange={(e:any)=> dispatch(SetSectionName({name: e?.currentTarget?.value}))}
           />
       </div>
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-end">
                 <div className="flex gap-2">
-          <Button className="h-9 gap-2" type="button" onClick={addRows}>
+          <Button className="h-9 gap-2" type="button" onClick={addRows} disabled={isSaving}>
           <Plus className="size-4" />
           Add row
         </Button>

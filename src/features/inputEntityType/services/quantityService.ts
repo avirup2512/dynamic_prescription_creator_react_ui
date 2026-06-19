@@ -17,6 +17,7 @@ class QuantityService {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({ name, type, value }),
     });
     return response.json();
@@ -27,6 +28,7 @@ class QuantityService {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
     return response.json();
   }
@@ -36,6 +38,7 @@ class QuantityService {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
     return response.json();
   }
@@ -45,6 +48,7 @@ class QuantityService {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({ name,newAddedOptions,existingOptions,removedOptionIds }),
     });
     return response.json();
@@ -55,6 +59,7 @@ class QuantityService {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
     return response.json();
   }

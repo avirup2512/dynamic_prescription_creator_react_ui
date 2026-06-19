@@ -12,21 +12,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Button } from "../ui/button"
 
 export type FontSizeOption = 12 | 14 | 16 | 18
 
 export interface InputUtilityOptionsProps {
   inputIndex: number
+  inputGroupIndex: number
   showLabel: boolean
   isBold: boolean
   extraNote: boolean
   fontSize: FontSizeOption
   extraNoteValue?: string
-  onShowLabelChange: (index:number,value: boolean) => void
-  onIsBoldChange: (index:number,value: boolean) => void
-  onExtraNoteChange: (index:number,value: boolean) => void
-  onFontSizeChange: (index: number, value: FontSizeOption) => void
-  onExtraNoteValueChange?: (index: number, value: string) => void
+  onShowLabelChange: (index:number,inputGroup:number,value: boolean) => void
+  onIsBoldChange: (index:number,inputGroup:number,value: boolean) => void
+  onExtraNoteChange: (index:number,inputGroup:number,value: boolean) => void
+  onFontSizeChange: (index: number, inputGroupIndex: number, value: FontSizeOption) => void
+  onExtraNoteValueChange?: (index: number, inputGroupIndex: number, value: string) => void
   className?: string
   showExtraNoteTextBox?: boolean
 }
@@ -44,12 +46,14 @@ function OptionTile({
   label,
   onChange,
   index = 0,
+  inputGroupIndex = 0
 }: {
   id: string
   checked: boolean
   label: string
-  onChange: (index: number, value: boolean) => void
+  onChange: (index: number,inputGroupIndex:number, value: boolean) => void
   index?: number
+  inputGroupIndex?: number
 }) {
   return (
     <Label
@@ -59,7 +63,7 @@ function OptionTile({
       <Checkbox
         id={id}
         checked={checked}
-        onCheckedChange={(value) => onChange(index, value === true)}
+        onCheckedChange={(value) => onChange(index, inputGroupIndex, value === true)}
         className="shrink-0"
       />
       <span className="text-xs font-medium leading-tight text-foreground">
@@ -71,6 +75,7 @@ function OptionTile({
 
 export function InputUtilityOptions({
   inputIndex,
+  inputGroupIndex,
   showLabel,
   isBold,
   extraNote,
@@ -85,11 +90,13 @@ export function InputUtilityOptions({
   showExtraNoteTextBox = false
 }: InputUtilityOptionsProps) {
   const [isExpanded, setIsExpanded] = useState(false)
-
+  const [localExtraNoteValue, setLocalExtraNoteValue] = useState(extraNoteValue || "")
+  const [saveButtonDisabled, setSaveButtonDisabled] = useState(true);
+  console.log(extraNoteValue)
   return (
     <section
       className={cn(
-        "flex flex-col gap-3.5 rounded-xl border border-border/60 bg-card/50 p-3 md:gap-4 md:rounded-2xl md:p-4",
+        "flex flex-col gap-3.5 rounded border border-border/60 bg-card/50 p-1 md:gap-4 md:rounded md:p-1 mt-2",
         className
       )}
     >
@@ -99,10 +106,10 @@ export function InputUtilityOptions({
         aria-expanded={isExpanded}
       >
         <div className="flex flex-col gap-1 text-left">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80 md:text-sm">
+          {/* <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80 md:text-sm">
             Input Options
-          </h3>
-          <p className="text-xs leading-tight text-muted-foreground md:text-sm md:leading-snug">
+          </h3> */}
+          <p className="font-bold text-xs leading-tight text-muted-foreground md:text-sm md:leading-snug">
             Configure input utilities and styling
           </p>
         </div>
@@ -123,6 +130,7 @@ export function InputUtilityOptions({
               label="Show Label"
               onChange={onShowLabelChange}
               index={inputIndex}
+              inputGroupIndex={inputGroupIndex}
             />
             <OptionTile
               id="input-utility-is-bold"
@@ -130,6 +138,7 @@ export function InputUtilityOptions({
               label="Is Bold"
               onChange={onIsBoldChange}
               index={inputIndex}
+              inputGroupIndex={inputGroupIndex}
             />
             <OptionTile
               id="input-utility-extra-note"
@@ -137,6 +146,8 @@ export function InputUtilityOptions({
               label="Extra Note"
               onChange={onExtraNoteChange}
               index={inputIndex}
+              inputGroupIndex={inputGroupIndex}
+
             />
           </div>
 
@@ -146,9 +157,21 @@ export function InputUtilityOptions({
               <textarea
                 className="min-h-[90px] w-full resize-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/50"
                 placeholder="Add an extra note here..."
-                value={extraNoteValue}
-                onChange={(e) => onExtraNoteValueChange && onExtraNoteValueChange(inputIndex, e.target.value)}
+                value={localExtraNoteValue}
+                onChange={(e) => {
+                  setLocalExtraNoteValue(e.target.value);
+                  setSaveButtonDisabled(false);
+                }}
               />
+              <Button 
+                onClick={() => {
+                  onExtraNoteValueChange && onExtraNoteValueChange(inputIndex, inputGroupIndex, localExtraNoteValue);
+                  setSaveButtonDisabled(true);
+                }}
+                disabled={saveButtonDisabled}
+              >
+                save
+              </Button>
             </div>
           )}
 
@@ -159,7 +182,7 @@ export function InputUtilityOptions({
                 Select text size
               </p>
             </div>
-            <Select value={String(fontSize)} onValueChange={(value) => onFontSizeChange(inputIndex, Number(value) as FontSizeOption)}>
+            <Select value={String(fontSize)} onValueChange={(value) => onFontSizeChange(inputIndex, inputGroupIndex, Number(value) as FontSizeOption)}>
               <SelectTrigger className="h-8 w-full text-xs md:h-9 md:text-sm" size="sm">
                 <SelectValue placeholder="Choose size" />
               </SelectTrigger>

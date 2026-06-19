@@ -22,12 +22,17 @@ export type ColumnInputItem = {
   extra_note?: boolean,
   font_size?: number,
 }
+export type InputGroup = {
+  input_group_order: number,
+  section_group_id?: string,
+  inputs: Array<ColumnInputItem>
+}
 export type Column = {
   id: string,
   name?: string,
   width?: string,
   column_order?: number,
-  inputs?:Array<ColumnInputItem>
+  inputGroup?:Array<InputGroup>
 }
 export type Rows = {
   id:string,

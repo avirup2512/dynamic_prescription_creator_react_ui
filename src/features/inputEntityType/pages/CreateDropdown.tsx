@@ -37,7 +37,7 @@ function CreateDropdown()
             setEditedId(id);
             getDropdownEntityById(id);
         }
-    
+        a();
     }, [id]);
     const getDropdownEntityById = async (id:string) => {
         const response = await inputEntityService.getByAllDropdownInputInformationById(id);
@@ -69,6 +69,302 @@ function CreateDropdown()
             ),
         )
     }
+    const data = [
+  {
+    "name": "Fruits",
+    "type": "INPUT_TYPE_2",
+    "value": [
+      { "value": "Apple" },
+      { "value": "Banana" },
+      { "value": "Mango" },
+      { "value": "Papaya" },
+      { "value": "Orange" },
+      { "value": "Sweet Lime" },
+      { "value": "Guava" },
+      { "value": "Pomegranate" },
+      { "value": "Watermelon" },
+      { "value": "Muskmelon" },
+      { "value": "Pineapple" },
+      { "value": "Pear" },
+      { "value": "Peach" },
+      { "value": "Plum" },
+      { "value": "Kiwi" },
+      { "value": "Dragon Fruit" },
+      { "value": "Grapes" },
+      { "value": "Strawberry" },
+      { "value": "Blueberry" },
+      { "value": "Raspberry" },
+      { "value": "Avocado" },
+      { "value": "Coconut" },
+      { "value": "Litchi" },
+      { "value": "Jackfruit" },
+      { "value": "Dates" },
+      { "value": "Fig" }
+    ]
+  },
+  {
+    "name": "Vegetables",
+    "type": "INPUT_TYPE_2",
+    "value": [
+      { "value": "Spinach" },
+      { "value": "Fenugreek Leaves" },
+      { "value": "Amaranth Leaves" },
+      { "value": "Lettuce" },
+      { "value": "Cabbage" },
+      { "value": "Cauliflower" },
+      { "value": "Broccoli" },
+      { "value": "Carrot" },
+      { "value": "Beetroot" },
+      { "value": "Radish" },
+      { "value": "Cucumber" },
+      { "value": "Tomato" },
+      { "value": "Capsicum" },
+      { "value": "Bell Pepper" },
+      { "value": "Pumpkin" },
+      { "value": "Bottle Gourd" },
+      { "value": "Bitter Gourd" },
+      { "value": "Ridge Gourd" },
+      { "value": "Snake Gourd" },
+      { "value": "Brinjal" },
+      { "value": "Okra" },
+      { "value": "Green Beans" },
+      { "value": "Peas" },
+      { "value": "Sweet Potato" },
+      { "value": "Potato" },
+      { "value": "Onion" },
+      { "value": "Garlic" },
+      { "value": "Mushroom" },
+      { "value": "Zucchini" }
+    ]
+  },
+  {
+    "name": "Seeds",
+    "type": "INPUT_TYPE_2",
+    "value": [
+      { "value": "Chia Seeds" },
+      { "value": "Flax Seeds" },
+      { "value": "Sunflower Seeds" },
+      { "value": "Pumpkin Seeds" },
+      { "value": "Sesame Seeds" },
+      { "value": "Watermelon Seeds" },
+      { "value": "Basil Seeds" },
+      { "value": "Hemp Seeds" }
+    ]
+  },
+  {
+    "name": "Nuts",
+    "type": "INPUT_TYPE_2",
+    "value": [
+      { "value": "Almonds" },
+      { "value": "Walnuts" },
+      { "value": "Cashews" },
+      { "value": "Pistachios" },
+      { "value": "Peanuts" },
+      { "value": "Hazelnuts" },
+      { "value": "Pecans" },
+      { "value": "Macadamia Nuts" },
+      { "value": "Brazil Nuts" }
+    ]
+  },
+  {
+    "name": "Whole Grains",
+    "type": "INPUT_TYPE_2",
+    "value": [
+      { "value": "Brown Rice" },
+      { "value": "Red Rice" },
+      { "value": "Black Rice" },
+      { "value": "Oats" },
+      { "value": "Quinoa" },
+      { "value": "Barley" },
+      { "value": "Millet" },
+      { "value": "Jowar" },
+      { "value": "Bajra" },
+      { "value": "Ragi" },
+      { "value": "Whole Wheat" },
+      { "value": "Buckwheat" },
+      { "value": "Corn" }
+    ]
+  },
+  {
+    "name": "Pulses & Lentils",
+    "type": "INPUT_TYPE_2",
+    "value": [
+      { "value": "Moong Dal" },
+      { "value": "Masoor Dal" },
+      { "value": "Toor Dal" },
+      { "value": "Urad Dal" },
+      { "value": "Chana Dal" },
+      { "value": "Rajma" },
+      { "value": "Chickpeas" },
+      { "value": "Black Chickpeas" },
+      { "value": "Green Gram" },
+      { "value": "Soybean" },
+      { "value": "Horse Gram" },
+      { "value": "Lobia" }
+    ]
+  },
+  {
+    "name": "Dairy Products",
+    "type": "INPUT_TYPE_2",
+    "value": [
+      { "value": "Milk" },
+      { "value": "Toned Milk" },
+      { "value": "Skimmed Milk" },
+      { "value": "Curd" },
+      { "value": "Greek Yogurt" },
+      { "value": "Buttermilk" },
+      { "value": "Paneer" },
+      { "value": "Cottage Cheese" },
+      { "value": "Cheese" },
+      { "value": "Ghee" },
+      { "value": "Butter" }
+    ]
+  },
+  {
+    "name": "Protein Sources",
+    "type": "INPUT_TYPE_2",
+    "value": [
+      { "value": "Egg White" },
+      { "value": "Whole Egg" },
+      { "value": "Chicken Breast" },
+      { "value": "Fish" },
+      { "value": "Prawns" },
+      { "value": "Turkey" },
+      { "value": "Lean Mutton" },
+      { "value": "Tofu" },
+      { "value": "Tempeh" },
+      { "value": "Paneer" },
+      { "value": "Soy Chunks" },
+      { "value": "Whey Protein" }
+    ]
+  },
+  {
+    "name": "Cooking Oils",
+    "type": "INPUT_TYPE_2",
+    "value": [
+      { "value": "Mustard Oil" },
+      { "value": "Olive Oil" },
+      { "value": "Coconut Oil" },
+      { "value": "Groundnut Oil" },
+      { "value": "Rice Bran Oil" },
+      { "value": "Sesame Oil" },
+      { "value": "Sunflower Oil" },
+      { "value": "Avocado Oil" }
+    ]
+  },
+  {
+    "name": "Herbs & Spices",
+    "type": "INPUT_TYPE_2",
+    "value": [
+      { "value": "Turmeric" },
+      { "value": "Ginger" },
+      { "value": "Garlic" },
+      { "value": "Cinnamon" },
+      { "value": "Black Pepper" },
+      { "value": "Clove" },
+      { "value": "Cardamom" },
+      { "value": "Cumin" },
+      { "value": "Coriander" },
+      { "value": "Fennel" },
+      { "value": "Ajwain" },
+      { "value": "Mint" },
+      { "value": "Basil" },
+      { "value": "Curry Leaves" }
+    ]
+  },
+  {
+    "name": "Beverages",
+    "type": "INPUT_TYPE_2",
+    "value": [
+      { "value": "Water" },
+      { "value": "Lemon Water" },
+      { "value": "Coconut Water" },
+      { "value": "Green Tea" },
+      { "value": "Black Tea" },
+      { "value": "Herbal Tea" },
+      { "value": "Black Coffee" },
+      { "value": "Milk Coffee" },
+      { "value": "Fresh Juice" },
+      { "value": "Vegetable Juice" }
+    ]
+  },
+  {
+    "name": "Meal Timing",
+    "type": "INPUT_TYPE_2",
+    "value": [
+      { "value": "Early Morning" },
+      { "value": "Breakfast" },
+      { "value": "Mid Morning" },
+      { "value": "Lunch" },
+      { "value": "Evening Snack" },
+      { "value": "Pre Workout" },
+      { "value": "Post Workout" },
+      { "value": "Dinner" },
+      { "value": "Bedtime" }
+    ]
+  },
+  {
+    "name": "Dietary Restrictions",
+    "type": "INPUT_TYPE_2",
+    "value": [
+      { "value": "Vegetarian" },
+      { "value": "Vegan" },
+      { "value": "Eggetarian" },
+      { "value": "Jain Diet" },
+      { "value": "Gluten Free" },
+      { "value": "Lactose Free" },
+      { "value": "Keto" },
+      { "value": "Low Carb" },
+      { "value": "Low Fat" },
+      { "value": "Low Sodium" },
+      { "value": "Diabetic Friendly" },
+      { "value": "High Protein" }
+    ]
+  },
+  {
+    "name": "Medical Conditions",
+    "type": "INPUT_TYPE_2",
+    "value": [
+      { "value": "Diabetes" },
+      { "value": "Prediabetes" },
+      { "value": "Hypertension" },
+      { "value": "Obesity" },
+      { "value": "PCOS" },
+      { "value": "Hypothyroidism" },
+      { "value": "Hyperthyroidism" },
+      { "value": "Fatty Liver" },
+      { "value": "Kidney Disease" },
+      { "value": "Gout" },
+      { "value": "IBS" },
+      { "value": "GERD" },
+      { "value": "Constipation" },
+      { "value": "High Cholesterol" },
+      { "value": "Heart Disease" }
+    ]
+  },
+  {
+    "name": "Prescription Instructions",
+    "type": "INPUT_TYPE_2",
+    "value": [
+      { "value": "Consume Daily" },
+      { "value": "Consume Alternate Days" },
+      { "value": "Avoid" },
+      { "value": "Limit Intake" },
+      { "value": "Soak Overnight" },
+      { "value": "Boiled" },
+      { "value": "Steamed" },
+      { "value": "Grilled" },
+      { "value": "Raw" },
+      { "value": "Without Sugar" },
+      { "value": "Without Salt" },
+      { "value": "Before Meal" },
+      { "value": "After Meal" },
+      { "value": "Empty Stomach" },
+      { "value": "With Water" },
+      { "value": "With Milk" }
+    ]
+  }
+]
     async function saveDropdown(event:any)
     {
         event.preventDefault();
@@ -99,6 +395,11 @@ function CreateDropdown()
             }
         }
         
+    }
+    const a = async() => {
+        data.forEach(async (d: any) => {
+            await inputEntityService.createInputEntityType({ name: d?.name, value: d.value, type: d.type } as any);
+        })
     }
     return(
         <div className="p-6">

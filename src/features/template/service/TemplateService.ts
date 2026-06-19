@@ -17,6 +17,7 @@ class TemplateService {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({data}),
     });
     return response.json();
@@ -27,6 +28,7 @@ class TemplateService {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
     return response.json();
   }
@@ -36,6 +38,7 @@ class TemplateService {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
     return response.json();
   }
@@ -45,6 +48,7 @@ class TemplateService {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({ data }),
     });
     return response.json();
@@ -55,8 +59,20 @@ class TemplateService {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
     return response.json();
+  }
+  async generatePDF(html: string) {
+    const response = await fetch(`${API_BASE_URL}/rendered-outputs/generatePdf`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ html }),
+    });
+    return response.blob();
   }
 }
 
