@@ -5,7 +5,7 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://freelancecollab.com/api/";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://freelancecollab.com/api";
 
 class InputEntityTypeService {
   constructor() {
