@@ -29,7 +29,7 @@ export function DialogProvider({ children }: DialogProviderProps) {
   const api: DialogServiceApi = useMemo(
     () => ({
       alert(options) {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>((resolve: any, reject) => {
           present({
             id: crypto.randomUUID(),
             type: "alert",
@@ -40,7 +40,7 @@ export function DialogProvider({ children }: DialogProviderProps) {
         })
       },
       confirm(options) {
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<boolean>((resolve: any, reject) => {
           present({
             id: crypto.randomUUID(),
             type: "confirm",
@@ -51,7 +51,7 @@ export function DialogProvider({ children }: DialogProviderProps) {
         })
       },
       prompt(options) {
-        return new Promise<string | null>((resolve, reject) => {
+        return new Promise<string | null>((resolve: any, reject) => {
           present({
             id: crypto.randomUUID(),
             type: "prompt",

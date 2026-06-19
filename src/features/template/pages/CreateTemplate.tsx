@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Button } from '../../../components/ui/button'
 import { ArrowRight, Loader2 } from 'lucide-react'
 import TemplateSectionDetails from '../components/TemplateSectionDetails'
-import { useSelector,useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { AddQuantityTextValueToTemplate, AddQuantityValueToTemplate, SelectBodyTemplate, AppendSectionInTemplate, SetCurrentTemplate, SetTemplateVisibility, AddDropdownOptionValueToTemplate, onDeleteInputFromTemplate, RemoveSectionFromTemplate, CurrentTemplate } from '../store/TemplateSlice';
 import type { Section } from '../type/TemplateType';
 import { INPUT_TYPE } from '../../../constant/inputType.enum';
@@ -38,42 +38,38 @@ export default function CreateTemplate() {
   const [selectedFooterSectionId, setSelectedFooterSectionId] = useState('')
   const [isSaving, setIsSaving] = useState(false);
 
-  const [savedInputList,setSavedInputList] = useState<any>({ input:[], dropdown:[], quantity:[], textbox:[]});
+  const [savedInputList, setSavedInputList] = useState<any>({ input: [], dropdown: [], quantity: [], textbox: [] });
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  
 
-  useEffect(()=>{
+
+  useEffect(() => {
     getAllSection();
     getAllInputsEntities();
     dispatch(SetCurrentTemplate(CurrentTemplate))
   }, []);
   useEffect(() => {
     console.log(TemplateState)
-   },[TemplateState])
+  }, [TemplateState])
   useEffect(() => {
-    if (id && isEditMode)
-    {
+    if (id && isEditMode) {
       getTemplateInfoById(id);
     }
-  },[id,isEditMode])
-  async function getAllSection()
-  {
+  }, [id, isEditMode])
+  async function getAllSection() {
     try {
       const fetchedSection = await sectionService.getAllSections();
-      if (fetchedSection && fetchedSection.success)
-      {
+      if (fetchedSection && fetchedSection.success) {
         setSavedSectionList(fetchedSection.data);
       }
     } catch (error) {
-      
+
     }
   }
-  async function getAllInputsEntities()
-  {
+  async function getAllInputsEntities() {
     try {
       const [input, dropdown, textbox, quantity] = await Promise.allSettled([inputEntityService.getInputEntityTypes('INPUT_TYPE_1'),
       inputEntityService.getInputEntityTypes('INPUT_TYPE_2'),
-        inputEntityService.getInputEntityTypes('INPUT_TYPE_3'), quantityService.getAllQuantity()]);
+      inputEntityService.getInputEntityTypes('INPUT_TYPE_3'), quantityService.getAllQuantity()]);
       if (input.status === "fulfilled")
         setSavedInputList((prev: any) => ({ ...prev, input: input.value?.data }))
       if (dropdown.status === "fulfilled")
@@ -81,22 +77,20 @@ export default function CreateTemplate() {
       if (textbox.status === "fulfilled")
         setSavedInputList((prev: any) => ({ ...prev, textbox: textbox.value?.data }))
       if (quantity.status === "fulfilled")
-          setSavedInputList((prev:any)=> ({...prev,quantity:quantity.value?.data}))
+        setSavedInputList((prev: any) => ({ ...prev, quantity: quantity.value?.data }))
     } catch (error) {
-      
+
     }
   }
-   async function getTemplateInfoById(id: any)
-  {
+  async function getTemplateInfoById(id: any) {
     try {
       const fetchedTemplateData = await templateService.getTemplateById(id);
-      if (fetchedTemplateData && fetchedTemplateData.success)
-      {
+      if (fetchedTemplateData && fetchedTemplateData.success) {
         const templateData = fetchedTemplateData.data;
         dispatch(SetCurrentTemplate(templateData));
       }
     } catch (error) {
-      
+
     }
   }
   const [template, setTemplate] = useState<any>({})
@@ -127,7 +121,7 @@ export default function CreateTemplate() {
       return
     }
 
-    dispatch(AppendSectionInTemplate({section:selectedSection, sectionType}))
+    dispatch(AppendSectionInTemplate({ section: selectedSection, sectionType }))
     if (sectionType === 'header') {
       setHeaderPickerOpen(false)
       setSelectedHeaderSectionId('')
@@ -153,7 +147,7 @@ export default function CreateTemplate() {
       .toUpperCase()
       .replace(/\s+/g, '_')
       .replace(/[^\w_]/g, '')
-    setTemplate((prev) => ({
+    setTemplate((prev: any) => ({
       ...prev,
       code,
     }))
@@ -181,27 +175,29 @@ export default function CreateTemplate() {
       setIsSaving(false);
     }
   }
-  const onAddQuantityValue = (quantity:string,rowIndex:number,columnIndex:string,inputIndex:number, sectionType:string) => {
-    const payload = {quantity,rowIndex,columnIndex,inputIndex,sectionType}
-      dispatch(AddQuantityValueToTemplate(payload));
+  const onAddQuantityValue = (quantity: string, rowIndex: number, columnIndex: string, inputIndex: number, sectionType: string) => {
+    const payload = { quantity, rowIndex, columnIndex, inputIndex, sectionType }
+    dispatch(AddQuantityValueToTemplate(payload));
   }
-  const onAddDropdownOptionsValue = (inputKey:string,inputType:string, dropdownOptions:any,rowIndex:number,sectionIndex:string,inputIndex:number,sectionType:string) => { 
-    if(sectionType === 'header'){
-      const payload = {inputKey,inputType, dropdownOptions,headerRowIndex:rowIndex,headerSectionIndex:sectionIndex,inputIndex
+  const onAddDropdownOptionsValue = (inputKey: string, inputType: string, dropdownOptions: any, rowIndex: number, sectionIndex: string, inputIndex: number, sectionType: string) => {
+    if (sectionType === 'header') {
+      const payload = {
+        inputKey, inputType, dropdownOptions, headerRowIndex: rowIndex, headerSectionIndex: sectionIndex, inputIndex
       }
       dispatch(AddDropdownOptionValueToTemplate(payload));
-    }else if(sectionType === 'body'){
-      const payload = {inputKey,inputType, dropdownOptions,bodyRowIndex:rowIndex,bodySectionIndex:sectionIndex,inputIndex
+    } else if (sectionType === 'body') {
+      const payload = {
+        inputKey, inputType, dropdownOptions, bodyRowIndex: rowIndex, bodySectionIndex: sectionIndex, inputIndex
       }
       console.log(dropdownOptions)
       dispatch(AddDropdownOptionValueToTemplate(payload));
     }
   }
-  const onAddInputValue = (inputKey:string,inputType:string, value:string,headerRowIndex:number,headerSectionIndex:string,inputIndex:number) => {
-    console.log("Adding input value:", {inputKey,inputType, value,headerRowIndex,headerSectionIndex,inputIndex})
+  const onAddInputValue = (inputKey: string, inputType: string, value: string, headerRowIndex: number, headerSectionIndex: string, inputIndex: number) => {
+    console.log("Adding input value:", { inputKey, inputType, value, headerRowIndex, headerSectionIndex, inputIndex })
   }
-  const onAddQuantityTextValue = (quantityText:string,rowIndex:number,columnIndex:any,inputIndex:number,sectionType:string) => {
-   
+  const onAddQuantityTextValue = (quantityText: string, rowIndex: number, columnIndex: any, inputIndex: number, sectionType: string) => {
+
   }
 
   const handleBodyInputChange = (rowIndex: number, sectionKey: string, inputIndex: number, value: string) => {
@@ -276,21 +272,21 @@ export default function CreateTemplate() {
       bodySections[sectionKey] = targetSection
     })
   }
-  const onDeleteInput = (rowIndex: number, sectionKey: string, inputIndex: number,sectionType: string) => {
-    console.log("Deleting input:", {rowIndex, sectionKey, inputIndex,sectionType})
-    dispatch(onDeleteInputFromTemplate({rowIndex, columnIndex:sectionKey, inputIndex, sectionType}));
+  const onDeleteInput = (rowIndex: number, sectionKey: string, inputIndex: number, sectionType: string) => {
+    console.log("Deleting input:", { rowIndex, sectionKey, inputIndex, sectionType })
+    dispatch(onDeleteInputFromTemplate({ rowIndex, columnIndex: sectionKey, inputIndex, sectionType }));
   }
 
   const handleTemplateNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(SetCurrentTemplate({ ...TemplateState.CurrentTemplate, name: e.target.value }))
   }
-  const createPrescriptionPdf = async (template:any) => {
+  const createPrescriptionPdf = async (template: any) => {
     console.log(template)
     const html = ReactDOMServer.renderToStaticMarkup(
       <CreatePrescription key={9} initialTemplate={template} />
     );
     console.log(html)
-    const blob:any = await templateService.generatePDF(html);
+    const blob: any = await templateService.generatePDF(html);
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -328,27 +324,27 @@ export default function CreateTemplate() {
             />
           </div>
           <div className="md:col-span-2 grid gap-6 md:grid-cols-3">
-          <TemplateSectionManager
-            sectionType="header"
-            handleToggleSectionVisibility={handleToggleSectionVisibility}
-            handleAddSection={handleAddSection}
-            handleRemoveSection={handleRemoveSection}
-            savedSectionList={savedSectionList}
-          />
-          <TemplateSectionManager
-            sectionType="body"
-            handleToggleSectionVisibility={handleToggleSectionVisibility}
-            handleAddSection={handleAddSection}
-            handleRemoveSection={handleRemoveSection}
-            savedSectionList={savedSectionList}
-          />
-          <TemplateSectionManager
-            sectionType="footer"
-            handleToggleSectionVisibility={handleToggleSectionVisibility}
-            handleAddSection={handleAddSection}
-            handleRemoveSection={handleRemoveSection}
-            savedSectionList={savedSectionList}
-          />
+            <TemplateSectionManager
+              sectionType="header"
+              handleToggleSectionVisibility={handleToggleSectionVisibility}
+              handleAddSection={handleAddSection}
+              handleRemoveSection={handleRemoveSection}
+              savedSectionList={savedSectionList}
+            />
+            <TemplateSectionManager
+              sectionType="body"
+              handleToggleSectionVisibility={handleToggleSectionVisibility}
+              handleAddSection={handleAddSection}
+              handleRemoveSection={handleRemoveSection}
+              savedSectionList={savedSectionList}
+            />
+            <TemplateSectionManager
+              sectionType="footer"
+              handleToggleSectionVisibility={handleToggleSectionVisibility}
+              handleAddSection={handleAddSection}
+              handleRemoveSection={handleRemoveSection}
+              savedSectionList={savedSectionList}
+            />
           </div>
         </div>
         <TemplateSectionDetails
@@ -408,9 +404,9 @@ export default function CreateTemplate() {
             <CreatePrescription initialTemplate={TemplateState.CurrentTemplate} />
           </div>
           <DialogFooter>
-            <Button type="button" disabled={TemplateState.CurrentTemplate?.header.length == 0 && TemplateState.CurrentTemplate?.body.length == 0 && 
+            <Button type="button" disabled={TemplateState.CurrentTemplate?.header.length == 0 && TemplateState.CurrentTemplate?.body.length == 0 &&
               TemplateState.CurrentTemplate?.footer.length == 0
-             } onClick={() => createPrescriptionPdf(TemplateState.CurrentTemplate)}>
+            } onClick={() => createPrescriptionPdf(TemplateState.CurrentTemplate)}>
               Create Prescription
             </Button>
             <Button type="button" onClick={() => setIsPreviewOpen(false)}>

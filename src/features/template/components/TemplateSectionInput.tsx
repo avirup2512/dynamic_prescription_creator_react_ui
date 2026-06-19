@@ -767,7 +767,7 @@ function TemplateSectionInput({
                                                             <div className="mt-2 text-sm text-muted-foreground">
                                                                 <EditableInputField
                                                                     input={input}
-                                                                    onChange={(value) =>
+                                                                    onChange={(value: any) =>
                                                                         EditDropdownText(
                                                                             input?.input_entity_id,
                                                                             value,
