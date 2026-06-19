@@ -12,6 +12,6 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: "../../var/www/freelancecollab.com"
+    outDir: "../../../var/www/freelancecollab.com"
   }
 })
