@@ -20,11 +20,9 @@ function EditableInputField({ input, onChange }: any) {
           : "";
     if (inputValue && inputValue.trim() !== "''") {
       return inputValue;
-    } else if (
-      input?.dropdown_option_text &&
-      input.dropdown_option_text.trim() !== "''"
-    ) {
-      return input.dropdown_option_text;
+    } else if (input?.dropdown_option_value &&
+      input.dropdown_option_value.trim() !== "''") {
+      return input.dropdown_option_value;
     }
     return "";
   };

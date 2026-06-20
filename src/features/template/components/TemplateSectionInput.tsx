@@ -503,6 +503,7 @@ function TemplateSectionInput({
             AddNewDropdownEntityToTemplate({
                 rowIndex,
                 columnIndex,
+                inputGroupIndex: editingQuantityInputGroupIndex,
                 inputIndex: editingDropdownInputIndex,
                 sectionType,
                 sectionIndex,
@@ -763,7 +764,7 @@ function TemplateSectionInput({
                                                                 </Button>
                                                             </div>
                                                         </div>
-                                                        {input?.dropdown_option_text && (
+                                                        {input?.dropdown_option_value && (
                                                             <div className="mt-2 text-sm text-muted-foreground">
                                                                 <EditableInputField
                                                                     input={input}

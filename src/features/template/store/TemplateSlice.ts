@@ -253,7 +253,7 @@ const TemplateSlice = createSlice({
                     targetColumn.inputGroup[inputGroupIndex].inputs && targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex]
                 ) {
                     console.log(dropdownOptionsText)
-                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].dropdown_option_text = dropdownOptionsText;
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].dropdown_option_value = dropdownOptionsText;
                 }
             }
         },
@@ -268,7 +268,7 @@ const TemplateSlice = createSlice({
                     targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].input_entity_name = dropdownName;
                     targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].dropdown_option_values = dropdownOptionValues;
                     targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].dropdown_option_id = dropdownOptionId;
-                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].dropdown_option_text = dropdownOptionText;
+                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].dropdown_option_value = dropdownOptionText;
                 }
             }
         },
@@ -473,6 +473,7 @@ const TemplateSlice = createSlice({
                 const targetColumn = targetRow.columns[columnIndex];
                 if (targetColumn && targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] && Array.isArray(targetColumn.inputGroup[inputGroupIndex].inputs)) {
                     delete input.input_id;
+                    input.input_id = "input" + Date.now();
                     targetColumn.inputGroup[inputGroupIndex].inputs.splice(index, 0, input);
                     targetColumn.inputGroup[inputGroupIndex].inputs.forEach((item: any, idx: number) => {
                         item.input_order = idx + 1; // or idx if you use 0-based ordering

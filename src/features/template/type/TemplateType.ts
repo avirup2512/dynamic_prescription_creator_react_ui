@@ -10,7 +10,7 @@ export type Format = {
 export type ColumnInputItem = {
   id: string
   type: InputType,
-  input_type_name?:string,
+  input_type_name?: string,
   label?: string
   show_label?: boolean
   is_bold?: boolean
@@ -23,7 +23,7 @@ export type ColumnInputItem = {
   quantity_option_id?: string
   template_input_quantity_option_id?: string,
   quantityTextValue?: string
-  template_quantity_value?:string,
+  template_quantity_value?: string,
   input_entity_value?: string,
   input_entity_name?: string,
   template_input_value?: string,
@@ -32,7 +32,7 @@ export type ColumnInputItem = {
   value?: string,
   dropdown_option_values?: Array<any>
   dropdown_option_id?: string
-  dropdown_option_text?:string
+  dropdown_option_value?: string
   inputEntityTypeId?: string
   input_entity_id?: string,
   formatArray?: Array<Format>
@@ -47,30 +47,30 @@ export type Column = {
   id: string,
   name?: string,
   width?: string,
-  inputGroup?:Array<templateInputGroup>
+  inputGroup?: Array<templateInputGroup>
 }
 export type Rows = {
-  id:string,
-  name:string,
-  columns:Column[]
+  id: string,
+  name: string,
+  columns: Column[]
 }
 export type Section = {
-   id:string,
-   name:string,
-   SectionOrder?:number,
-   rows:Array<Rows>
+  id: string,
+  name: string,
+  SectionOrder?: number,
+  rows: Array<Rows>
   createdAt?: string,
-  isVisible:boolean
+  isVisible: boolean
 }
 export type TemplateDataType = {
   id: string,
-    name: string,
-    created_by?: string,
-    created_at?: string,
-    show_header?: boolean,
-    show_body?: boolean,
-    show_footer?: boolean,
-    header:Section[]
-    body:Section[]
-    footer?:Section[]
+  name: string,
+  created_by?: string,
+  created_at?: string,
+  show_header?: boolean,
+  show_body?: boolean,
+  show_footer?: boolean,
+  header: Section[]
+  body: Section[]
+  footer?: Section[]
 }

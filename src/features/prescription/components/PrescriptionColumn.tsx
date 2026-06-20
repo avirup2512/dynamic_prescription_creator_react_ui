@@ -8,8 +8,8 @@ function PrescriptionColumn({ columnData }: any) {
     if (input?.input_type_name === INPUT_TYPE.INPUTTYPE_1) {
       inputParentValue = input?.template_input_value || input?.input_entity_value || '—';
     } else if (input?.input_type_name === INPUT_TYPE.INPUTTYPE_2) {
-      if (input?.dropdown_option_text && input?.dropdown_option_text.length) {
-        inputParentValue = input.dropdown_option_text;
+      if (input?.dropdown_option_value && input?.dropdown_option_value.length) {
+        inputParentValue = input.dropdown_option_value;
       }
     }
     return inputParentValue;
@@ -20,8 +20,8 @@ function PrescriptionColumn({ columnData }: any) {
       if (input?.input_type_name === INPUT_TYPE.INPUTTYPE_1) {
         return input?.template_input_value || input?.input_entity_value || '—';
       } else if (input?.input_type_name === INPUT_TYPE.INPUTTYPE_2) {
-        if (input?.dropdown_option_text && input?.dropdown_option_text.length) {
-          return input.dropdown_option_text;
+        if (input?.dropdown_option_value && input?.dropdown_option_value.length) {
+          return input.dropdown_option_value;
         }
         const dropdownOption = input?.dropdown_option_values?.find(
           (option: any) => option.id === input?.dropdown_option_id
@@ -165,7 +165,7 @@ function PrescriptionColumn({ columnData }: any) {
         return (
           <>
             {
-              group?.or_input_group_id && <p> OR </p>
+              group?.or_input_group_id && <p className="mt-4"><b>OR </b></p>
             }
             {
               group.inputs.map((input: any, inputIndex: number) => {
@@ -188,7 +188,7 @@ function PrescriptionColumn({ columnData }: any) {
                 const quantityOptionValue = getQuantityValue(input);
 
                 // Extra note: show if any input in the group has one
-                const extraNote = input.or_child.find(
+                let extraNote = input.or_child.find(
                   (inp) =>
                     (inp?.extra_note === 1 || inp?.extra_note === true) &&
                     (inp?.template_input_extranotes || inp?.extra_note_value)
@@ -196,7 +196,7 @@ function PrescriptionColumn({ columnData }: any) {
 
                 return (
                   <div key={input?.input_id || groupIndex} className="space-y-1 mb-0">
-                    <div className="leading-7 flex justify-start" style={textStyle}>
+                    <div className="leading-7 flex justify-start items-center gap-3" style={textStyle}>
                       {showLabel && input?.input_entity_name && (
                         <span
                           className="font-semibold mr-1 text-slate-800"
@@ -216,9 +216,9 @@ function PrescriptionColumn({ columnData }: any) {
                       )}
                     </div>
 
-                    {extraNote && (
+                    {input?.extra_note == 1 && (
                       <p className="text-sm italic leading-6 text-slate-600">
-                        {extraNote.template_input_extranotes || extraNote.extra_note_value}
+                        {input.template_input_extranotes || input.extra_note_value}
                       </p>
                     )}
                   </div>
