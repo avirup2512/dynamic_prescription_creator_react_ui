@@ -7,6 +7,33 @@ import FilterBar from "../component/FilterBar";
 import ResultsList from "../component/ResultsList";
 import PreviewPanel from "../component/PreviewPanel";
 import ModalFooter from "../component/ModalFooter";
+import InputTab from "../component/InputTab/InputTab";
+
+type ResultKind = "TEXT" | "DROPDOWN" | "TOGGLE" | "FOOD" | "RECIPE" | "CHECKBOX";
+
+type FilterId =
+    | "all"
+    | "user-inputs"
+    | "dropdowns"
+    | "foods"
+    | "recipes"
+    | "toggles"
+    | "checkboxes";
+
+interface ResultItem {
+    id: string;
+    kind: ResultKind;
+    title: string;
+    meta: string;
+    selected?: boolean;
+}
+
+interface ResultGroup {
+    id: string;
+    heading: string;
+    count: number;
+    items: ResultItem[];
+}
 const resultGroups: ResultGroup[] = [
     {
         id: "user-defined",
@@ -127,18 +154,24 @@ const ParentWrapperContent: React.FC<{ onClose?: () => void }> = ({ onClose }) =
                 <div className="flex min-h-0 flex-1">
                     <SidebarNav activeId={activeNav} onSelect={setActiveNav} />
 
-                    <div className="flex min-w-0 flex-1 flex-col overflow-hidden px-4 py-3">
-                        <SearchField value={query} onChange={setQuery} />
-                        <FilterBar activeFilter={activeFilter} onSelect={setActiveFilter} />
-                        <ResultsMeta count={23} query={query} seconds={0.04} />
-                        <ResultsList
-                            groups={resultGroups}
-                            selectedId={selectedId}
-                            onSelect={setSelectedId}
-                        />
-                    </div>
+                    {activeNav === "inputs" ? (
+                        <InputTab />
+                    ) : (
+                        <>
+                            <div className="flex min-w-0 flex-1 flex-col overflow-hidden px-4 py-3">
+                                <SearchField value={query} onChange={setQuery} />
+                                <FilterBar activeFilter={activeFilter} onSelect={setActiveFilter} />
+                                <ResultsMeta count={23} query={query} seconds={0.04} />
+                                <ResultsList
+                                    groups={resultGroups}
+                                    selectedId={selectedId}
+                                    onSelect={setSelectedId}
+                                />
+                            </div>
 
-                    <PreviewPanel item={selectedItem} />
+                            <PreviewPanel item={selectedItem} />
+                        </>
+                    )}
                 </div>
 
                 <ModalFooter onCancel={() => onClose?.()} onInsert={() => onClose?.()} />
