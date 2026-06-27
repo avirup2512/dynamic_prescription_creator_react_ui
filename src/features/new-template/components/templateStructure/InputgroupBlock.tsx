@@ -1,17 +1,23 @@
-import { useState } from "react";
-import type { ColumnData, InputGroupData } from "../../type/TemplateStructure";
-import ChevronToggle from "./ChevronToggle";
-import PlainIcon from "./PlainIcon";
 import LeafFieldRow from "./LeafFieldRow";
 
-const InputGroupBlock: React.FC<{ inputGroup: InputGroupData; indent: number }> = ({
+interface TemplateInputGroup {
+    id?: string;
+    template_input_group_id?: string;
+    inputs: unknown[];
+}
+
+const InputGroupBlock: React.FC<{ inputGroup: TemplateInputGroup; indent: number }> = ({
     inputGroup,
     indent,
 }) => {
     return (
         <div>
-            {inputGroup.inputs.map((input: any, index: number) => (
-                <LeafFieldRow key={index + Date.now()} input={input} indent={indent + 1} />
+            {inputGroup.inputs.map((input, index) => (
+                <LeafFieldRow
+                    key={(input as { input_id?: string; id?: string }).input_id ?? (input as { id?: string }).id ?? index}
+                    input={input}
+                    indent={indent + 1}
+                />
             ))}
         </div>
     );

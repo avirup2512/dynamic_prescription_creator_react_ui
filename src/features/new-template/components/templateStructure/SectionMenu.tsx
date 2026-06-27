@@ -5,31 +5,31 @@ import {
     DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
-    DropdownMenuPortal,
-    DropdownMenuSeparator,
     DropdownMenuShortcut,
-    DropdownMenuSub,
-    DropdownMenuSubContent,
-    DropdownMenuSubTrigger,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Copy, Ellipsis, Eye, EyeOff, Settings, Trash2 } from "lucide-react";
 import { useState } from "react";
-const SectionMenu = ({ onShowHide, OnEditSection }: any) => {
+interface SectionMenuProps {
+    onShowHide: () => void;
+    OnEditSection: () => void;
+}
+
+const SectionMenu = ({ onShowHide, OnEditSection }: SectionMenuProps) => {
     const [isVisible, setIsVisible] = useState(true);
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button
-                    size="icon"
+                    size="icon-xs"
                     type="button"
                     variant="ghost"
-                    className="flex items-center justify-center border-none border-slate-200 text-slate-500 hover:bg-slate-50"
+                    className="flex items-center justify-center border-none text-slate-400 opacity-0 hover:bg-slate-100 hover:text-slate-700 group-hover:opacity-100"
                 >
-                    <Ellipsis className="h-4 w-4 text-slate-400" strokeWidth={2} />
+                    <Ellipsis className="h-3.5 w-3.5" strokeWidth={2} />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-40" align="start">
+            <DropdownMenuContent className="w-40 text-[12px]" align="start">
                 <DropdownMenuGroup>
                     <DropdownMenuLabel>Section activities</DropdownMenuLabel>
                     <DropdownMenuItem onClick={OnEditSection}>
@@ -38,7 +38,7 @@ const SectionMenu = ({ onShowHide, OnEditSection }: any) => {
                             <Settings className="size-4" />
                         </DropdownMenuShortcut>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={onShowHide}>
+                    <DropdownMenuItem onClick={() => { setIsVisible((visible) => !visible); onShowHide(); }}>
                         Show/Hide
                         <DropdownMenuShortcut>
                             {isVisible ? <Eye className="size-4" /> : <EyeOff className="size-4" />}

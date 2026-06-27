@@ -1,8 +1,7 @@
 import { useState } from "react";
 import type { RowData } from "../../type/TemplateStructure";
 import ChevronToggle from "./ChevronToggle";
-import PlainIcon from "./PlainIcon";
-import { LayoutGrid, Plus, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import ColumnBlock from "./ColumnBlock";
 import { Button } from "@/components/ui/button";
 import AddButton from "./AddButton";
@@ -16,34 +15,34 @@ const RowBlock: React.FC<{ row: RowData; indent: number, index: number }> = ({
     return (
         <div className="relative">
             <div
-                className="flex items-center justify-between gap-2 py-1.5"
-                style={{ paddingLeft: 8 + indent * 24 }}
+                className="group flex items-center justify-between gap-2 rounded-md py-1 pr-1 hover:bg-slate-50"
+                style={{ paddingLeft: 6 + indent * 18 }}
             >
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-1.5">
                     <ChevronToggle open={open} onClick={() => setOpen((o) => !o)} />
                     {/* <PlainIcon icon={LayoutGrid} /> */}
-                    <span className="text-sm text-slate-700">{row.label || "Row" + (index + 1) + ""}</span>
+                    <span className="truncate text-[11.5px] font-medium text-slate-700">{row.label || "Row" + (index + 1) + ""}</span>
                 </div>
-                <div className="flex items-center justify-ends">
+                <div className="flex items-center justify-end opacity-0 transition-opacity group-hover:opacity-100">
                     <Button
-                        size="icon"
+                        size="icon-xs"
                         type="button"
                         variant="ghost"
-                        className="flex items-center justify-center border-none border-slate-200 text-slate-500 hover:bg-white"
+                        className="flex items-center justify-center border-none text-slate-400 hover:bg-white hover:text-red-600"
                     >
-                        <Trash2 className="size-3.5 text-red-600" />
+                        <Trash2 className="size-3.5" />
                     </Button>
                 </div>
             </div>
             {open && (
                 <div className="relative">
                     <span
-                        className="absolute top-0 bottom-0 border-l border-dashed border-slate-200"
-                        style={{ left: 8 + indent * 24 + 10 }}
+                        className="absolute bottom-0 top-0 border-l border-dashed border-slate-200"
+                        style={{ left: 6 + indent * 18 + 9 }}
                         aria-hidden
                     />
-                    {row.columns.map((col: any, index: number) => (
-                        <ColumnBlock key={index + Date.now()} col={col} index={index} indent={indent + 1} />
+                    {row.columns.map((col, index) => (
+                        <ColumnBlock key={col.id ?? index} col={col} index={index} indent={indent + 1} />
                     ))}
                     <AddButton type="column" />
                 </div>

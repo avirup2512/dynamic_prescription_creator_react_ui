@@ -2,17 +2,11 @@ import { useState } from "react";
 import type { SectionItem } from "../../type/TemplateStructure";
 import DragHandle from "./DragHandle";
 import ChevronToggle from "./ChevronToggle";
-import IconBox from "./IconBox";
-import StatusDot from "./StatusDot";
 import RowBlock from "./RowBlock";
-import FieldsBadge from "./FieldsBadge";
-import { Ellipsis, Eye, EyeOff, Layers, Settings, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Layers } from "lucide-react";
 import SectionMenu from "./SectionMenu";
 import { useDispatch } from "react-redux";
 import { SelectTemplateSection } from "../../store/TemplateSlice";
-import AddSectionButton from "./AddSectionButton";
-import AddRowButton from "./AddButton";
 import AddButton from "./AddButton";
 import { useBuilder } from "../../context/BuilderContext";
 
@@ -24,8 +18,6 @@ const SectionRow: React.FC<{ section: SectionItem; indent?: number, index: numbe
 }) => {
     const {
         openEditor,
-        closeEditor,
-        editorType,
     } = useBuilder();
     const dispatch = useDispatch();
     const [open, setOpen] = useState(false);
@@ -41,19 +33,19 @@ const SectionRow: React.FC<{ section: SectionItem; indent?: number, index: numbe
     return (
         <div>
             <div onClick={() => { selectSection() }}
-                className={`group cursor-pointer flex items-center gap-2 py-2 pr-3 ${section.selected
-                    ? "border-l-[3px] border-blue-600 bg-blue-50/70 pl-[5px]"
-                    : "border-l-[3px] border-transparent pl-[5px] hover:bg-slate-50"
+                className={`group flex cursor-pointer items-center gap-1.5 rounded-r-md py-1 pr-1.5 transition-colors ${section.selected
+                    ? "border-l-2 border-blue-500 bg-blue-50/70 pl-1"
+                    : "border-l-2 border-transparent pl-1 hover:bg-slate-50"
                     }`}
             >
-                <div style={{ paddingLeft: indent * 24 }} className="flex items-center gap-2 flex-1 min-w-0">
+                <div style={{ paddingLeft: indent * 18 }} className="flex min-w-0 flex-1 items-center gap-1.5">
                     <DragHandle />
                     {hasChildren ? (
-                        <ChevronToggle open={open} onClick={(e: any) => { e.stopPropagation(), setOpen((o) => !o) }} />
+                        <ChevronToggle open={open} onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); setOpen((o) => !o) }} />
                     ) : (
                         <span className="w-5 shrink-0" />
                     )}
-                    <Layers className="h-4 w-4 text-slate-400 shrink-0" strokeWidth={2} />
+                    <Layers className="h-3.5 w-3.5 shrink-0 text-slate-400" strokeWidth={2} />
                     {/* {
                         section.icon && <IconBox
                             icon={section.icon}
@@ -61,7 +53,7 @@ const SectionRow: React.FC<{ section: SectionItem; indent?: number, index: numbe
                         />
                     } */}
                     <span
-                        className={`text-sm truncate ${section.selected
+                        className={`truncate text-[12px] ${section.selected
                             ? "font-semibold text-slate-900"
                             : "font-medium text-slate-800"
                             }`}
@@ -70,13 +62,13 @@ const SectionRow: React.FC<{ section: SectionItem; indent?: number, index: numbe
                     </span>
 
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex shrink-0 items-center gap-1">
                     <SectionMenu onShowHide={() => { }} OnEditSection={openSectionEditor} />
                 </div>
             </div>
             {open && hasChildren && (
                 <div>
-                    {section.children!.map((row: any, index: number) => (
+                    {section.children!.map((row, index) => (
                         <RowBlock key={row.id} index={index} row={row} indent={indent + 1} />
                     ))}
                     <AddButton type="row" />

@@ -3,9 +3,9 @@ const PlainIcon: React.FC<{ icon: React.ElementType; className?: string }> = ({
     className = "",
 }) => (
     <span
-        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-400 ${className}`}
+        className={`flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-slate-400 ${className}`}
     >
-        <Icon className="h-3.5 w-3.5" strokeWidth={2} />
+        <Icon className="h-3 w-3" strokeWidth={2} />
     </span>
 );
 
