@@ -15,11 +15,11 @@
   "menuColor": "default",
   "menuAccent": "subtle",
   "aliases": {
-    "components": "../../../components",
+    "components": "@/components",
     "utils": "@/lib/utils",
-    "ui": "../../../components/ui",
+    "ui": "@/components/ui",
     "lib": "@/lib",
-    "hooks": "../hooks"
+    "hooks": "@/hooks"
   },
   "registries": {
     "@shadcn-editor": "https://raw.githubusercontent.com/htmujahid/shadcn-editor/refs/heads/main/public/r/{name}.json"

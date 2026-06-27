@@ -288,6 +288,7 @@ export default function CreateTemplate() {
     console.log(html)
     const blob: any = await templateService.generatePDF(html);
     const url = window.URL.createObjectURL(blob);
+    console.log(url)
     const a = document.createElement('a');
     a.href = url;
     a.download = 'document.pdf';

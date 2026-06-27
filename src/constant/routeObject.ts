@@ -1,15 +1,20 @@
 import InputEntityTypeArray from './inputEntityType'
 
-const RouteArray:any = [
+const RouteArray: any = [
     {
-        label:"Prescriptions",
-        url:"prescription",
-        show:true
+        label: "Prescriptions",
+        url: "prescription",
+        show: true
     },
     {
-        label:"Templates",
-        url:"template",
-        show:true
+        label: "Templates",
+        url: "template",
+        show: true
+    },
+    {
+        label: "New Templates",
+        url: "new-template",
+        show: true
     },
     // {
     //     label:"Headers",
@@ -69,20 +74,20 @@ const RouteArray:any = [
     //     ]
     // },
     {
-        label:"Sections",
-        url:"section",
-        show:true,
+        label: "Sections",
+        url: "section",
+        show: true,
     },
     {
-        label:"Patient",
-        url:"patient",
-        show:true
+        label: "Patient",
+        url: "patient",
+        show: true
     },
-     {
-        label:"Input Entity",
-        url:"inputEntity",
-        show:true,
-        children: InputEntityTypeArray.map((entityType:any) => ({
+    {
+        label: "Input Entity",
+        url: "inputEntity",
+        show: true,
+        children: InputEntityTypeArray.map((entityType: any) => ({
             label: entityType.label,
             url: `inputEntity/${entityType.type}`,
             show: true,

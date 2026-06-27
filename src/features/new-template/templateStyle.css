@@ -1,0 +1,17 @@
+.inputCondition{
+    position: absolute;
+    top: -11px;
+    right: 50%;
+}
+.orIndicator {
+    top: -9%;
+    position: absolute;
+    left: 45%;
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius:100%;
+}

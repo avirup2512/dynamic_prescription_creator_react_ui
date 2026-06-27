@@ -106,6 +106,56 @@ class InputEntityTypeService {
     });
     return response.json();
   }
+  async getFoodCategory(): Promise<ApiResponse<any>> {
+    const response = await fetch(`${API_BASE_URL}/food-and-recipe/getFoodCategory`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    return response.json();
+  }
+  async getFoodByCategory(id: string): Promise<ApiResponse<any>> {
+    const response = await fetch(`${API_BASE_URL}/food-and-recipe/getFoodByCategory/${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    return response.json();
+  }
+  async getAllRecipesTagCategory(): Promise<ApiResponse<any>> {
+    const response = await fetch(`${API_BASE_URL}/food-and-recipe/getrecipeTagCategory`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    return response.json();
+  }
+  async getRecipeTagByCategoryId(id: string): Promise<ApiResponse<any>> {
+    const response = await fetch(`${API_BASE_URL}/food-and-recipe/getTagByCategory/${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    return response.json();
+  }
+  async getRecipeByTag(id: string): Promise<ApiResponse<any>> {
+    const response = await fetch(`${API_BASE_URL}/food-and-recipe/getRecipeByTag/${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    return response.json();
+  }
 }
 
 

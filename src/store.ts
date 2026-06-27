@@ -2,17 +2,17 @@ import { configureStore } from "@reduxjs/toolkit";
 import HeaderReducer from "./features/header/store/HeaderSlice";
 import BodyReducer from "./features/body/store/BodySlice";
 import InputEntityTypeSlice from "./features/inputEntityType/store/InputEntityTypeSlice"
-import TemplateReducer from "./features/template/store/TemplateSlice";
+import TemplateReducer from "./features/new-template/store/TemplateSlice";
 import SectionReducer from "./features/section/store/SectionSlice"
 import AuthReducer from "./features/auth/store/AuthSlice";
 export const store = configureStore({
   reducer: {
-    header:HeaderReducer,
-    body:BodyReducer,
-    inputEntityType:InputEntityTypeSlice,
-    template:TemplateReducer,
+    header: HeaderReducer,
+    body: BodyReducer,
+    inputEntityType: InputEntityTypeSlice,
+    template: TemplateReducer,
     section: SectionReducer,
-    auth:AuthReducer
+    auth: AuthReducer
   },
 });
 

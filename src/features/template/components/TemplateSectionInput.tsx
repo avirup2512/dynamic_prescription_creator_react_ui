@@ -68,6 +68,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/tiptap-ui-primitive/dropdown-menu/dropdown-menu";
 import QuantityService from "@/features/inputEntityType/services/quantityService";
+import DropdownModalContent from "./dropdown modal management/DropdownEditComponent";
 export const INPUT_TYPES_LIST = [
     {
         type: INPUT_TYPE.INPUTTYPE_1,
@@ -1031,7 +1032,7 @@ function TemplateSectionInput({
                     No inputs in this section
                 </p>
             )}
-            <DropdownEditModal
+            {/* <DropdownEditModal
                 input={editingDropdownInput}
                 isOpen={editDropdownOpen}
                 onOpenChange={(nextOpen: boolean) => {
@@ -1042,7 +1043,15 @@ function TemplateSectionInput({
                     }
                 }}
                 onSaved={handleDropdownSaved}
-            />
+            /> */}
+            <DropdownModalContent open={editDropdownOpen}
+                onOpenChange={(nextOpen: boolean) => {
+                    setEditDropdownOpen(nextOpen);
+                    if (!nextOpen) {
+                        setEditingDropdownInput(null);
+                        setEditingDropdownInputIndex(null);
+                    }
+                }} />
             <QuantityEditModal
                 input={editingQuantityInput}
                 isOpen={editQuantityOpen}
