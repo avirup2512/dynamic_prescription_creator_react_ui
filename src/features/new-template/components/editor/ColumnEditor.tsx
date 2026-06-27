@@ -10,14 +10,14 @@ import {
 
 export default function ColumnEditor() {
     return (
-        <div className="space-y-6">
+        <div className="space-y-3 rounded-md border border-slate-200 bg-white p-3">
             <div>
-                <label className="text-sm">
+                <label className="mb-1.5 block text-[11px] font-semibold text-slate-600">
                     Width
                 </label>
 
                 <Select>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-8 w-full text-[12px]">
                         <SelectValue />
                     </SelectTrigger>
 

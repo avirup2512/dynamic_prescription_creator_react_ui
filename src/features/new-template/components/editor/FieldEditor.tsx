@@ -14,6 +14,7 @@ import LogicEditor from "./field/LogicEditor";
 export default function FieldEditor() {
     return (
         <Accordion
+            className="rounded-md border border-slate-200 bg-white px-3"
             type="multiple"
             defaultValue={[
                 "general",
@@ -22,31 +23,31 @@ export default function FieldEditor() {
             ]}
         >
             <AccordionItem value="general">
-                <AccordionTrigger>
+                <AccordionTrigger className="py-2 text-[12px] font-semibold text-slate-800">
                     General
                 </AccordionTrigger>
 
-                <AccordionContent>
+                <AccordionContent className="pb-3">
                     <GeneralEditor />
                 </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="style">
-                <AccordionTrigger>
+                <AccordionTrigger className="py-2 text-[12px] font-semibold text-slate-800">
                     Style
                 </AccordionTrigger>
 
-                <AccordionContent>
+                <AccordionContent className="pb-3">
                     <StyleEditor />
                 </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="logic">
-                <AccordionTrigger>
+                <AccordionTrigger className="py-2 text-[12px] font-semibold text-slate-800">
                     Logic
                 </AccordionTrigger>
 
-                <AccordionContent>
+                <AccordionContent className="pb-3">
                     <LogicEditor />
                 </AccordionContent>
             </AccordionItem>

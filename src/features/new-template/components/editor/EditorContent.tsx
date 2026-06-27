@@ -11,7 +11,14 @@ import { editorConfig } from "../../config/editorConfig";
 
 interface Props {
     type: string;
-    data: any;
+    data: unknown;
+}
+
+interface EditorFieldConfig {
+    type: "input" | "switch" | "select";
+    label: string;
+    value?: string;
+    options?: string[];
 }
 
 export default function EditorContent({
@@ -25,7 +32,7 @@ export default function EditorContent({
     if (!config) return null;
 
     return (
-        <div className="p-5">
+        <div className="p-3">
             <Accordion
                 type="multiple"
                 defaultValue={Object.keys(config)}
@@ -36,13 +43,13 @@ export default function EditorContent({
                             key={section}
                             value={section}
                         >
-                            <AccordionTrigger>
+                            <AccordionTrigger className="py-2 text-[12px] font-semibold text-slate-800">
                                 {section}
                             </AccordionTrigger>
 
                             <AccordionContent>
-                                <div className="space-y-4">
-                                    {(fields as any[]).map(
+                                <div className="space-y-3 pb-2">
+                                    {(fields as EditorFieldConfig[]).map(
                                         (field) => (
                                             <PropertyField
                                                 key={field.label}

@@ -7,11 +7,11 @@ const SectionHeader: FC<SectionHeaderProps> = ({
     setSectionName,
     description,
     setDescription,
-}: any) => {
+}) => {
     return (
-        <div className="space-y-4">
+        <div className="space-y-3  bg-white p-3">
             <div>
-                <label className="text-xs font-semibold text-gray-700 block mb-2 tracking-wide">
+                <label className="mb-1.5 block text-[11px] font-semibold tracking-wide text-slate-600">
                     Section Name
                 </label>
                 <div className="relative">
@@ -19,23 +19,23 @@ const SectionHeader: FC<SectionHeaderProps> = ({
                         type="text"
                         value={sectionName}
                         onChange={(e) => setSectionName(e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        className="h-8 w-full rounded-md border border-slate-200 bg-white px-2.5 pr-8 text-[12px] text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                     />
-                    <div className="absolute right-3 top-2.5 text-gray-400">
-                        <Shield size={18} />
+                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+                        <Shield size={14} />
                     </div>
                 </div>
             </div>
 
             <div>
-                <label className="text-xs font-semibold text-gray-700 block mb-2 tracking-wide">
+                <label className="mb-1.5 block text-[11px] font-semibold tracking-wide text-slate-600">
                     Description
                 </label>
                 <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    rows={3}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-white text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                    rows={2}
+                    className="w-full resize-none rounded-md border border-slate-200 bg-white px-2.5 py-2 text-[12px] text-slate-700 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                 />
             </div>
         </div>

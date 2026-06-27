@@ -5,12 +5,13 @@ import { Plus } from "lucide-react";
 
 export default function LogicEditor() {
     return (
-        <div className="space-y-4">
+        <div className="space-y-3">
             <Button
                 variant="outline"
-                className="w-full"
+                size="sm"
+                className="h-8 w-full text-[12px]"
             >
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus className="h-3.5 w-3.5" />
                 Add OR Condition
             </Button>
         </div>

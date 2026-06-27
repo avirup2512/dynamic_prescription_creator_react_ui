@@ -10,9 +10,9 @@ import {
 
 export default function StyleEditor() {
     return (
-        <div className="space-y-4">
+        <div className="space-y-3">
             <Select>
-                <SelectTrigger>
+                <SelectTrigger className="h-8 w-full text-[12px]">
                     <SelectValue placeholder="Width" />
                 </SelectTrigger>
 

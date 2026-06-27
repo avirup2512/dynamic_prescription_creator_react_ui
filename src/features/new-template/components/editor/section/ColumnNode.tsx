@@ -1,39 +1,28 @@
 import { memo, useMemo, useState } from "react";
-import {
-    ChevronDown,
-    ChevronRight,
-    GripVertical,
-    LayoutPanelTop,
-    MoreHorizontal,
-    Plus,
-} from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-import { cn } from "@/lib/utils";
-
-import FieldNode from "./FieldNode";
-import type { Column, ColumnInputItem } from "@/features/section/type/SectionType";
+import type { ColumnInputItem } from "@/features/section/type/SectionType";
 import NodeHeader from "./NodeHeader";
 import FieldItem from "./FieldItem";
 import AddFieldButton from "./AddFieldButton";
-// import type { Column, Input } from "./types";
 
+
+interface ColumnNodeProps {
+    column: {
+        id?: string;
+        column_id?: string;
+        name?: string;
+        column_name?: string;
+        inputGroup?: Array<{ inputs?: ColumnInputItem[] }>;
+    };
+}
 
 const ColumnNode = memo(function ColumnNode({
     column
-}: any) {
+}: ColumnNodeProps) {
     const [open, setOpen] = useState(false);
 
     const fields = useMemo<ColumnInputItem[]>(() => {
-        return column.inputGroup ? column.inputGroup.flatMap((group: any) => group.inputs) : [];
+        return column.inputGroup ? column.inputGroup.flatMap((group) => group.inputs ?? []) : [];
     }, [column]);
 
     return (
@@ -41,17 +30,17 @@ const ColumnNode = memo(function ColumnNode({
             <NodeHeader
                 accent="col" open={open}
                 onToggle={() => { setOpen(!open) }}
-                name={column.name}
+                name={column.name ?? column.column_name ?? "Column"}
                 onRename={() => { }}
                 onDelete={() => { }}
                 meta={`${fields.length} field`}
             />
             {open && (
-                <div className="space-y-1 p-2">
-                    {column?.inputGroup && column.inputGroup.map((inputGroup: any, inputGroupIndex: number) => (
-                        inputGroup?.inputs && inputGroup.inputs.map((input: any, inputIndex: number) => (
+                <div className="space-y-1 border-t border-slate-100 bg-white p-1.5">
+                    {column?.inputGroup && column.inputGroup.map((inputGroup, inputGroupIndex) => (
+                        inputGroup?.inputs && inputGroup.inputs.map((input) => (
                             <FieldItem
-                                key={input.id} field={input}
+                                key={input.input_id ?? input.id ?? inputGroupIndex} field={input}
                                 onRename={() => { }}
                                 onDelete={() => { }}
                             />

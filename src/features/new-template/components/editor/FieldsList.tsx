@@ -1,16 +1,15 @@
-import { Plus } from "lucide-react";
 import FieldItem from "./FieldItem";
 import type { FieldsListProps } from "../../type/ComponentType";
 import type { FC } from "react";
 
 const FieldsList: FC<FieldsListProps> = ({ fields, onDeleteField }) => {
     return (
-        <div className="space-y-3">
-            <label className="text-xs font-semibold text-gray-700 block tracking-wide">
+        <div className="space-y-2.5">
+            <label className="block text-[11px] font-semibold tracking-wide text-slate-600">
                 FIELDS
             </label>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
                 {fields.map((field) => (
                     <FieldItem key={field.id} field={field} onDelete={onDeleteField} />
                 ))}
