@@ -36,14 +36,14 @@ const InputTab = memo(() => {
             </>
           ) : (
             <>
-              <Button type="button" size="sm">
+              {/* <Button type="button" size="sm">
                 <Plus className="h-3.5 w-3.5" />
                 Add {selectedOption.label.replace("User-defined ", "")}
               </Button>
               <Button type="button" variant="outline" size="sm">
                 <Trash2 className="h-3.5 w-3.5" />
                 Delete
-              </Button>
+              </Button> */}
             </>
           )}
         </div>

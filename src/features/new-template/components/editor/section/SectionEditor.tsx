@@ -166,12 +166,12 @@ export default function SectionEditor({ closeEditor }: SectionEditorProps) {
                 )}
 
                 {activeTab === "Layout" && (
-                    <div className="rounded-md border border-dashed border-slate-200 bg-white py-10 text-center text-slate-400">
-                        <p className="text-[12px]">Layout settings</p>
+                    <div className="rounded-md bg-white py-3 text-center text-slate-400">
+                        {/* <p className="text-[12px]">Layout settings</p> */}
                         {currentRows.map((row: { id?: string; template_row_id?: string }) => (
                             <div
                                 key={row.id ?? row.template_row_id}
-                                className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-[0_1px_1px_rgba(15,23,42,0.02)]"
+                                className="overflow-hidden  border border-slate-200 bg-white shadow-[0_1px_1px_rgba(15,23,42,0.02)]"
                             >
                                 <RowNode row={row as any} />
                             </div>

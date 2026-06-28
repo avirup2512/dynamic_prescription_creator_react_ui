@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ModalHeader from "../component/ModalHeader";
 import SidebarNav from "../component/SidebarNav";
 import SearchField from "../component/SearchField";
@@ -9,6 +9,7 @@ import PreviewPanel from "../component/PreviewPanel";
 import ModalFooter from "../component/ModalFooter";
 import InputTab from "../component/InputTab/InputTab";
 import StylePanel from "../component/StylePanel";
+import { useParams } from "react-router-dom";
 
 type ResultKind = "TEXT" | "DROPDOWN" | "TOGGLE" | "FOOD" | "RECIPE" | "CHECKBOX";
 
@@ -127,6 +128,11 @@ const resultGroups: ResultGroup[] = [
     },
 ];
 const ParentWrapperContent: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
+
+    const { templateId, inputType, inputEntityId, optionId } = useParams();
+    useEffect(() => {
+
+    }, [templateId, inputType, inputEntityId, optionId])
     const [activeNav, setActiveNav] = useState("search");
     const [query, setQuery] = useState("vit");
     const [activeFilter, setActiveFilter] = useState<FilterId>("all");
