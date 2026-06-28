@@ -8,6 +8,7 @@ import ResultsList from "../component/ResultsList";
 import PreviewPanel from "../component/PreviewPanel";
 import ModalFooter from "../component/ModalFooter";
 import InputTab from "../component/InputTab/InputTab";
+import StylePanel from "../component/StylePanel";
 
 type ResultKind = "TEXT" | "DROPDOWN" | "TOGGLE" | "FOOD" | "RECIPE" | "CHECKBOX";
 
@@ -156,6 +157,8 @@ const ParentWrapperContent: React.FC<{ onClose?: () => void }> = ({ onClose }) =
 
                     {activeNav === "inputs" ? (
                         <InputTab />
+                    ) : activeNav === "style" ? (
+                        <StylePanel />
                     ) : (
                         <>
                             <div className="flex min-w-0 flex-1 flex-col overflow-hidden px-4 py-3">

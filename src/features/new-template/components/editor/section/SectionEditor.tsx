@@ -13,6 +13,7 @@ import TabNavigation from "../TabNavigation";
 import ActionButtons from "./ActionButtons";
 import RowNode from "./RowNode";
 import SectionHeader from "./SectionHeader";
+import StyleTab from "./StyleTab/StyleTab";
 
 interface SectionEditorProps {
     closeEditor?: () => void;
@@ -144,8 +145,8 @@ export default function SectionEditor({ closeEditor }: SectionEditorProps) {
                 )}
 
                 {activeTab === "Style" && (
-                    <div className="rounded-md border border-dashed border-slate-200 bg-white py-10 text-center text-slate-400">
-                        <p className="text-[12px]">Style settings</p>
+                    <div className="space-y-2">
+                        <StyleTab />
                     </div>
                 )}
 
