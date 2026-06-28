@@ -6,13 +6,12 @@ import { useEffect } from 'react';
 import { SetAllTemplateList } from "../store/TemplateSlice";
 import type { ListingAction } from '@/components/shared/type/ListingType';
 import { Edit, Trash2 } from 'lucide-react';
-export default function TemplateList()
-{
+export default function TemplateList() {
     const TemplateState = useSelector((state: any) => state.template);
     const templateService = TemplateService;
     const dispatch = useDispatch();
     const navigate = useNavigate()
-    const onCreate = ()=>{
+    const onCreate = () => {
         navigate('create');
     }
     useEffect(() => {
@@ -44,7 +43,7 @@ export default function TemplateList()
     return (
         <ListingPage
             title="Full Prescription Templates"
-            onCreate = {onCreate}
+            onCreate={onCreate}
             description="Create and manage complete prescription templates combining headers, bodies, and footers."
             createLabel="New template"
             searchPlaceholder="Search templates"
@@ -55,24 +54,28 @@ export default function TemplateList()
                     render: (item) => (
                         (item.is_header == 1 || item.is_header == true) &&
                         <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
-                            { item?.section_name}
+                            {item?.section_name}
                         </span>
                     ),
-                 },
-                { key: 'body', label: 'Body',
+                },
+                {
+                    key: 'body', label: 'Body',
                     render: (item) => (
                         (item.is_body == 1 || item.is_body == true) &&
                         <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
-                            { item?.section_name}
+                            {item?.section_name}
                         </span>
-                    ), },
-                { key: 'footer', label: 'Footer',
+                    ),
+                },
+                {
+                    key: 'footer', label: 'Footer',
                     render: (item) => (
                         (item.is_footer == 1 || item.is_footer == true) &&
                         <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
-                            { item?.section_name}
+                            {item?.section_name}
                         </span>
-                    ), },
+                    ),
+                },
                 // {
                 //     key: 'status',
                 //     label: 'Status',
@@ -82,13 +85,15 @@ export default function TemplateList()
                 //         </span>
                 //     ),
                 // },
-                { key: 'updated_at', label: 'Updated',
+                {
+                    key: 'updated_at', label: 'Updated',
                     render: (item) => {
-                        const date = new Date(item?.updated_at).toUTCString();
+                        const date = new Date(item?.created_at).toUTCString();
                         return (
-                            <span>{ date }</span>
+                            <span>{date}</span>
                         )
-                    }},
+                    }
+                },
             ]}
             data={TemplateState.allTemplates}
             actions={actions}
