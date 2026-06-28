@@ -20,8 +20,9 @@ interface SectionEditorProps {
 }
 
 interface EditorSectionState {
-    defaultSection?: unknown;
+    defaultSection?: any;
     currentSection?: {
+        id?: string;
         name?: string;
         description?: string;
         rows?: Array<{ id?: string; template_row_id?: string }>;
@@ -50,13 +51,14 @@ export default function SectionEditor({ closeEditor }: SectionEditorProps) {
         if (selectedId && isEditMode) {
             getSectionDetailsById(selectedId);
         } else {
-            dispatch(SetCurrentSection(SectionState?.defaultSection));
+            dispatch(SetCurrentSection(SectionState?.defaultSection ?? {}));
         }
     }, [SectionState?.defaultSection, dispatch, getSectionDetailsById, selectedId, isEditMode]);
 
     const [activeTab, setActiveTab] = useState<string>("Content");
     const [sectionName, setSectionName] = useState<string>("Patient Information");
     const [description, setDescription] = useState<string>("No Description");
+    const [isSaving, setIsSaving] = useState(false);
     const [fields] = useState<Field[]>([
         { id: 1, name: "Full Name", type: "Text", required: true },
         { id: 2, name: "Date of Birth", type: "Date", required: true },
@@ -75,18 +77,51 @@ export default function SectionEditor({ closeEditor }: SectionEditorProps) {
     ]);
 
     const handleCancel = (): void => {
-        alert("Changes canceled");
+        closeEditor?.();
     };
 
-    const handleSave = (): void => {
-        alert("Changes saved");
-        console.log({ sectionName, description, fields, rows });
+    const handleSave = async (): Promise<void> => {
+        const currentSection = (SectionState?.currentSection ?? SectionState?.defaultSection ?? {}) as any;
+        const trimmedName = sectionName?.trim() || currentSection?.name?.trim();
+
+        if (!trimmedName) {
+            alert("Section name is required.");
+            return;
+        }
+
+        setIsSaving(true);
+
+        try {
+            const payload = {
+                ...(currentSection ?? {}),
+                name: trimmedName,
+                description: description?.trim() || currentSection?.description || "",
+                rows: currentSection?.rows ?? [],
+            };
+
+            const sectionId = currentSection?.id || selectedId;
+            const response = sectionId
+                ? await sectionService.updateSection(sectionId, { data: payload })
+                : await sectionService.createSection({ data: payload });
+
+            if (response?.success) {
+                dispatch(SetCurrentSection(response.data || payload));
+                closeEditor?.();
+            } else {
+                alert(response?.message || "Unable to save section.");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Unable to save section.");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const currentRows = SectionState?.currentSection?.rows ?? [];
 
     return (
-        <div className="flex h-screen w-[360px] flex-col border-l border-slate-200 bg-[#fbfbfa] shadow-[0_8px_30px_rgba(15,23,42,0.08)]">
+        <div className="flex h-screen max-h-screen w-[360px] flex-col border-l border-slate-200 bg-[#fbfbfa] shadow-[0_8px_30px_rgba(15,23,42,0.08)]">
             <div className="shrink-0 border-b border-slate-200/80 bg-white px-3 py-3">
                 <div className="flex items-center justify-between gap-2">
                     <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -117,13 +152,13 @@ export default function SectionEditor({ closeEditor }: SectionEditorProps) {
                 <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
             </div>
 
-            <div className="min-h-0 flex-1 bg-white space-y-3 overflow-y-auto px-3 py-3">
+            <div className="min-h-0 flex-1 overflow-y-auto bg-white px-3 py-3">
                 {activeTab === "Content" && (
                     <div className="space-y-3">
                         <SectionHeader
-                            sectionName={SectionState?.currentSection?.name}
+                            sectionName={SectionState?.currentSection?.name ?? "Patient Information"}
                             setSectionName={setSectionName}
-                            description={SectionState?.currentSection?.description}
+                            description={SectionState?.currentSection?.description ?? "No Description"}
                             setDescription={setDescription}
                         />
 
@@ -138,7 +173,7 @@ export default function SectionEditor({ closeEditor }: SectionEditorProps) {
                                 key={row.id ?? row.template_row_id}
                                 className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-[0_1px_1px_rgba(15,23,42,0.02)]"
                             >
-                                <RowNode row={row} />
+                                <RowNode row={row as any} />
                             </div>
                         ))}
                     </div>
@@ -163,9 +198,12 @@ export default function SectionEditor({ closeEditor }: SectionEditorProps) {
                 )}
             </div>
 
-            <div className="shrink-0 border-t border-slate-200 bg-white px-3 py-2.5">
-                <p className="mb-2 text-[11px] text-slate-500">Last edited by Dr. Patel - 2m ago</p>
-                <ActionButtons onCancel={handleCancel} onSave={handleSave} />
+            <div className="sticky bottom-0 z-10 shrink-0 border-t border-slate-200 bg-white px-3 py-2.5">
+                <div className="mb-2 text-[11px] text-slate-500">Last edited by Dr. Patel - 2m ago</div>
+                <div className="space-y-2">
+                    <ActionButtons onCancel={handleCancel} onSave={handleSave} />
+                    {isSaving ? <p className="text-[11px] text-blue-600">Saving section…</p> : null}
+                </div>
             </div>
         </div>
     );
