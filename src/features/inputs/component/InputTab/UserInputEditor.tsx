@@ -1,5 +1,5 @@
 import { Plus, Save, Trash2, TypeIcon } from "lucide-react";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,51 +8,132 @@ import { initialUserInputs } from "./input-tab-mock-data";
 import { InputPreviewPanel, PreviewField, SuccessLine } from "./InputPreviewPanel";
 import SelectableList from "./SelectableList";
 import type { SelectableListItem, UserInputItem } from "./input-tab-types";
+import InputEntityTypeService from "@/features/inputEntityType/services/InputEntityTypeService";
+import { INPUT_TYPE } from "@/constant/inputType.enum";
+import type { InputEntityType } from "@/features/inputEntityType/type/InputEntityType";
+import { isValidUUID } from "../../utils/utilsService";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
+import { AddInputTypeToTemplate, toggleCallTemplateAPI } from "@/features/new-template/store/TemplateSlice";
+import { addNewInput, deleteInput, setAllInputs, setSelectedInput, updateInput, setSearchItems, updateInputAfterSaveAPICall } from "../../store/InputSlice";
 
-const createInput = (index: number): UserInputItem => ({
+const createInput = (index: number): InputEntityType => ({
   id: `custom-input-${Date.now()}`,
-  label: `New Input ${index}`,
+  name: `New Input ${index}`,
   value: "",
   category: "User-defined",
 });
 
 const UserInputEditor = memo(() => {
-  const [items, setItems] = useState<UserInputItem[]>(initialUserInputs);
+  const inputEntityservice = InputEntityTypeService;
+  const InputState = useSelector((state: any) => state.inputs);
+  const dispatch = useDispatch();
+  const navigate = useNavigate()
+  const { rowIndex, columnIndex, inputGroupIndex, sectionType, sectionId, inputId } = useParams();
+  useEffect(() => {
+    getAllExisitngInput();
+    setDisableButton(true);
+    if (inputId) {
+      selectInput(inputId)
+    }
+  }, [inputId])
   const [selectedId, setSelectedId] = useState(initialUserInputs[0].id);
+  const [selected, setSelected] = useState<any>({});
+  const [searchText, setSearchText] = useState<string>('');
+  const [disableButton, setDisableButton] = useState<boolean>(true);
+  const getAllExisitngInput = async () => {
+    try {
+      const fetchedInputList = await inputEntityservice.getInputEntityTypes(INPUT_TYPE.INPUTTYPE_1);
+      if (fetchedInputList && fetchedInputList.success) {
+        dispatch(setAllInputs(fetchedInputList?.data));
+        if (!inputId) {
+          setSelectedId(fetchedInputList?.data[0].id);
+          const getDefaultSelectionValue = await inputEntityservice.getInputEntityTypeById(fetchedInputList?.data[0].id, INPUT_TYPE.INPUTTYPE_1);
+          if (getDefaultSelectionValue && getDefaultSelectionValue.success) {
+            setSelected(getDefaultSelectionValue?.data?.[0]);
+            dispatch(setSelectedInput(getDefaultSelectionValue?.data?.[0]));
+          }
+        }
+      }
+    } catch (error) {
 
-  const selected = items.find((item) => item.id === selectedId) ?? items[0];
-  const listItems = useMemo<SelectableListItem[]>(
-    () =>
-      items.map((item) => ({
-        id: item.id,
-        title: item.label,
-        meta: `Input - ${item.category}`,
-        icon: TypeIcon,
-        chips: item.value ? [item.value] : undefined,
-      })),
-    [items],
-  );
-
-  const updateSelected = useCallback((patch: Partial<UserInputItem>) => {
-    setItems((current) => current.map((item) => (item.id === selectedId ? { ...item, ...patch } : item)));
+    }
+  }
+  const updateSelected = useCallback((id: number, patch: Partial<InputEntityType>) => {
+    setSelected((current: any) => ({ ...current, ...patch }));
+    const payload = { selectedId: id, patch };
+    dispatch(updateInput(payload as any));
+    setDisableButton(false);
   }, [selectedId]);
 
   const addInput = useCallback(() => {
-    setItems((current) => {
-      const next = createInput(current.length + 1);
-      setSelectedId(next.id);
-      return [next, ...current];
-    });
+    const next = createInput(InputState?.allInputs.length + 1);
+    setSelectedId(next.id);
+    setSelected(next)
+    dispatch(addNewInput(next as any));
+    setDisableButton(false);
   }, []);
 
-  const deleteSelected = useCallback(() => {
-    setItems((current) => {
-      const remaining = current.filter((item) => item.id !== selectedId);
-      setSelectedId(remaining[0]?.id ?? "");
-      return remaining;
-    });
-  }, [selectedId]);
+  const deleteSelected = useCallback(async () => {
+    try {
+      const deletedItem = await inputEntityservice.deleteInputEntityType(selectedId);
+      if (deletedItem && deletedItem.success) {
+        dispatch(deleteInput(selectedId as any));
+        if (InputState?.allInputs?.length > 0) {
+          selectInput(InputState?.allInputs[0]?.id)
+        }
+        setDisableButton(true);
+      }
+    } catch (error) {
 
+    }
+  }, [selectedId]);
+  const selectInput = async (id: string) => {
+    try {
+      if (id) {
+        setSelectedId(id);
+        const fetchedInputDetails = await inputEntityservice.getInputEntityTypeById(id, INPUT_TYPE.INPUTTYPE_1);
+        if (fetchedInputDetails && fetchedInputDetails.success) {
+          setSelectedId(fetchedInputDetails?.data?.[0]?.id);
+          setSelected(fetchedInputDetails?.data?.[0]);
+          dispatch(setSelectedInput(fetchedInputDetails?.data?.[0]));
+          setDisableButton(true);
+        }
+      }
+    } catch (error) {
+
+    }
+  }
+  const saveInput = async () => {
+    try {
+      const payload = {
+        name: selected?.name,
+        value: selected?.value ? selected?.value : "-",
+        type: INPUT_TYPE.INPUTTYPE_1
+      }
+      if (selected?.id && isValidUUID(selected?.id)) {
+        const updateResponse = await inputEntityservice.updateInputEntityType(selected?.id, payload);
+        if (updateResponse && updateResponse.success) {
+          dispatch(updateInputAfterSaveAPICall({ patch: payload } as any));
+          // getAllExisitngInput();
+          setDisableButton(true);
+        }
+      } else {
+        const createResponse = await inputEntityservice.createInputEntityType(payload);
+        if (createResponse && createResponse.success) {
+          // getAllExisitngInput();
+          setDisableButton(true);
+        }
+      }
+    } catch (error) {
+
+    }
+  }
+  const onSearchChange = (value: string) => {
+    setSearchText(value);
+    const filteredItems = InputState?.allInputs.filter((item: any) => item.name?.toLowerCase().includes(value.toLowerCase()));
+    dispatch(setSearchItems(filteredItems as any));
+  }
   if (!selected) {
     return (
       <div className="grid h-full min-h-0 grid-cols-[minmax(0,1fr)_280px] gap-3">
@@ -65,7 +146,12 @@ const UserInputEditor = memo(() => {
       </div>
     );
   }
-
+  const addInputToSection = async () => {
+    const payload = { sectionId, rowIndex: parseInt((rowIndex ? rowIndex : '')), columnIndex: parseInt((columnIndex ? columnIndex : '')), input: selected, inputGroupIndex: parseInt((inputGroupIndex ? inputGroupIndex : '')), sameGroup: true, sectionType: sectionType ? sectionType : '' }
+    dispatch(AddInputTypeToTemplate(payload));
+    dispatch(toggleCallTemplateAPI(false));
+    navigate(-1);
+  }
   return (
     <div className="grid h-full min-h-0 grid-cols-[minmax(0,1fr)_300px] gap-3 overflow-hidden">
       <section className="min-h-0 overflow-y-auto rounded-lg border border-slate-200 bg-white p-3">
@@ -81,24 +167,26 @@ const UserInputEditor = memo(() => {
           <div>
             <label className="mb-1 block text-[12px] font-semibold text-slate-700">Existing Input</label>
             <select
-              value={selected.id}
-              onChange={(event) => setSelectedId(event.target.value)}
+              value={selectedId}
+              onChange={(event) => {
+                selectInput(event.target.value);
+              }}
               className="h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-[13px] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
-              {items.map((item) => (
+              {InputState?.allInputs.map((item: any) => (
                 <option key={item.id} value={item.id}>
-                  {item.label}
+                  {item.name}
                 </option>
               ))}
             </select>
           </div>
           <div>
             <label className="mb-1 block text-[12px] font-semibold text-slate-700">Input Label</label>
-            <Input value={selected.label} onChange={(event) => updateSelected({ label: event.target.value })} />
+            <Input value={selected?.name} onChange={(event) => updateSelected(selected?.id, { name: event.target.value })} />
           </div>
           <div>
             <label className="mb-1 block text-[12px] font-semibold text-slate-700">Input Value</label>
-            <Input value={selected.value} onChange={(event) => updateSelected({ value: event.target.value })} />
+            <Input value={selected?.value} onChange={(event) => updateSelected(selected?.id, { value: event.target.value })} />
           </div>
           <div className="flex items-center justify-between border-t border-slate-100 pt-3">
             <Button type="button" variant="destructive" size="sm" onClick={deleteSelected}>
@@ -106,10 +194,10 @@ const UserInputEditor = memo(() => {
               Delete
             </Button>
             <div className="flex gap-2">
-              <Button type="button" variant="outline" size="sm">
+              {/* <Button type="button" variant="outline" size="sm">
                 Select
-              </Button>
-              <Button type="button" size="sm">
+              </Button> */}
+              <Button disabled={disableButton} type="button" size="sm" onClick={() => { saveInput() }}>
                 <Save className="h-3.5 w-3.5" />
                 Save input
               </Button>
@@ -121,19 +209,21 @@ const UserInputEditor = memo(() => {
       <div className="min-h-0 space-y-3 overflow-y-auto pr-1">
         <InputPreviewPanel
           title="Live preview"
-          footer={<SuccessLine label={selected.label ? "Input label valid" : "Add an input label"} />}
+        // footer={<SuccessLine label={selected.name ? "Input label valid" : "Add an input label"} addInput={addInputToSection} />}
         >
-          <PreviewField label={selected.label || "Input label"} value={selected.value || "Value appears here"} />
+          <PreviewField label={selected.name || "Input label"} value={selected.value || "Value appears here"} />
         </InputPreviewPanel>
         <SelectableList
           title="All inputs"
-          countLabel={`${items.length} items`}
-          items={listItems}
+          countLabel={`${InputState?.searchItems.length} items`}
+          items={InputState?.searchItems}
           selectedId={selected.id}
-          onSelect={setSelectedId}
+          onSelect={selectInput}
+          search={searchText}
+          onSearchChange={onSearchChange}
         />
       </div>
-    </div>
+    </div >
   );
 });
 

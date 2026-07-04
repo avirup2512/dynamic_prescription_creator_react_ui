@@ -42,7 +42,7 @@ export default function HoverToolbar({ mode, label, onSettings, onDelete, quickA
                 }}
                 className="pointer-events-auto flex h-6 w-6 items-center justify-center text-slate-400 hover:text-slate-700"
             >
-                <Settings className="h-3.5 w-3.5" />
+                <Settings className="h-3.5 w-3.5" onClick={onSettings} />
             </button>
             {quickActions && quickActions.length > 0 ? (
                 <Popover>

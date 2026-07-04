@@ -21,8 +21,8 @@ interface RowRendererProps {
 }
 
 export default function RowRenderer({ row, mode, selection, onSelect, sectionId, onDeleteRow, onHideRow, onAddColumn, onDeleteColumn, onHideColumn, onQuickStyleInput, onOpenFieldEditor }: RowRendererProps) {
-    const visibleColumns = row.columns.slice(0, 3);
-    const rowLabel = `Row ${row.id.split("-").pop() ?? "1"}`;
+    const visibleColumns = row?.columns.slice(0, 3);
+    const rowLabel = `Row ${row?.id?.split("-").pop() ?? "1"}`;
 
     if (row.isVisible === false) return null;
 

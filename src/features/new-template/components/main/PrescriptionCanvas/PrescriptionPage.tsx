@@ -2,6 +2,7 @@ import type { CanvasMode, CanvasPage, CanvasSelection } from "./prescriptionCanv
 import EditLayer from "./EditLayer";
 import PreviewLayer from "./PreviewLayer";
 import { FolderOpen } from "lucide-react";
+import { useSelector } from "react-redux";
 
 interface PrescriptionPageProps {
     page: CanvasPage;

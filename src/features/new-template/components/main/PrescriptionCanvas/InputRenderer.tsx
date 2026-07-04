@@ -47,6 +47,8 @@ function InputFrame({
 }
 
 function ClinicInput({ input }: { input: CanvasInput }) {
+    alert()
+    console.log(input)
     return (
         <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-sky-100 bg-sky-50 text-sky-600">
@@ -137,7 +139,7 @@ function SignatureInput({ input }: { input: CanvasInput }) {
 export default function InputRenderer({ input, mode, selection, onSelect, sectionId, rowId, columnId, onQuickStyleInput, onOpenFieldEditor }: InputRendererProps) {
     const selected = selection.inputId === input.id;
     const selectInput = () => onSelect({ inputId: input.id });
-
+    console.log("InputRenderer", input, mode, selection, sectionId, rowId, columnId)
     if (!input.variant || input.variant === "field") {
         return <EditableField input={input} mode={mode} selected={selected} onSelect={selectInput} sectionId={sectionId} rowId={rowId} columnId={columnId} onQuickStyle={() => onQuickStyleInput?.(sectionId, rowId, columnId, input.id)} onSettings={() => onOpenFieldEditor?.(input.id)} />;
     }

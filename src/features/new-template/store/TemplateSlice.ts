@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import { ChevronDown, FileText, Type } from "lucide-react";
 import type { TemplateDataType } from "../type/TemplateType";
 import { INPUT_TYPE } from "../../../constant/inputType.enum";
+import { id } from "date-fns/locale";
 
 export const INPUT_TYPES = [
     { id: INPUT_TYPE.INPUTTYPE_1, name: "Input", color: "bg-blue-50 border-blue-200", icon: Type },
@@ -15,27 +16,9 @@ export const CurrentTemplate: TemplateDataType = {
     show_header: true,
     show_body: true,
     show_footer: true,
-    header: {
-        kind: "folder",
-        id: "header",
-        label: "Header",
-        count: 0,
-        children: []
-    },
-    body: {
-        kind: "folder",
-        id: "body",
-        label: "Body",
-        count: 0,
-        children: []
-    },
-    footer: {
-        kind: "folder",
-        id: "footer",
-        label: "Footer",
-        count: 0,
-        children: []
-    }
+    header: [],
+    body: [],
+    footer: [],
 }
 
 const sectionTypes = ["header", "body", "footer"] as const;
@@ -64,6 +47,24 @@ function recalculateSectionOrder(currentTemplate: any) {
     });
 }
 
+function normalizeInputOrder(inputs: any[] = []) {
+    if (!Array.isArray(inputs)) return inputs;
+
+    return inputs.map((item: any, idx: number) => ({
+        ...item,
+        input_order: idx + 1,
+    }));
+}
+
+function normalizeInputGroupOrder(inputGroups: any[] = []) {
+    if (!Array.isArray(inputGroups)) return inputGroups;
+
+    return inputGroups.map((item: any, idx: number) => ({
+        ...item,
+        input_group_order: idx + 1,
+    }));
+}
+
 const TemplateSlice = createSlice({
     name: "template",
     initialState: {
@@ -72,6 +73,7 @@ const TemplateSlice = createSlice({
         allSavedBody: [],
         CurrentTemplate,
         currentSavedBody: {},
+        callTemplateAPI: true,
     },
     reducers: {
         SetAllTemplateList: (state, action) => {
@@ -95,6 +97,54 @@ const TemplateSlice = createSlice({
             const targetRow = currentSection.rows[rowIndex];
             if (targetRow) {
                 targetRow.columns.push(columnData);
+            }
+        },
+        AddRowToTemplateSection: (state, action) => {
+            const { sectionId, sectionType } = action.payload;
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            console.log(action.payload);
+            const currentSection = currentTemplate.find((section: any) => section.template_section_id === sectionId);
+            if (currentSection) {
+                const newRow = {
+                    id: `row-${Date.now()}`,
+                    name: "Section" + (currentSection.rows.length + 1),
+                    row_order: currentSection.rows.length + 1,
+                    columns: [
+                        {
+                            id: `column-${Date.now()}`,
+                            name: "Column1",
+                            inputGroup: [{
+                                id: `group-${Date.now()}`,
+                                input_group_order: 1,
+                                inputs: []
+                            }]
+                        }
+                    ],
+                };
+                currentSection.rows.push(newRow);
+                recalculateSectionOrder(state.CurrentTemplate);
+            }
+        },
+        AddColumnToTemplateRow: (state, action) => {
+            const { sectionId, rowId, sectionType } = action.payload;
+            console.log(action.payload)
+            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            const currentSection = currentTemplate.find((section: any) => section.template_section_id === sectionId);
+            if (currentSection) {
+                const currentRow = currentSection?.rows.find((row: any) => row.row_id === rowId || row.id === rowId);
+                const newColumn = {
+                    id: `column-${Date.now()}`,
+                    name: "Column" + (currentRow?.columns.length + 1),
+                    column_order: currentRow.columns.length + 1,
+                    data: null,
+                    inputGroup: [{
+                        id: `group-${Date.now()}`,
+                        input_group_order: 1,
+                        inputs: []
+                    }],
+                };
+                currentRow.columns.push(newColumn);
+                recalculateSectionOrder(state.CurrentTemplate);
             }
         },
         SelectBodyTemplate: (state, action) => {
@@ -152,9 +202,10 @@ const TemplateSlice = createSlice({
             };
         },
         AddInputTypeToTemplate: (state, action) => {
-            const { sectionIndex, rowIndex, columnIndex, inputGroupIndex, sectionType, sameGroup, input } = action.payload
+            const { sectionId, rowIndex, columnIndex, inputGroupIndex, sectionType, sameGroup, input } = action.payload
             const currentSection = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const section = currentSection[sectionIndex];
+            console.log(action.payload)
+            const section = currentSection.find((sec: any) => sec.template_section_id === sectionId || sec.id === sectionId);
             const targetRow = section.rows[rowIndex];
             let lastIndex = inputGroupIndex;
             if (targetRow) {
@@ -177,9 +228,7 @@ const TemplateSlice = createSlice({
                         const inputGroup = currentColumn.inputGroup[lastIndex];
 
                         if (inputGroup?.inputs?.length) {
-                            inputGroup.inputs.forEach((item: any, idx: number) => {
-                                item.input_order = idx + 1;
-                            });
+                            inputGroup.inputs = normalizeInputOrder(inputGroup.inputs);
                         }
                     }
                 }
@@ -459,9 +508,7 @@ const TemplateSlice = createSlice({
                                 targetColumn.inputGroup[inputGroupIndex].template_input_group_id = `group-${Date.now()}`; // Assign a unique ID if it doesn't exist
                             }
                             targetColumn.inputGroup[inputGroupIndex].inputs.push(input);
-                            targetColumn.inputGroup[inputGroupIndex].inputs.forEach((item: any, idx: number) => {
-                                item.input_order = idx + 1; // or idx if you use 0-based ordering
-                            });
+                            targetColumn.inputGroup[inputGroupIndex].inputs = normalizeInputOrder(targetColumn.inputGroup[inputGroupIndex].inputs);
                         }
                     } else {
                         console.log(Array.isArray(targetColumn.inputGroup))
@@ -474,9 +521,7 @@ const TemplateSlice = createSlice({
                             targetColumn.inputGroup.push(newInputGroup);
                             const inputGroupIndex2 = targetColumn.inputGroup.length - 1;
                             targetColumn.inputGroup[inputGroupIndex2].inputs.push(input);
-                            targetColumn.inputGroup[inputGroupIndex2].inputs.forEach((item: any, idx: number) => {
-                                item.input_order = idx + 1; // or idx if you use 0-based ordering
-                            });
+                            targetColumn.inputGroup[inputGroupIndex2].inputs = normalizeInputOrder(targetColumn.inputGroup[inputGroupIndex2].inputs);
                         }
                     }
                 }
@@ -493,9 +538,7 @@ const TemplateSlice = createSlice({
                     delete input.input_id;
                     input.input_id = "input" + Date.now();
                     targetColumn.inputGroup[inputGroupIndex].inputs.splice(index, 0, input);
-                    targetColumn.inputGroup[inputGroupIndex].inputs.forEach((item: any, idx: number) => {
-                        item.input_order = idx + 1; // or idx if you use 0-based ordering
-                    });
+                    targetColumn.inputGroup[inputGroupIndex].inputs = normalizeInputOrder(targetColumn.inputGroup[inputGroupIndex].inputs);
                 }
             }
         },
@@ -510,9 +553,7 @@ const TemplateSlice = createSlice({
                 if (targetColumn && targetColumn.inputGroup && targetColumn.inputGroup && Array.isArray(targetColumn.inputGroup)) {
                     delete inputGroup.template_input_group_id;
                     targetColumn.inputGroup.splice(inputGroupIndex + 1, 0, inputGroup);
-                    targetColumn.inputGroup.forEach((item: any, idx: number) => {
-                        item.input_group_order = idx + 1; // or idx if you use 0-based ordering
-                    });
+                    targetColumn.inputGroup = normalizeInputGroupOrder(targetColumn.inputGroup);
                 }
             }
         },
@@ -537,10 +578,7 @@ const TemplateSlice = createSlice({
                     if (toIndex < 0 || toIndex >= targetColumn.inputGroup.length) return;
                     const [movedInput] = targetColumn.inputGroup.splice(fromIndex, 1);
                     targetColumn.inputGroup.splice(toIndex, 0, movedInput);
-                    // Update input_order for all inputs
-                    targetColumn.inputGroup.forEach((input, idx) => {
-                        input.input_group_order = idx + 1;
-                    });
+                    targetColumn.inputGroup = normalizeInputGroupOrder(targetColumn.inputGroup);
                 }
             }
         },
@@ -586,6 +624,9 @@ const TemplateSlice = createSlice({
             const currentSection = currentTemplate?.children ? currentTemplate?.children[sectionIndex] : [];
             if (currentSection)
                 currentSection.selected = true;
+        },
+        toggleCallTemplateAPI: (state, action) => {
+            state.callTemplateAPI = action.payload;
         }
     },
 });
@@ -628,7 +669,10 @@ export const {
     CopySectionInTemplate,
     AddNewDropdownEntityToTemplate,
     RemoveInputGroupFromTemplate,
-    SelectTemplateSection
+    SelectTemplateSection,
+    AddRowToTemplateSection,
+    AddColumnToTemplateRow,
+    toggleCallTemplateAPI
 } = TemplateSlice.actions;
 
 export default TemplateSlice.reducer;

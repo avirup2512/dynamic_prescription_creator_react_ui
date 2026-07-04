@@ -22,6 +22,17 @@ class TemplateService {
     });
     return response.json();
   }
+  async createDraftTemplate({ data }: { data: any }): Promise<ApiResponse<any>> {
+    const response = await fetch(`${API_BASE_URL}/templates/createDraft`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ data }),
+    });
+    return response.json();
+  }
   async getAllTemplates(): Promise<ApiResponse<any>> {
     const response = await fetch(`${API_BASE_URL}/templates`, {
       method: "GET",
@@ -74,6 +85,29 @@ class TemplateService {
     });
     return response.blob();
   }
+  async createsectionandAssign({ data }: any) {
+    const response = await fetch(`${API_BASE_URL}/templates/createsectionandAssign`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ data }),
+    });
+    return response.json();
+  }
+  async addRows({ data, templateSectionId }: any) {
+    const response = await fetch(`${API_BASE_URL}/templates/addRow/${templateSectionId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ data }),
+    });
+    return response.json();
+  }
+
 }
 
 

@@ -7,6 +7,7 @@ import type { CanvasColumn, CanvasMode, CanvasRow, CanvasSection, CanvasSelectio
 import { getOrderedSections, normalizePrescriptionAreas, paginateSections } from "./prescriptionCanvasUtils";
 import PageBreak from "./PageBreak";
 import PrescriptionPage from "./PrescriptionPage";
+import { useSelector } from "react-redux";
 
 interface PrescriptionCanvasProps {
     header: unknown;
@@ -15,6 +16,7 @@ interface PrescriptionCanvasProps {
 }
 
 export default function PrescriptionCanvas({ header, body, footer }: PrescriptionCanvasProps) {
+    console.log(header)
     const { openEditor } = useBuilder();
     const [mode, setMode] = useState<CanvasMode>("edit");
     const [selection, setSelection] = useState<CanvasSelection>({});
@@ -200,6 +202,7 @@ export default function PrescriptionCanvas({ header, body, footer }: Prescriptio
     };
 
     const pages = useMemo(() => paginateSections(sections.filter((section) => section.isVisible !== false)), [sections]);
+    console.log(pages)
     return (
         <div className="flex h-screen min-w-0 flex-col bg-slate-100">
             <div className="sticky top-0 z-20 flex h-12 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4">
@@ -253,7 +256,25 @@ export default function PrescriptionCanvas({ header, body, footer }: Prescriptio
 
             <div className="min-h-0 flex-1 overflow-auto px-6 py-10">
                 <div className="mx-auto flex w-max flex-col gap-9">
-                    {pages.map((page, index) => (
+                    <PrescriptionPage
+                        page={pages[0]}
+                        mode={mode}
+                        selection={selection}
+                        onSelect={setSelection}
+                        onOpenSectionEditor={handleOpenSectionEditor}
+                        onCopySection={handleCopySection}
+                        onDeleteSection={handleDeleteSection}
+                        onHideSection={handleHideSection}
+                        onAddRow={handleAddRow}
+                        onDeleteRow={handleDeleteRow}
+                        onHideRow={handleHideRow}
+                        onAddColumn={handleAddColumn}
+                        onDeleteColumn={handleDeleteColumn}
+                        onHideColumn={handleHideColumn}
+                        onQuickStyleInput={handleQuickStyleInput}
+                        onOpenFieldEditor={handleOpenFieldEditor}
+                    />
+                    {/* {pages.map((page, index) => (
                         <div key={page.id} className="space-y-5">
                             {index > 0 && <PageBreak pageNumber={index + 1} />}
                             <PrescriptionPage
@@ -275,7 +296,7 @@ export default function PrescriptionCanvas({ header, body, footer }: Prescriptio
                                 onOpenFieldEditor={handleOpenFieldEditor}
                             />
                         </div>
-                    ))}
+                    ))} */}
 
                 </div>
             </div>

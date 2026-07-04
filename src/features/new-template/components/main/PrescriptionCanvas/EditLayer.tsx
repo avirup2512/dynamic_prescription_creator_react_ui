@@ -1,3 +1,4 @@
+import { useSelector } from "react-redux";
 import type { CanvasSection, CanvasSelection } from "./prescriptionCanvasTypes";
 import SectionRenderer from "./SectionRenderer";
 
@@ -20,29 +21,36 @@ interface EditLayerProps {
 }
 
 export default function EditLayer({ sections, selection, onSelect, onOpenSectionEditor, onCopySection, onDeleteSection, onHideSection, onAddRow, onDeleteRow, onHideRow, onAddColumn, onDeleteColumn, onHideColumn, onQuickStyleInput, onOpenFieldEditor }: EditLayerProps) {
+    console.log(sections);
+    const TemplateState = useSelector((state: any) => state.template);
+
     return (
         <div>
-            {sections.map((section) => (
-                <SectionRenderer
-                    key={section.id}
-                    section={section}
-                    mode="edit"
-                    selection={selection}
-                    onSelect={onSelect}
-                    onOpenSectionEditor={onOpenSectionEditor}
-                    onCopySection={onCopySection}
-                    onDeleteSection={onDeleteSection}
-                    onHideSection={onHideSection}
-                    onAddRow={onAddRow}
-                    onDeleteRow={onDeleteRow}
-                    onHideRow={onHideRow}
-                    onAddColumn={onAddColumn}
-                    onDeleteColumn={onDeleteColumn}
-                    onHideColumn={onHideColumn}
-                    onQuickStyleInput={onQuickStyleInput}
-                    onOpenFieldEditor={onOpenFieldEditor}
-                />
-            ))}
+            {
+                TemplateState?.CurrentTemplate?.header?.map((sections: any) => {
+                    return (
+                        <SectionRenderer
+                            key={sections.id}
+                            section={sections}
+                            mode="edit"
+                            selection={selection}
+                            onSelect={onSelect}
+                            onOpenSectionEditor={onOpenSectionEditor}
+                            onCopySection={onCopySection}
+                            onDeleteSection={onDeleteSection}
+                            onHideSection={onHideSection}
+                            onAddRow={onAddRow}
+                            onDeleteRow={onDeleteRow}
+                            onHideRow={onHideRow}
+                            onAddColumn={onAddColumn}
+                            onDeleteColumn={onDeleteColumn}
+                            onHideColumn={onHideColumn}
+                            onQuickStyleInput={onQuickStyleInput}
+                            onOpenFieldEditor={onOpenFieldEditor}
+                        />
+                    )
+                })
+            }
         </div>
     );
 }

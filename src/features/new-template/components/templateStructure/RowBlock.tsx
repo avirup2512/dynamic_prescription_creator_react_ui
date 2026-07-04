@@ -5,13 +5,24 @@ import { Trash2 } from "lucide-react";
 import ColumnBlock from "./ColumnBlock";
 import { Button } from "@/components/ui/button";
 import AddButton from "./AddButton";
+import { useDispatch } from "react-redux";
+import { AddColumnToTemplateRow } from "../../store/TemplateSlice";
 
-const RowBlock: React.FC<{ row: RowData; indent: number, index: number }> = ({
+const RowBlock: React.FC<{ section: any, sectionType: any, row: RowData; indent: number, index: number }> = ({
+    section,
+    sectionType,
     row,
     indent,
     index
 }) => {
     const [open, setOpen] = useState(false);
+    const dispatch = useDispatch();
+    const addColumnToTemplate = () => {
+        if (row?.columns?.length < 3)
+            dispatch(AddColumnToTemplateRow({ sectionId: section?.id, rowId: row?.id, sectionType }));
+        else
+            alert("Oye kiye kithha")
+    }
     return (
         <div className="relative">
             <div
@@ -44,7 +55,7 @@ const RowBlock: React.FC<{ row: RowData; indent: number, index: number }> = ({
                     {row.columns.map((col, index) => (
                         <ColumnBlock key={col.id ?? index} col={col} index={index} indent={indent + 1} />
                     ))}
-                    <AddButton type="column" />
+                    <AddButton type="column" onAction={addColumnToTemplate} />
                 </div>
             )}
         </div>

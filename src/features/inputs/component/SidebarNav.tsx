@@ -3,8 +3,6 @@ import NavItem from "./NavItem";
 const navItems = [
     { id: "search", label: "Search", icon: Search },
     { id: "inputs", label: "Inputs", icon: ListCheck },
-    { id: "style", label: "Style", icon: Paintbrush },
-    { id: "logic", label: "Logic", icon: Share2 },
 ];
 
 const recentItems: any[] = [

@@ -1,4 +1,5 @@
-import { CheckCircle2, Info, ListChecks } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2, Info, ListChecks, Plus } from "lucide-react";
 import { memo, type ReactNode } from "react";
 
 interface InputPreviewPanelProps {
@@ -46,11 +47,17 @@ export const TipPanel = memo(({ children }: { children: ReactNode }) => (
 
 TipPanel.displayName = "TipPanel";
 
-export const SuccessLine = memo(({ label }: { label: string }) => (
-  <div className="flex items-center gap-2 border-t border-slate-100 py-2 first:border-t-0">
-    <CheckCircle2 className="h-4 w-4 text-emerald-500" strokeWidth={2} />
-    <span className="text-[12px] text-slate-600">{label}</span>
-  </div>
+export const SuccessLine = memo(({ label, addInput }: { label: string, addInput: any }) => (
+  <>
+    <div className="flex items-center gap-2 border-t border-slate-100 py-2 first:border-t-0">
+      <CheckCircle2 className="h-4 w-4 text-emerald-500" strokeWidth={2} />
+      <span className="text-[12px] text-slate-600">{label}</span>
+    </div>
+    <Button type="button" className="mt-3 w-full" size="sm" onClick={addInput}>
+      <Plus className="h-3.5 w-3.5" />
+      Add selected input
+    </Button>
+  </>
 ));
 
 SuccessLine.displayName = "SuccessLine";

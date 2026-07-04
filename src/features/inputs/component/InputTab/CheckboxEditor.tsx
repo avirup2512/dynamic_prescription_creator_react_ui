@@ -1,18 +1,20 @@
 import { CheckSquare, Plus, Save, Trash2 } from "lucide-react";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import type { AppDispatch, RootState } from "@/store";
 
-import { initialCheckboxes } from "./input-tab-mock-data";
 import { InputPreviewPanel, SuccessLine } from "./InputPreviewPanel";
 import SelectableList from "./SelectableList";
 import type { CheckboxItem, SelectableListItem } from "./input-tab-types";
+import { addCheckbox, deleteCheckbox, setSelectedId, updateCheckbox } from "@/features/inputs/store/CheckboxSlice";
 
 const CheckboxEditor = memo(() => {
-  const [items, setItems] = useState<CheckboxItem[]>(initialCheckboxes);
-  const [selectedId, setSelectedId] = useState(initialCheckboxes[0].id);
+  const dispatch = useDispatch<AppDispatch>();
+  const { items, selectedId } = useSelector((state: RootState) => state.checkbox);
   const selected = items.find((item) => item.id === selectedId) ?? items[0];
 
   const listItems = useMemo<SelectableListItem[]>(
@@ -27,29 +29,22 @@ const CheckboxEditor = memo(() => {
   );
 
   const updateSelected = useCallback((patch: Partial<CheckboxItem>) => {
-    setItems((current) => current.map((item) => (item.id === selectedId ? { ...item, ...patch } : item)));
-  }, [selectedId]);
+    if (!selectedId) {
+      return;
+    }
+    dispatch(updateCheckbox({ id: selectedId, patch }));
+  }, [dispatch, selectedId]);
 
-  const addCheckbox = useCallback(() => {
-    setItems((current) => {
-      const next: CheckboxItem = {
-        id: `checkbox-${Date.now()}`,
-        label: `New Checkbox ${current.length + 1}`,
-        checkedValue: "checked",
-        defaultChecked: false,
-      };
-      setSelectedId(next.id);
-      return [next, ...current];
-    });
-  }, []);
+  const addCheckboxItem = useCallback(() => {
+    dispatch(addCheckbox());
+  }, [dispatch]);
 
   const deleteSelected = useCallback(() => {
-    setItems((current) => {
-      const remaining = current.filter((item) => item.id !== selectedId);
-      setSelectedId(remaining[0]?.id ?? "");
-      return remaining;
-    });
-  }, [selectedId]);
+    if (!selectedId) {
+      return;
+    }
+    dispatch(deleteCheckbox(selectedId));
+  }, [dispatch, selectedId]);
 
   if (!selected) return null;
 
@@ -58,7 +53,7 @@ const CheckboxEditor = memo(() => {
       <section className="min-h-0 overflow-y-auto rounded-lg border border-slate-200 bg-white p-3">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-[14px] font-bold text-slate-900">Configure checkbox</h3>
-          <Button type="button" size="sm" onClick={addCheckbox}>
+          <Button type="button" size="sm" onClick={addCheckboxItem}>
             <Plus className="h-3.5 w-3.5" />
             Add Checkbox
           </Button>
@@ -66,7 +61,7 @@ const CheckboxEditor = memo(() => {
         <div className="grid gap-3">
           <label className="grid gap-1 text-[12px] font-semibold text-slate-700">
             Existing Checkbox
-            <select value={selected.id} onChange={(event) => setSelectedId(event.target.value)} className="h-9 rounded-md border border-slate-200 bg-white px-3 text-[13px] font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+            <select value={selected.id} onChange={(event) => dispatch(setSelectedId(event.target.value))} className="h-9 rounded-md border border-slate-200 bg-white px-3 text-[13px] font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
               {items.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
             </select>
           </label>
@@ -104,7 +99,7 @@ const CheckboxEditor = memo(() => {
             </span>
           </label>
         </InputPreviewPanel>
-        <SelectableList title="All checkboxes" countLabel={`${items.length} items`} items={listItems} selectedId={selected.id} onSelect={setSelectedId} />
+        <SelectableList title="All checkboxes" countLabel={`${items.length} items`} items={listItems} selectedId={selected.id} onSelect={(value) => dispatch(setSelectedId(value))} />
       </div>
     </div>
   );

@@ -38,6 +38,7 @@ export type ColumnInputItem = {
   formatArray?: Array<Format>
 }
 export type InputGroup = {
+  id: string,
   input_group_order: number,
   section_group_id?: string,
   inputs: Array<ColumnInputItem>
@@ -53,7 +54,7 @@ export type Rows = {
   id: string,
   name: string,
   row_order?: number,
-  columns: Column[]
+  columns: Array<Column>
 }
 export type SectionTemplate = {
   id: string,

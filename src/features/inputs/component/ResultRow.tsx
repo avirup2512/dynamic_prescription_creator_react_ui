@@ -25,28 +25,31 @@ const kindIconStyle: Record<ResultKind, string> = {
     CHECKBOX: "bg-emerald-600 text-white",
 };
 const ResultRow: React.FC<{
-    item: ResultItem;
+    item: any;
     onSelect: () => void;
 }> = ({ item, onSelect }) => {
-    const Icon = kindIcon[item.kind];
+    const key: ResultKind = (item?.heading == "Dropdowns") ? "DROPDOWN" : (item?.heading == "Foods") ? "FOOD" : (item?.heading == "Recipes") ? "RECIPE" : (item?.heading == "Toggle") ? "TOGGLE" : (item?.heading == "Checkbox") ? "CHECKBOX" : (item?.heading == "Text Fields") ? "TEXT" : "TEXT";
+    const Icon = kindIcon[key];
     return (
         <button
             type="button"
             onClick={onSelect}
-            aria-current={item.selected ? "true" : undefined}
-            className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors ${item.selected
+            aria-current={item?.selected ? "true" : undefined}
+            data-selectable-item="true"
+            data-selected={item.selected ? "true" : "false"}
+            className={`flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left transition-colors ${item.selected
                 ? "border-l-[3px] border-blue-600 bg-blue-50/60 pl-2"
                 : "hover:bg-slate-50"
                 }`}
         >
             <span
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${kindIconStyle[item.kind]}`}
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${kindIconStyle[key]}`}
             >
                 <Icon className="h-3.5 w-3.5" strokeWidth={2} />
             </span>
             <div className="min-w-0 flex-1">
-                <p className="truncate text-[12.5px] font-medium text-slate-800">{item.title}</p>
-                <p className="truncate text-[11px] text-slate-400">{item.meta}</p>
+                <p className="truncate text-[12.5px] font-medium text-slate-800">{item.name}</p>
+                {/* <p className="truncate text-[11px] text-slate-400">{item.meta}</p> */}
             </div>
             <KindBadge kind={item.kind} />
             {item.selected && (

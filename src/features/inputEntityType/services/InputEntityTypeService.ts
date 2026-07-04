@@ -156,6 +156,26 @@ class InputEntityTypeService {
     });
     return response.json();
   }
+  async searchFood(foodName: string): Promise<ApiResponse<any>> {
+    const response = await fetch(`${API_BASE_URL}/food-and-recipe/searchFood/${foodName}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    return response.json();
+  }
+  async search(keyword: string): Promise<ApiResponse<any>> {
+    const response = await fetch(`${API_BASE_URL}/templates/search/${keyword}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    return response.json();
+  }
 }
 
 

@@ -41,10 +41,11 @@ export interface SectionItem {
     iconColor: string;
     fieldsCount?: number;
     section_id?: string,
+    template_section_id?: string,
     status?: StatusColor;
     isVisible?: boolean;
     selected?: boolean;
-    children?: RowData[];
+    rows?: RowData[];
 }
 
 export interface SimpleField {

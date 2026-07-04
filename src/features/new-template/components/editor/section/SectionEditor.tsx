@@ -1,7 +1,7 @@
 // SectionEditor.tsx
 
 import type { Field, Row } from "@/features/new-template/type/ComponentType";
-import { Section, X } from "lucide-react";
+import { Plus, Section, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -14,74 +14,65 @@ import ActionButtons from "./ActionButtons";
 import RowNode from "./RowNode";
 import SectionHeader from "./SectionHeader";
 import StyleTab from "./StyleTab/StyleTab";
+import { useParams } from "react-router-dom";
+import type { Section as TemplateSection } from "@/features/template/type/TemplateType";
+import { AddRowToTemplateSection } from "@/features/new-template/store/TemplateSlice";
 
 interface SectionEditorProps {
     closeEditor?: () => void;
 }
-
-interface EditorSectionState {
-    defaultSection?: any;
-    currentSection?: {
-        id?: string;
-        name?: string;
-        description?: string;
-        rows?: Array<{ id?: string; template_row_id?: string }>;
-    };
-}
-
 export default function SectionEditor({ closeEditor }: SectionEditorProps) {
-    const SectionState = useSelector((state: { section: EditorSectionState }) => state.section);
+    const TemplateState = useSelector((state: any) => state.template);
     const sectionService = SectionService;
     const dispatch = useDispatch();
+    const { sectionId, sectionType } = useParams();
     const { selectedId } = useBuilder();
     const isEditMode = Boolean(selectedId);
-
-    const getSectionDetailsById = useCallback(async (id: string) => {
+    // const [sectionType, setSectionType] = useState('');
+    const [localSectionType, setLocalSectionType] = useState(sectionType);
+    const [currentSection, setCurrentSection] = useState<TemplateSection>();
+    useEffect(() => {
+        console.log(sectionId)
+        if (sectionId) {
+            getSectionDetailsById(sectionId);
+        }
+    }, [sectionId])
+    const getSectionDetailsById = useCallback(async (sectionId: string) => {
+        console.log(TemplateState.CurrentTemplate)
         try {
-            const fetchedSectionDetails = await sectionService.getSectionById(id);
-            if (fetchedSectionDetails && fetchedSectionDetails.success) {
-                dispatch(SetCurrentSection(fetchedSectionDetails?.data));
+            if (sectionType) {
+                console.log(sectionType);
+                console.log(TemplateState?.CurrentTemplate);
+                TemplateState?.CurrentTemplate[sectionType]?.forEach((header: any) => {
+                    if (header?.template_section_id == sectionId || header?.id == sectionId) {
+                        setCurrentSection(header);
+                    }
+                });
             }
         } catch (error) {
             console.log(error);
         }
-    }, [dispatch, sectionService]);
+    }, [TemplateState?.CurrentTemplate, sectionType]);
 
     useEffect(() => {
-        if (selectedId && isEditMode) {
-            getSectionDetailsById(selectedId);
-        } else {
-            dispatch(SetCurrentSection(SectionState?.defaultSection ?? {}));
-        }
-    }, [SectionState?.defaultSection, dispatch, getSectionDetailsById, selectedId, isEditMode]);
+        console.log(TemplateState?.CurrentTemplate)
+        if (sectionId)
+            getSectionDetailsById(sectionId);
+    }, [TemplateState?.CurrentTemplate, sectionId]);
+    useEffect(() => {
+        setLocalSectionType(sectionType)
+    }, [sectionType]);
 
     const [activeTab, setActiveTab] = useState<string>("Content");
     const [sectionName, setSectionName] = useState<string>("Patient Information");
     const [description, setDescription] = useState<string>("No Description");
     const [isSaving, setIsSaving] = useState(false);
-    const [fields] = useState<Field[]>([
-        { id: 1, name: "Full Name", type: "Text", required: true },
-        { id: 2, name: "Date of Birth", type: "Date", required: true },
-        { id: 3, name: "Sex", type: "Dropdown", required: true },
-        { id: 4, name: "MRN", type: "Text", required: false },
-        { id: 5, name: "Phone", type: "Tel", required: true },
-        { id: 6, name: "Email", type: "Email", required: false },
-    ]);
-    const [rows] = useState<Row[]>([
-        { id: 1, name: "Full Name" },
-        { id: 2, name: "Date of Birth" },
-        { id: 3, name: "Sex" },
-        { id: 4, name: "MRN" },
-        { id: 5, name: "Phone" },
-        { id: 6, name: "Email" },
-    ]);
 
     const handleCancel = (): void => {
         closeEditor?.();
     };
 
     const handleSave = async (): Promise<void> => {
-        const currentSection = (SectionState?.currentSection ?? SectionState?.defaultSection ?? {}) as any;
         const trimmedName = sectionName?.trim() || currentSection?.name?.trim();
 
         if (!trimmedName) {
@@ -118,7 +109,9 @@ export default function SectionEditor({ closeEditor }: SectionEditorProps) {
         }
     };
 
-    const currentRows = SectionState?.currentSection?.rows ?? [];
+    const AddRowToTemplate = () => {
+        dispatch(AddRowToTemplateSection({ sectionType, sectionId }));
+    }
 
     return (
         <div className="flex h-screen max-h-screen w-[360px] flex-col border-l border-slate-200 bg-[#fbfbfa] shadow-[0_8px_30px_rgba(15,23,42,0.08)]">
@@ -130,10 +123,10 @@ export default function SectionEditor({ closeEditor }: SectionEditorProps) {
                         </div>
                         <div className="min-w-0 flex-1">
                             <h3 className="truncate text-[13px] font-semibold text-slate-900">
-                                {SectionState?.currentSection?.name}
+                                {currentSection?.name}
                             </h3>
                             <p className="mt-0.5 text-[11px] text-slate-500">
-                                Section - {currentRows.length} rows - 6 fields
+                                Section - {currentSection?.rows?.length} rows - 6 fields
                             </p>
                         </div>
                     </div>
@@ -156,9 +149,9 @@ export default function SectionEditor({ closeEditor }: SectionEditorProps) {
                 {activeTab === "Content" && (
                     <div className="space-y-3">
                         <SectionHeader
-                            sectionName={SectionState?.currentSection?.name ?? "Patient Information"}
+                            sectionName={currentSection?.name ?? "Patient Information"}
                             setSectionName={setSectionName}
-                            description={SectionState?.currentSection?.description ?? "No Description"}
+                            description={currentSection?.description ?? "No Description"}
                             setDescription={setDescription}
                         />
 
@@ -168,14 +161,20 @@ export default function SectionEditor({ closeEditor }: SectionEditorProps) {
                 {activeTab === "Layout" && (
                     <div className="rounded-md bg-white py-3 text-center text-slate-400">
                         {/* <p className="text-[12px]">Layout settings</p> */}
-                        {currentRows.map((row: { id?: string; template_row_id?: string }) => (
+                        {currentSection?.rows.map((row: any, rowIndex: number) => (
                             <div
                                 key={row.id ?? row.template_row_id}
                                 className="overflow-hidden  border border-slate-200 bg-white shadow-[0_1px_1px_rgba(15,23,42,0.02)]"
                             >
-                                <RowNode row={row as any} />
+                                <RowNode row={row as any} sectionId={sectionId} sectionType={sectionType} rowIndex={rowIndex} />
                             </div>
                         ))}
+                        <button
+                            onClick={AddRowToTemplate}
+                            className="flex h-7 w-full items-center justify-center mt-3 gap-1.5 border border-dashed border-slate-200 bg-white text-[11px] font-medium text-slate-500 hover:border-blue-200 hover:bg-blue-50/60 hover:text-slate-900"
+                        >
+                            <Plus className="h-3 w-3" /> Add Row
+                        </button>
                     </div>
                 )}
 

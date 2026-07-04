@@ -19,8 +19,8 @@ const kindIconStyle: Record<any, string> = {
     CHECKBOX: "bg-emerald-600 text-white",
 };
 const dropdownOptions = ["qd", "bid", "tid", "q6h", "prn"];
-const PreviewPanel: React.FC<{ item: any }> = ({ item }) => {
-    const Icon = kindIcon[item.kind];
+const PreviewPanel: React.FC<{ item: any, onInsert: () => void }> = ({ item, onInsert }) => {
+    // const Icon = kindIcon[item?.kind];
     return (
         <aside className="hidden w-[240px] shrink-0 flex-col border-l border-slate-100 px-4 py-3 lg:flex">
             <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
@@ -28,13 +28,13 @@ const PreviewPanel: React.FC<{ item: any }> = ({ item }) => {
             </p>
 
             <div className="mb-3 flex items-start gap-2.5">
-                <span
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${kindIconStyle[item.kind]}`}
+                {/* <span
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${kindIconStyle[item?.kind]}`}
                 >
                     <Icon className="h-3.5 w-3.5" strokeWidth={2} />
-                </span>
+                </span> */}
                 <p className="text-[13px] font-semibold leading-snug text-slate-900">
-                    {item.title}
+                    {item?.title}
                 </p>
             </div>
 
@@ -53,6 +53,7 @@ const PreviewPanel: React.FC<{ item: any }> = ({ item }) => {
             </div>
 
             <button
+                onClick={onInsert}
                 type="button"
                 className="mt-3 flex items-center gap-1.5 text-[12px] font-medium text-blue-600 hover:text-blue-700"
             >

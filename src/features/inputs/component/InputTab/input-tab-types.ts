@@ -23,17 +23,20 @@ export interface UserInputItem {
 
 export interface DropdownOption {
   id: string;
-  label: string;
+  name?: string;
+  label?: string;
   value: string;
 }
 
 export interface DropdownItem {
   id: string;
-  label: string;
-  helperText: string;
-  category: string;
-  options: DropdownOption[];
+  name?: string;
+  label?: string;
+  helperText?: string;
+  category?: string;
+  dropdown_options: DropdownOption[];
   defaultOptionId?: string;
+  options?: DropdownOption[];
 }
 
 export interface FoodItem {

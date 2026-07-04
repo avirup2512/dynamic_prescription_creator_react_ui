@@ -1,5 +1,5 @@
 import { Lock, Plus, Trash2 } from "lucide-react";
-import { memo, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -7,22 +7,34 @@ import ActiveInputEditor from "./ActiveInputEditor";
 import InputTypeSelector from "./InputTypeSelector";
 import { inputTypeOptions } from "./input-tab-mock-data";
 import type { InputTypeId } from "./input-tab-types";
+import { useNavigate, useParams } from "react-router-dom";
 
 const readOnlyTypes: InputTypeId[] = ["INPUT_TYPE_3", "INPUT_TYPE_4"];
 
 const InputTab = memo(() => {
-  const [selectedType, setSelectedType] = useState<InputTypeId>("INPUT_TYPE_2");
-
+  const { id, inputType, inputId, rowIndex, columnIndex, inputGroupIndex, sectionType, sectionId, tabType } = useParams();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (inputType) {
+      setSelectedType(inputType)
+    }
+  }, [inputType])
+  const [selectedType, setSelectedType] = useState<any>("INPUT_TYPE_1");
+  const [addNewValueIndicator, setAddNewValueIndicator] = useState<boolean>(false);
   const selectedOption = useMemo(
     () => inputTypeOptions.find((option) => option.id === selectedType) ?? inputTypeOptions[0],
     [selectedType],
   );
   const isReadOnly = readOnlyTypes.includes(selectedType);
-
+  const navigateToOtherInputs = (type: any) => {
+    // setSelectedType(type);
+    const path = "/dashboard/input/create/" + id + " / " + rowIndex + "/" + columnIndex + "/" + inputGroupIndex + "/" + sectionType + "/" + sectionId + "/" + tabType + "/" + type;
+    navigate(path.trim())
+  }
   return (
     <div className="flex min-w-0 flex-1 flex-col overflow-hidden px-4 py-3">
       <div className="mb-3 flex shrink-0 items-start justify-between gap-3">
-        <InputTypeSelector value={selectedType} onChange={setSelectedType} />
+        <InputTypeSelector value={selectedType} onChange={(type: any) => navigate("/dashboard/input/create/" + id + "/" + rowIndex + "/" + columnIndex + "/" + inputGroupIndex + "/" + sectionType + "/" + sectionId + "/" + tabType + "/" + type)} />
         <div className="flex items-center gap-2 pt-5">
           {isReadOnly ? (
             <>
@@ -36,11 +48,11 @@ const InputTab = memo(() => {
             </>
           ) : (
             <>
-              {/* <Button type="button" size="sm">
+              {/* <Button type="button" size="sm" onClick={() => { setAddNewValueIndicator(true) }}>
                 <Plus className="h-3.5 w-3.5" />
-                Add {selectedOption.label.replace("User-defined ", "")}
-              </Button>
-              <Button type="button" variant="outline" size="sm">
+                Add New {selectedOption.label.replace("User-defined ", "")}
+              </Button> */}
+              {/*<Button type="button" variant="outline" size="sm">
                 <Trash2 className="h-3.5 w-3.5" />
                 Delete
               </Button> */}

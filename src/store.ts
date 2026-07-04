@@ -5,6 +5,12 @@ import InputEntityTypeSlice from "./features/inputEntityType/store/InputEntityTy
 import TemplateReducer from "./features/new-template/store/TemplateSlice";
 import SectionReducer from "./features/section/store/SectionSlice"
 import AuthReducer from "./features/auth/store/AuthSlice";
+import InputSlice from "./features/inputs/store/InputSlice";
+import DropdownSlice from "./features/inputs/store/DropdownSlice";
+import FoodSlice from "./features/inputs/store/FoodSlice";
+import RecipeSlice from "./features/inputs/store/RecipeSlice";
+import ToggleSlice from "./features/inputs/store/ToggleSlice";
+import CheckboxSlice from "./features/inputs/store/CheckboxSlice";
 export const store = configureStore({
   reducer: {
     header: HeaderReducer,
@@ -12,7 +18,13 @@ export const store = configureStore({
     inputEntityType: InputEntityTypeSlice,
     template: TemplateReducer,
     section: SectionReducer,
-    auth: AuthReducer
+    auth: AuthReducer,
+    inputs: InputSlice,
+    dropdown: DropdownSlice,
+    food: FoodSlice,
+    recipe: RecipeSlice,
+    toggle: ToggleSlice,
+    checkbox: CheckboxSlice,
   },
 });
 

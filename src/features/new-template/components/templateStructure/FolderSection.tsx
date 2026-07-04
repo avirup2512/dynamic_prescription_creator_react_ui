@@ -6,20 +6,62 @@ import SimpleFieldRow from "./SimpleFieldRow";
 import SectionRow from "./SectionRow";
 import AddButton from "./AddButton";
 import { useBuilder } from "../../context/BuilderContext";
+import { useNavigate, useParams } from "react-router-dom";
+import TemplateService from "../../service/TemplateService";
+import { useDispatch, useSelector } from "react-redux";
+import type { SectionTemplate } from "@/features/section/type/SectionType";
+import { AddSectionTemplate } from "@/features/section/store/SectionSlice";
+import { AppendSectionInTemplate } from "../../store/TemplateSlice";
+import type { Section } from "../../type/TemplateType";
 
-const FolderSection: React.FC<{ folder: FolderGroup, sectionType: string }> = ({ folder, sectionType }) => {
-    const {
-        openEditor,
-    } = useBuilder();
+const FolderSection: React.FC<{ folder: any, sectionType: string }> = ({ folder, sectionType }) => {
+    const templateService = TemplateService;
+    const TemplateState = useSelector((state: any) => state.template);
+    const navigate = useNavigate();
+    const { id } = useParams();
     const [open, setOpen] = useState(false);
+    const dispatch = useDispatch();
     useEffect(() => {
         console.log(folder)
     }, [folder]);
-    const AddNewSectionEditor = () => {
-        openEditor(
-            "section",
-            ""
-        )
+    const AddNewSectionEditor = async () => {
+        try {
+            const is_header = sectionType === "header" ? 1 : 0;
+            const is_body = sectionType === "body" ? 1 : 0;
+            const is_footer = sectionType === "footer" ? 1 : 0;
+            const createdSection = await templateService.createsectionandAssign({ data: { is_header, is_body, is_footer, template_id: id } });
+            if (createdSection && createdSection.success) {
+                const section: Section = {
+                    id: createdSection?.data?.templateSection?.id,
+                    name: createdSection?.data?.section?.name,
+                    order: createdSection?.data?.section?.section_order,
+                    rows: [
+                        {
+                            id: createdSection?.data?.templateRow?.id,
+                            name: createdSection?.data?.row?.name,
+                            order: createdSection?.data?.row?.row_order,
+                            columns: [{
+                                id: createdSection?.data?.templateColumn?.id,
+                                name: createdSection?.data?.column?.name,
+                                order: createdSection?.data?.column?.column_order,
+                                width: createdSection?.data?.column?.width,
+                                inputGroup: [{
+                                    id: createdSection?.data?.templateInputGroup?.id,
+                                    order: createdSection?.data?.inputGroup?.input_group_order,
+                                    inputs: []
+                                }]
+                            }]
+                        }
+                    ],
+                    isVisible: createdSection?.data?.templateSection?.is_visible,
+                }
+                console.log(TemplateState?.CurrentTemplate)
+                dispatch(AppendSectionInTemplate({ section, sectionType }));
+                navigate(`/dashboard/new-template/edit/${id}/section/${createdSection?.data?.templateSection?.id}/${sectionType}`);
+            }
+        } catch (error) {
+            console.log(error)
+        }
     }
     return (
         <div className="rounded-md">
@@ -28,19 +70,19 @@ const FolderSection: React.FC<{ folder: FolderGroup, sectionType: string }> = ({
                     <ChevronToggle open={open} onClick={() => setOpen((o) => !o)} />
                     <Folder className="h-3.5 w-3.5 shrink-0 text-slate-400" strokeWidth={2} />
                     <span className="truncate text-[11.5px] font-semibold text-slate-800">
-                        {folder?.label}
+                        {sectionType.toUpperCase()}
                     </span>
                 </div>
                 <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium leading-none text-slate-500">
-                    {folder?.children?.length ?? 0}
+                    {folder?.length ?? 0}
                 </span>
             </div>
             <>
                 {
                     open && <>
-                        {folder && folder?.children && folder.children.length ? (
+                        {folder && folder.length ? (
                             <div className="ml-3 border-l border-slate-200/70 pl-1.5">
-                                {folder?.children?.map((child, index: number) =>
+                                {folder?.map((child, index: number) =>
                                     child.kind === "simpleField" ? (
                                         <SimpleFieldRow key={child.id} label={child.label} />
                                     ) : (

@@ -5,9 +5,10 @@ import type { CanvasMode, CanvasSection, CanvasSelection } from "./prescriptionC
 import HoverToolbar from "./HoverToolbar";
 import InsertPlaceholder from "./InsertPlaceholder";
 import RowRenderer from "./RowRenderer";
+import { useNavigate, useParams } from "react-router-dom";
 
 interface SectionRendererProps {
-    section: CanvasSection;
+    section: any;
     mode: CanvasMode;
     selection: CanvasSelection;
     onSelect: (selection: CanvasSelection) => void;
@@ -45,9 +46,12 @@ export default function SectionRenderer({
 }: SectionRendererProps) {
     const selected = selection.sectionId === section.id;
     const sectionLabel = section.name?.trim() || `Section ${section.area === "header" ? 1 : section.area === "footer" ? 3 : 2}`;
-
+    const navigate = useNavigate();
+    const { id } = useParams();
     if (section.isVisible === false) return null;
-
+    const editSection = () => {
+        navigate("/dashboard/new-template/edit/" + id + "/section/" + section?.id || section?.section_id)
+    }
     return (
         <section
             className={cn(
@@ -55,7 +59,7 @@ export default function SectionRenderer({
                 section.area === "header" && "mb-12",
                 section.area === "body" && "mb-8",
                 section.area === "footer" && "mt-12",
-                mode === "edit" && "rounded-md border border-dashed border-sky-200/80 p-3 transition hover:border-sky-300 hover:bg-sky-50/10",
+                mode === "edit" && "rounded-md mt-4 border border-dashed border-sky-200/80 p-3 transition hover:border-sky-300 hover:bg-sky-50/10",
                 mode === "edit" && selected && "border-sky-400 bg-sky-50/30 ring-1 ring-sky-100"
             )}
             onClick={(event) => {
@@ -71,7 +75,7 @@ export default function SectionRenderer({
                     mode={mode}
                     label={sectionLabel}
                     visible={mode === "edit"}
-                    onSettings={() => onOpenSectionEditor(section.id)}
+                    onSettings={() => editSection()}
                     onDelete={() => onDeleteSection(section.id)}
                     quickActions={[
                         { label: "Copy section", icon: <Copy className="h-3.5 w-3.5" />, onClick: () => onCopySection(section.id) },

@@ -4,35 +4,34 @@ import { Plus } from "lucide-react";
 import NodeHeader from "./NodeHeader";
 import { useState } from "react";
 import ColumnNode from "./ColumnNode";
+import { useDispatch } from "react-redux";
+import { AddColumnToTemplateRow } from "@/features/new-template/store/TemplateSlice";
 
-interface EditorColumn {
-    id?: string;
-    column_id?: string;
-    name?: string;
-    column_name?: string;
-    inputGroup?: Array<{ inputs?: ColumnInputItem[] }>;
-}
-
-function RowNode(p: {
-    row: Rows & { columns: EditorColumn[] };
-}) {
-    const [open, setOpen] = useState(false);
+function RowNode({ row, rowIndex, sectionId, sectionType }: any) {
+    const [open, setOpen] = useState(true);
+    const dispatch = useDispatch();
+    const addColumnToTemplate = () => {
+        if (row?.columns.length < 3)
+            dispatch(AddColumnToTemplateRow({ sectionType, sectionId, rowId: row?.id }));
+        else
+            alert("Maximum 3 column");
+    }
     return (
         <div className="overflow-hidden bg-white">
             <NodeHeader
                 accent="row" open={open} onToggle={() => { setOpen(!open) }}
-                name={p.row.name} onRename={() => { }} onDelete={() => { }}
-                meta={`${p.row.columns.length} col`}
+                name={row.name} onRename={() => { }} onDelete={() => { }}
+                meta={`${row.columns.length} col`}
             />
             {open && (
                 <div className="space-y-1.5 border-t border-slate-100 bg-slate-50/70 p-2">
-                    {p.row.columns.map((col) => (
+                    {row.columns.map((col: any, columnIndex: number) => (
                         <div key={col.id ?? col.column_id} className="overflow-hidden border border-slate-200 bg-white">
-                            <ColumnNode column={col} />
+                            <ColumnNode sectionId={sectionId} column={col} columnIndex={columnIndex} rowIndex={rowIndex} sectionType={sectionType} />
                         </div>
                     ))}
                     <button
-                        onClick={() => { }}
+                        onClick={addColumnToTemplate}
                         className="flex h-7 w-full items-center justify-center gap-1.5 border border-dashed border-slate-200 bg-white text-[11px] font-medium text-slate-500 hover:border-blue-200 hover:bg-blue-50/60 hover:text-slate-900"
                     >
                         <Plus className="h-3 w-3" /> Add column

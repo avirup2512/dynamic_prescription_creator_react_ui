@@ -6,9 +6,9 @@ import RowBlock from "./RowBlock";
 import { Layers } from "lucide-react";
 import SectionMenu from "./SectionMenu";
 import { useDispatch } from "react-redux";
-import { SelectTemplateSection } from "../../store/TemplateSlice";
+import { AddRowToTemplateSection, SelectTemplateSection } from "../../store/TemplateSlice";
 import AddButton from "./AddButton";
-import { useBuilder } from "../../context/BuilderContext";
+import { useNavigate, useParams } from "react-router-dom";
 
 const SectionRow: React.FC<{ section: SectionItem; indent?: number, index: number, sectionType: string }> = ({
     section,
@@ -16,19 +16,22 @@ const SectionRow: React.FC<{ section: SectionItem; indent?: number, index: numbe
     index,
     sectionType
 }) => {
-    const {
-        openEditor,
-    } = useBuilder();
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const [open, setOpen] = useState(false);
-    const hasChildren = !!section.children?.length;
+    const { id } = useParams();
+    const hasChildren = !!section.rows?.length;
     const selectSection = () => {
         const payload = { sectionType, sectionIndex: index }
-        console.log(payload)
         dispatch(SelectTemplateSection(payload));
     }
     const openSectionEditor = () => {
-        openEditor("section", section.section_id as string)
+        console.log(section)
+        console.log('/dashboard/new-template/edit/' + id + '/section/' + (section.template_section_id || section.id) + "/" + sectionType)
+        navigate('/dashboard/new-template/edit/' + id + '/section/' + (section.template_section_id) + "/" + sectionType);
+    }
+    const AddRowToTemplate = () => {
+        dispatch(AddRowToTemplateSection({ sectionId: section?.id, sectionType }))
     }
     return (
         <div>
@@ -58,7 +61,7 @@ const SectionRow: React.FC<{ section: SectionItem; indent?: number, index: numbe
                             : "font-medium text-slate-800"
                             }`}
                     >
-                        {section?.label || "Section " + (index + 1) + ""}
+                        {section?.name || "Section " + (index + 1) + ""}
                     </span>
 
                 </div>
@@ -68,10 +71,10 @@ const SectionRow: React.FC<{ section: SectionItem; indent?: number, index: numbe
             </div>
             {open && hasChildren && (
                 <div>
-                    {section.children!.map((row, index) => (
-                        <RowBlock key={row.id} index={index} row={row} indent={indent + 1} />
+                    {section.rows!.map((row: any, index: number) => (
+                        <RowBlock section={section} sectionType={sectionType} key={row.id} index={index} row={row} indent={indent + 1} />
                     ))}
-                    <AddButton type="row" />
+                    <AddButton type="row" onAction={AddRowToTemplate} />
                 </div>
             )}
         </div>

@@ -1,33 +1,17 @@
+import { useNavigate } from "react-router-dom";
 import { useBuilder } from "../../context/BuilderContext";
 import SectionEditor from "./section/SectionEditor";
 
-export default function EditorSheet() {
-    const {
-        editorOpen,
-        closeEditor,
-        editorType,
-    } = useBuilder();
+export default function EditorSheet({ editorType }: { editorType: string }) {
+    const navigate = useNavigate();
+    const closeEditor = () => {
+        navigate("..", { relative: "route" });
+    }
     return (
-        //     <aside
-        //         className={`
-        //     border-l
-        //     bg-background
-        //     transition-all
-        //     duration-300
-        //     overflow-hidden
-        //     ${editorOpen ? "w-[420px]" : "w-0"}
-        //   `}
-        //     >
-        <>            {editorOpen && (
-            <>
-                {
-                    editorType === "section" && <SectionEditor closeEditor={closeEditor} />
-                }
-
-            </>
-        )}
+        <>
+            {
+                editorType === "section" && <SectionEditor closeEditor={closeEditor} />
+            }
         </>
-
-        // </aside>
     );
 }

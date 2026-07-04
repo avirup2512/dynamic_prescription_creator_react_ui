@@ -11,8 +11,16 @@ export default function TemplateList() {
     const templateService = TemplateService;
     const dispatch = useDispatch();
     const navigate = useNavigate()
-    const onCreate = () => {
-        navigate('create');
+    const onCreate = async () => {
+        try {
+            const createDraftTemplate = await templateService.createDraftTemplate({ data: { templateName: "untitile-template" } });
+            if (createDraftTemplate && createDraftTemplate.success) {
+                const createdDraftId = createDraftTemplate?.data?.rows?.[0]?.id;
+                navigate('edit/' + createdDraftId);
+            }
+        } catch (error) {
+
+        }
     }
     useEffect(() => {
         fetchTemplates();

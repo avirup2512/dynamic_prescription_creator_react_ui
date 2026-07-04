@@ -18,8 +18,8 @@ interface ColumnRendererProps {
 }
 
 export default function ColumnRenderer({ column, mode, selection, onSelect, sectionId, rowId, onDeleteColumn, onHideColumn, onQuickStyleInput, onOpenFieldEditor }: ColumnRendererProps) {
-    const hasInputs = column.inputGroups.some((group) => group.inputs.length > 0);
-    const columnLabel = `Column ${column.id.split("-").pop() ?? "1"}`;
+    const hasInputs = column?.inputGroups?.some((group) => group.inputs.length > 0);
+    const columnLabel = `Column ${column?.id?.split("-").pop() ?? "1"}`;
 
     if (column.isVisible === false) return null;
 
@@ -52,7 +52,7 @@ export default function ColumnRenderer({ column, mode, selection, onSelect, sect
                 />
             </div>
             <div className="space-y-2">
-                {column.inputGroups.map((group, groupIndex) => (
+                {column?.inputGroups?.map((group, groupIndex) => (
                     <div key={group.id} className="space-y-2">
                         {group.relation === "or" && groupIndex > 0 && mode === "edit" && (
                             <div className="flex items-center gap-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-300">

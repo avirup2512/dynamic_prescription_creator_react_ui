@@ -1,12 +1,17 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import ParentWrapperContent from "./ParentWrapperContent";
+import { toggleCallTemplateAPI } from "@/features/new-template/store/TemplateSlice";
+import { useDispatch } from "react-redux";
 
 const MainInputDialogContainer = function () {
     const navigate = useNavigate();
-
+    const dispatch = useDispatch();
+    const { templateId: routeTemplateId, id, rowIndex, columnIndex, inputGroupIndex, sectionType, sectionId } = useParams();
+    const templateId = routeTemplateId ?? id;
     const handleClose = () => {
-        navigate(-1);
+        navigate(`/dashboard/new-template/edit/${templateId}/section/${sectionId}/${sectionType}`);
+        dispatch(toggleCallTemplateAPI(false));
     };
 
     return (
