@@ -2,15 +2,17 @@ export type CanvasMode = "edit" | "preview";
 export type TemplateArea = "header" | "body" | "footer";
 
 export interface CanvasInput {
-    id: string;
+    template_input_id: string;
     label: string;
+    name?: string;
     value?: string;
+    type_name?: string;
     note?: string;
     type?: string;
     showLabel?: boolean;
     isBold?: boolean;
     fontSize?: string;
-    variant?: "field" | "clinic" | "address" | "metric" | "medicines" | "tests" | "list" | "signature";
+    variant?: "field" | "clinic" | "address" | "metric" | "medicines" | "tests" | "list" | "signature" | "recipe";
     meta?: string;
     items?: Array<Record<string, string>>;
 }
@@ -22,14 +24,14 @@ export interface CanvasInputGroup {
 }
 
 export interface CanvasColumn {
-    id: string;
+    template_column_id: string;
     isVisible?: boolean;
     width?: string;
     inputGroups: CanvasInputGroup[];
 }
 
 export interface CanvasRow {
-    id: string;
+    template_row_id: string;
     isVisible?: boolean;
     columns: CanvasColumn[];
 }

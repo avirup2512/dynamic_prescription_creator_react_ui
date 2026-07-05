@@ -11,6 +11,7 @@ interface SectionRendererProps {
     section: any;
     mode: CanvasMode;
     selection: CanvasSelection;
+    sectionType: "header" | "body" | "footer";
     onSelect: (selection: CanvasSelection) => void;
     onOpenSectionEditor: (sectionId: string) => void;
     onCopySection: (sectionId: string) => void;
@@ -30,6 +31,7 @@ export default function SectionRenderer({
     section,
     mode,
     selection,
+    sectionType,
     onSelect,
     onOpenSectionEditor,
     onCopySection,
@@ -50,7 +52,9 @@ export default function SectionRenderer({
     const { id } = useParams();
     if (section.isVisible === false) return null;
     const editSection = () => {
-        navigate("/dashboard/new-template/edit/" + id + "/section/" + section?.id || section?.section_id)
+        console.log(section)
+        const sectionType = section?.is_header ? "header" : section?.is_body ? "body" : "footer";
+        navigate("/dashboard/new-template/edit/" + id + "/section/" + section?.template_section_id + "/" + sectionType)
     }
     return (
         <section
@@ -67,36 +71,39 @@ export default function SectionRenderer({
                 onSelect({ sectionId: section.id });
             }}
         >
-            <div className="mb-3 flex items-center justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">{sectionLabel}</p>
+            {mode === "edit" ? (
+                <div className="mb-3 flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">{sectionLabel}</p>
+                    </div>
+                    <HoverToolbar
+                        mode={mode}
+                        label={sectionLabel}
+                        visible={mode === "edit"}
+                        onSettings={editSection}
+                        onDelete={() => onDeleteSection(section.id)}
+                        quickActions={[
+                            { label: "Copy section", icon: <Copy className="h-3.5 w-3.5" />, onClick: () => onCopySection(section.id) },
+                            { label: "Delete section", icon: <Trash2 className="h-3.5 w-3.5" />, onClick: () => onDeleteSection(section.id) },
+                            { label: "Hide section", icon: section.isVisible === false ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />, onClick: () => onHideSection(section.id) },
+                            { label: "Add row", icon: <Plus className="h-3.5 w-3.5" />, onClick: () => onAddRow(section.id) },
+                        ]}
+                        showDeleteIcon={false}
+                        className="group-hover/section:flex"
+                    />
                 </div>
-                <HoverToolbar
-                    mode={mode}
-                    label={sectionLabel}
-                    visible={mode === "edit"}
-                    onSettings={() => editSection()}
-                    onDelete={() => onDeleteSection(section.id)}
-                    quickActions={[
-                        { label: "Copy section", icon: <Copy className="h-3.5 w-3.5" />, onClick: () => onCopySection(section.id) },
-                        { label: "Delete section", icon: <Trash2 className="h-3.5 w-3.5" />, onClick: () => onDeleteSection(section.id) },
-                        { label: "Hide section", icon: section.isVisible === false ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />, onClick: () => onHideSection(section.id) },
-                        { label: "Add row", icon: <Plus className="h-3.5 w-3.5" />, onClick: () => onAddRow(section.id) },
-                    ]}
-                    showDeleteIcon={false}
-                    className="group-hover/section:flex"
-                />
-            </div>
+            ) : null}
             <div className="space-y-4">
                 {section.rows.length > 0 ? (
-                    section.rows.map((row) => (
+                    section.rows.map((row: any) => (
                         <RowRenderer
-                            key={row.id}
+                            key={row.template_row_id}
                             row={row}
                             mode={mode}
+                            sectionType={sectionType}
                             selection={selection}
                             onSelect={onSelect}
-                            sectionId={section.id}
+                            sectionId={section.template_section_id}
                             onDeleteRow={onDeleteRow}
                             onHideRow={onHideRow}
                             onAddColumn={onAddColumn}

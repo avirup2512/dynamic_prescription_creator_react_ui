@@ -13,9 +13,12 @@ import type { SectionTemplate } from "@/features/section/type/SectionType";
 import { AddSectionTemplate } from "@/features/section/store/SectionSlice";
 import { AppendSectionInTemplate } from "../../store/TemplateSlice";
 import type { Section } from "../../type/TemplateType";
+import { v4 as uuid } from "uuid"
+import SectionService from "@/features/section/service/SectionService";
 
 const FolderSection: React.FC<{ folder: any, sectionType: string }> = ({ folder, sectionType }) => {
     const templateService = TemplateService;
+    const sectionService = SectionService;
     const TemplateState = useSelector((state: any) => state.template);
     const navigate = useNavigate();
     const { id } = useParams();
@@ -29,36 +32,97 @@ const FolderSection: React.FC<{ folder: any, sectionType: string }> = ({ folder,
             const is_header = sectionType === "header" ? 1 : 0;
             const is_body = sectionType === "body" ? 1 : 0;
             const is_footer = sectionType === "footer" ? 1 : 0;
-            const createdSection = await templateService.createsectionandAssign({ data: { is_header, is_body, is_footer, template_id: id } });
-            if (createdSection && createdSection.success) {
-                const section: Section = {
-                    id: createdSection?.data?.templateSection?.id,
-                    name: createdSection?.data?.section?.name,
-                    order: createdSection?.data?.section?.section_order,
+            const section: any = {
+                id: uuid(),
+                name: 'Untitled-Section' + TemplateState?.CurrentTemplate?.[sectionType].length + 1,
+                section_order: TemplateState?.CurrentTemplate?.[sectionType].length + 1,
+                isVisible: true,
+                rows: [
+                    {
+                        id: uuid(),
+                        name: "Row" + 1,
+                        row_order: 0,
+                        columns: [{
+                            id: uuid(),
+                            name: "Column" + 1,
+                            width: '12',
+                            column_order: 1,
+                            inputGroup: [
+                                {
+                                    id: uuid(),
+                                    input_group_order: 1,
+                                    inputs: []
+                                }
+                            ]
+                        }]
+                    }
+                ]
+            }
+            const createdSection = await sectionService.createSection({ data: section });
+            if (createdSection?.success) {
+                const templateSection: Section = {
+                    template_section_id: uuid(),
+                    name: 'Untitled-Section' + TemplateState?.CurrentTemplate?.[sectionType].length + 1,
+                    section_order: TemplateState?.CurrentTemplate?.[sectionType].length + 1,
+                    isVisible: true,
+                    section_id: createdSection?.data?.id,
                     rows: [
                         {
-                            id: createdSection?.data?.templateRow?.id,
-                            name: createdSection?.data?.row?.name,
-                            order: createdSection?.data?.row?.row_order,
+                            template_row_id: uuid(),
+                            name: "Row" + 1,
+                            row_order: 1,
                             columns: [{
-                                id: createdSection?.data?.templateColumn?.id,
-                                name: createdSection?.data?.column?.name,
-                                order: createdSection?.data?.column?.column_order,
-                                width: createdSection?.data?.column?.width,
-                                inputGroup: [{
-                                    id: createdSection?.data?.templateInputGroup?.id,
-                                    order: createdSection?.data?.inputGroup?.input_group_order,
-                                    inputs: []
-                                }]
+                                template_column_id: uuid(),
+                                name: "Column" + 1,
+                                width: '12',
+                                column_order: 1,
+                                inputGroup: [
+                                    {
+                                        template_input_group_id: uuid(),
+                                        input_group_order: 1,
+                                        inputs: []
+                                    }
+                                ]
                             }]
                         }
-                    ],
-                    isVisible: createdSection?.data?.templateSection?.is_visible,
+                    ]
                 }
-                console.log(TemplateState?.CurrentTemplate)
-                dispatch(AppendSectionInTemplate({ section, sectionType }));
-                navigate(`/dashboard/new-template/edit/${id}/section/${createdSection?.data?.templateSection?.id}/${sectionType}`);
+                const payload = JSON.parse(JSON.stringify(TemplateState?.CurrentTemplate));
+                payload?.[sectionType].push(templateSection);
+                const createdTemplateSection = await templateService.updateTemplate(id as string, { data: payload });
+                if (createdTemplateSection?.success) {
+                    dispatch(AppendSectionInTemplate({ section: templateSection, sectionType }));
+                }
             }
+            // if (createdSection && createdSection.success) {
+            //     const section: Section = {
+            //         id: createdSection?.data?.templateSection?.id,
+            //         name: createdSection?.data?.section?.name,
+            //         order: createdSection?.data?.section?.section_order,
+            //         rows: [
+            //             {
+            //                 id: createdSection?.data?.templateRow?.id,
+            //                 name: createdSection?.data?.row?.name,
+            //                 order: createdSection?.data?.row?.row_order,
+            //                 columns: [{
+            //                     id: createdSection?.data?.templateColumn?.id,
+            //                     name: createdSection?.data?.column?.name,
+            //                     order: createdSection?.data?.column?.column_order,
+            //                     width: createdSection?.data?.column?.width,
+            //                     inputGroup: [{
+            //                         id: createdSection?.data?.templateInputGroup?.id,
+            //                         order: createdSection?.data?.inputGroup?.input_group_order,
+            //                         inputs: []
+            //                     }]
+            //                 }]
+            //             }
+            //         ],
+            //         isVisible: createdSection?.data?.templateSection?.is_visible,
+            //     }
+            //     console.log(TemplateState?.CurrentTemplate)
+            //     dispatch(AppendSectionInTemplate({ section, sectionType }));
+            //     navigate(`/dashboard/new-template/edit/${id}/section/${createdSection?.data?.templateSection?.id}/${sectionType}`);
+            // }
         } catch (error) {
             console.log(error)
         }

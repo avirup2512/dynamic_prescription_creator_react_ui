@@ -27,7 +27,7 @@ function RowNode({ row, rowIndex, sectionId, sectionType }: any) {
                 <div className="space-y-1.5 border-t border-slate-100 bg-slate-50/70 p-2">
                     {row.columns.map((col: any, columnIndex: number) => (
                         <div key={col.id ?? col.column_id} className="overflow-hidden border border-slate-200 bg-white">
-                            <ColumnNode sectionId={sectionId} column={col} columnIndex={columnIndex} rowIndex={rowIndex} sectionType={sectionType} />
+                            <ColumnNode sectionId={sectionId} column={col} columnIndex={columnIndex} rowId={row?.id || row?.template_row_id} sectionType={sectionType} />
                         </div>
                     ))}
                     <button

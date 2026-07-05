@@ -14,6 +14,7 @@ interface QuickAction {
 interface HoverToolbarProps {
     mode: CanvasMode;
     label: string;
+    showSettings?: boolean;
     onSettings?: () => void;
     onDelete?: () => void;
     quickActions?: QuickAction[];
@@ -22,7 +23,7 @@ interface HoverToolbarProps {
     className?: string;
 }
 
-export default function HoverToolbar({ mode, label, onSettings, onDelete, quickActions, showDeleteIcon = true, visible = false, className }: HoverToolbarProps) {
+export default function HoverToolbar({ mode, label, showSettings = true, onSettings, onDelete, quickActions, showDeleteIcon = true, visible = false, className }: HoverToolbarProps) {
     if (mode === "preview") return null;
 
     return (
@@ -33,17 +34,21 @@ export default function HoverToolbar({ mode, label, onSettings, onDelete, quickA
                 className
             )}
         >
-            <button
-                type="button"
-                aria-label={`Settings for ${label}`}
-                onClick={(event) => {
-                    event.stopPropagation();
-                    onSettings?.();
-                }}
-                className="pointer-events-auto flex h-6 w-6 items-center justify-center text-slate-400 hover:text-slate-700"
-            >
-                <Settings className="h-3.5 w-3.5" onClick={onSettings} />
-            </button>
+            {
+                showSettings && onSettings && (
+                    <button
+                        type="button"
+                        aria-label={`Settings for ${label}`}
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            onSettings?.();
+                        }}
+                        className="pointer-events-auto flex h-6 w-6 items-center justify-center text-slate-400 hover:text-slate-700"
+                    >
+                        <Settings className="h-3.5 w-3.5" onClick={onSettings} />
+                    </button>)
+            }
+
             {quickActions && quickActions.length > 0 ? (
                 <Popover>
                     <PopoverTrigger asChild>

@@ -42,7 +42,7 @@ export default function PrescriptionPage({
     onOpenFieldEditor,
 }: PrescriptionPageProps) {
     return (
-        <article className="mx-auto min-h-[1123px] w-[794px] bg-white px-[76px] py-[74px] text-slate-800 shadow-[0_16px_45px_rgba(15,23,42,0.10)]">
+        <article className="mx-auto min-h-[1123px] w-[794px] bg-white px-6 py-8 text-slate-800 shadow-[0_16px_45px_rgba(15,23,42,0.10)]">
             {mode === "edit" ? (
                 <EditLayer
                     sections={page.sections}

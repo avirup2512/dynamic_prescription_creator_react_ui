@@ -21,7 +21,6 @@ interface EditLayerProps {
 }
 
 export default function EditLayer({ sections, selection, onSelect, onOpenSectionEditor, onCopySection, onDeleteSection, onHideSection, onAddRow, onDeleteRow, onHideRow, onAddColumn, onDeleteColumn, onHideColumn, onQuickStyleInput, onOpenFieldEditor }: EditLayerProps) {
-    console.log(sections);
     const TemplateState = useSelector((state: any) => state.template);
 
     return (
@@ -32,6 +31,7 @@ export default function EditLayer({ sections, selection, onSelect, onOpenSection
                         <SectionRenderer
                             key={sections.id}
                             section={sections}
+                            sectionType="header"
                             mode="edit"
                             selection={selection}
                             onSelect={onSelect}

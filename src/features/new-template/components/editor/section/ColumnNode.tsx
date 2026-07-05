@@ -6,7 +6,7 @@ import FieldItem from "./FieldItem";
 import AddFieldButton from "./AddFieldButton";
 
 const ColumnNode = memo(function ColumnNode({
-    column, rowIndex, columnIndex, sectionType, sectionId
+    column, rowId, columnIndex, sectionType, sectionId
 }: any) {
     const [open, setOpen] = useState(true);
 
@@ -28,6 +28,7 @@ const ColumnNode = memo(function ColumnNode({
                 <div className="space-y-1 border-t border-slate-100 bg-white p-1.5">
                     {column?.inputGroup && column.inputGroup.map((inputGroup: any, inputGroupIndex: number) => (
                         <>
+                            <h1>{column?.id}</h1>
                             {
                                 inputGroup?.inputs && inputGroup.inputs.map((input) => (
                                     <FieldItem
@@ -38,7 +39,7 @@ const ColumnNode = memo(function ColumnNode({
                                     />
                                 ))
                             }
-                            <AddFieldButton sectionId={sectionId} sectionType={sectionType} rowIndex={rowIndex} columnIndex={columnIndex} inputGroupIndex={inputGroupIndex} onAdd={() => { }} />
+                            <AddFieldButton sectionId={sectionId} sectionType={sectionType} rowId={rowId} columnId={column?.template_column_id} inputGroupId={inputGroup?.id || inputGroup?.template_input_group_id} onAdd={() => { }} />
                         </>
                     ))}
                 </div>

@@ -125,8 +125,8 @@ const RecipeEditor = memo(() => {
     selectedItem?.scrollIntoView({ block: "nearest", inline: "nearest" });
   }, [selectedIds, visibleRecipes.length]);
 
-  const toggleRecipe = useCallback((id: string) => {
-    dispatch(toggleRecipeSelection(id));
+  const toggleRecipe = useCallback((recipe: any) => {
+    dispatch(toggleRecipeSelection({ recipe }));
   }, [dispatch]);
 
   const selectRecipeTag = useCallback((tagId: string) => {
@@ -187,7 +187,7 @@ const RecipeEditor = memo(() => {
                         <span className="text-[12px] text-slate-600">{recipe?.ingredients?.length}</span>
                         <span className="text-[12px] text-slate-600">{recipe?.nutrients?.energy ?? "-"} kcal</span>
                         <span className="flex justify-center" onClick={(event) => event.stopPropagation()}>
-                          <Checkbox checked={selected} onCheckedChange={() => toggleRecipe(recipe.id)} />
+                          <Checkbox checked={selected} onCheckedChange={() => toggleRecipe(recipe)} />
                         </span>
                       </button>
                     );

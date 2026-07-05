@@ -17,6 +17,7 @@ import TemplateService from "@/features/new-template/service/TemplateService";
 import { redefineTemplate } from "@/features/new-template/utils/TemplateUtilsService";
 import InputEntityTypeService from "@/features/inputEntityType/services/InputEntityTypeService";
 import { INPUT_TYPE } from "@/constant/inputType.enum";
+import { v4 as uuid } from "uuid"
 
 type ResultKind = "TEXT" | "DROPDOWN" | "TOGGLE" | "FOOD" | "RECIPE" | "CHECKBOX";
 
@@ -45,7 +46,7 @@ interface ResultGroup {
 }
 const ParentWrapperContent: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const dispatch = useDispatch();
-    const { templateId: routeTemplateId, id, inputType, inputId, rowIndex, columnIndex, inputGroupIndex, sectionType, sectionId, tabType } = useParams();
+    const { templateId: routeTemplateId, id, inputType, inputId, rowId, columnId, inputGroupId, sectionType, sectionId, tabType } = useParams();
     const templateId = routeTemplateId ?? id;
     const navigate = useNavigate();
     const templateService = TemplateService;
@@ -110,25 +111,28 @@ const ParentWrapperContent: React.FC<{ onClose?: () => void }> = ({ onClose }) =
         }
     }
     const AddInput = () => {
-        console.log(inputType);
-        // console.log(InputState)
-        // console.log(RecipeState)
-        console.log(dropdownState.selectedDropdown)
+        console.log(FoodState)
+        console.log(inputType)
         let payload: any = {};
+        let input = {};
         switch (inputType) {
             case INPUT_TYPE.INPUTTYPE_1:
-                payload = { sectionId, rowIndex: parseInt((rowIndex ? rowIndex : '')), columnIndex: parseInt((columnIndex ? columnIndex : '')), input: InputState.selectedInput, inputGroupIndex: parseInt((inputGroupIndex ? inputGroupIndex : '')), sameGroup: true, sectionType: sectionType ? sectionType : '' }
+                input = { ...InputState.selectedInput, template_input_id: uuid() };
+                payload = { sectionId, rowId, columnId, input, inputGroupId, sameGroup: true, sectionType: sectionType ? sectionType : '' }
                 dispatch(AddInputTypeToTemplate(payload));
                 break;
             case INPUT_TYPE.INPUTTYPE_2:
-                payload = { sectionId, rowIndex: parseInt((rowIndex ? rowIndex : '')), columnIndex: parseInt((columnIndex ? columnIndex : '')), input: dropdownState.selectedDropdown, inputGroupIndex: parseInt((inputGroupIndex ? inputGroupIndex : '')), sameGroup: true, sectionType: sectionType ? sectionType : '' }
+                input = { ...dropdownState.selectedDropdown, template_input_id: uuid() };
+                payload = { sectionId, rowId, columnId, input, inputGroupId, sameGroup: true, sectionType: sectionType ? sectionType : '' }
                 dispatch(AddInputTypeToTemplate(payload));
                 break;
             case INPUT_TYPE.INPUTTYPE_3:
                 dispatch(setSelectedInput(selectedItem));
                 break;
             case INPUT_TYPE.INPUTTYPE_4:
-                dispatch(setSelectedInput(selectedItem));
+                input = { ...RecipeState.selectedRecipes, template_input_id: uuid() };
+                payload = { sectionId, rowId, columnId, input, inputGroupId, sameGroup: true, sectionType: sectionType ? sectionType : '' }
+                dispatch(AddInputTypeToTemplate(payload));
                 break;
             default:
                 dispatch(setSelectedInput(selectedItem));

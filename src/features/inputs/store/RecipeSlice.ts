@@ -30,6 +30,7 @@ interface RecipeState {
     categories: RecipeCategory[];
     fetchedRecipes: RecipeFetchPayload;
     selectedIds: string[];
+    selectedRecipes: RecipeItem[];
 }
 
 const initialState: RecipeState = {
@@ -38,6 +39,7 @@ const initialState: RecipeState = {
     categories: [],
     fetchedRecipes: { tags: [] },
     selectedIds: ["diabetic-breakfast-bowl"],
+    selectedRecipes: [],
 };
 
 const recipeSlice = createSlice({
@@ -50,6 +52,7 @@ const recipeSlice = createSlice({
         setSelectedCategoryId: (state, action: PayloadAction<string>) => {
             if (state.selectedCategoryId !== action.payload) {
                 state.selectedIds = [];
+                state.selectedRecipes = [];
             }
             state.selectedCategoryId = action.payload;
         },
@@ -59,11 +62,14 @@ const recipeSlice = createSlice({
         setFetchedRecipes: (state, action: PayloadAction<RecipeFetchPayload>) => {
             state.fetchedRecipes = action.payload;
         },
-        toggleRecipeSelection: (state, action: PayloadAction<string>) => {
-            const id = action.payload;
-            state.selectedIds = state.selectedIds.includes(id)
-                ? state.selectedIds.filter((itemId) => itemId !== id)
-                : [...state.selectedIds, id];
+        toggleRecipeSelection: (state, action: PayloadAction<{ recipe: RecipeItem }>) => {
+            const { recipe } = action.payload;
+            state.selectedIds = state.selectedIds.includes(recipe.id)
+                ? state.selectedIds.filter((itemId) => itemId !== recipe.id)
+                : [...state.selectedIds, recipe.id];
+            state.selectedRecipes = state.selectedRecipes.some((item) => item.id === recipe.id)
+                ? state.selectedRecipes.filter((item) => item.id !== recipe.id)
+                : [...state.selectedRecipes, recipe];
         },
     },
 });

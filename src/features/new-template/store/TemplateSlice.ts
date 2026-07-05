@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, current } from "@reduxjs/toolkit";
 import { ChevronDown, FileText, Type } from "lucide-react";
 import type { TemplateDataType } from "../type/TemplateType";
 import { INPUT_TYPE } from "../../../constant/inputType.enum";
@@ -106,15 +106,15 @@ const TemplateSlice = createSlice({
             const currentSection = currentTemplate.find((section: any) => section.template_section_id === sectionId);
             if (currentSection) {
                 const newRow = {
-                    id: `row-${Date.now()}`,
+                    template_row_id: `row-${Date.now()}`,
                     name: "Section" + (currentSection.rows.length + 1),
                     row_order: currentSection.rows.length + 1,
                     columns: [
                         {
-                            id: `column-${Date.now()}`,
+                            template_column_id: `column-${Date.now()}`,
                             name: "Column1",
                             inputGroup: [{
-                                id: `group-${Date.now()}`,
+                                template_input_group_id: `group-${Date.now()}`,
                                 input_group_order: 1,
                                 inputs: []
                             }]
@@ -131,14 +131,14 @@ const TemplateSlice = createSlice({
             const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
             const currentSection = currentTemplate.find((section: any) => section.template_section_id === sectionId);
             if (currentSection) {
-                const currentRow = currentSection?.rows.find((row: any) => row.row_id === rowId || row.id === rowId);
+                const currentRow = currentSection?.rows.find((row: any) => row.template_row_id === rowId || row.id === rowId);
                 const newColumn = {
-                    id: `column-${Date.now()}`,
+                    template_column_id: `column-${Date.now()}`,
                     name: "Column" + (currentRow?.columns.length + 1),
                     column_order: currentRow.columns.length + 1,
                     data: null,
                     inputGroup: [{
-                        id: `group-${Date.now()}`,
+                        template_input_group_id: `group-${Date.now()}`,
                         input_group_order: 1,
                         inputs: []
                     }],
@@ -202,30 +202,34 @@ const TemplateSlice = createSlice({
             };
         },
         AddInputTypeToTemplate: (state, action) => {
-            const { sectionId, rowIndex, columnIndex, inputGroupIndex, sectionType, sameGroup, input } = action.payload
+            const { sectionId, rowId, columnId, inputGroupId, sectionType, sameGroup, input } = action.payload
             const currentSection = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
             console.log(action.payload)
             const section = currentSection.find((sec: any) => sec.template_section_id === sectionId || sec.id === sectionId);
-            const targetRow = section.rows[rowIndex];
-            let lastIndex = inputGroupIndex;
+            const targetRow = section.rows.find((r: any) => r.template_row_id === rowId);
+            let lastId = inputGroupId;
             if (targetRow) {
-                const currentColumn = targetRow.columns[columnIndex];
+                const currentColumn = targetRow.columns.find((c: any) => c.template_column_id === columnId);
                 if (currentColumn && currentColumn?.inputGroup && Array.isArray(currentColumn.inputGroup)) {
                     if (!sameGroup) {
                         const inputGroup = { id: 'group' + Date.now(), input_group_order: currentColumn.inputGroup.length + 1, inputs: [input] };
                         currentColumn.inputGroup.push(inputGroup);
-                        lastIndex = currentColumn.inputGroup.length - 1;
+                        lastId = inputGroup.id;
                     } else {
-                        if (currentColumn.inputGroup[inputGroupIndex]) {
-                            currentColumn.inputGroup[inputGroupIndex].inputs?.push(input);
+                        const inputGroup = currentColumn.inputGroup.find((g: any) => g.template_input_group_id === inputGroupId);
+                        if (inputGroup) {
+                            if (Array.isArray(input)) {
+                                inputGroup.inputs = [...inputGroup.inputs, ...input];
+                            } else
+                                inputGroup.inputs?.push(input);
                         }
                     }
                     if (
-                        lastIndex !== undefined &&
-                        lastIndex !== null &&
+                        lastId !== undefined &&
+                        lastId !== null &&
                         currentColumn?.inputGroup
                     ) {
-                        const inputGroup = currentColumn.inputGroup[lastIndex];
+                        const inputGroup = currentColumn.inputGroup.find((g: any) => g.template_input_group_id === lastId);
 
                         if (inputGroup?.inputs?.length) {
                             inputGroup.inputs = normalizeInputOrder(inputGroup.inputs);
@@ -295,32 +299,36 @@ const TemplateSlice = createSlice({
             }
         },
         AddDropdownOptionValueToTemplate: (state, action) => {
-            console.log(action.payload)
-            const { sectionIndex, rowIndex, columnIndex, inputIndex, inputGroupIndex, dropdownOptions, sectionType } = action.payload
+            console.log(action.payload);
+            const { sectionId, rowId, columnId, inputId, inputGroupId, dropdownOptions, sectionType } = action.payload
             const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const currentSection = currentTemplate[sectionIndex];
-            const targetRow = currentSection.rows[rowIndex];
+            const currentSection = currentTemplate.find((section: any) => section.template_section_id === sectionId || section.id === sectionId);
+            const targetRow = currentSection?.rows.find((row: any) => row.template_row_id === rowId || row.id === rowId);
             if (targetRow) {
-                const targetColumn = targetRow.columns[columnIndex];
-                if (targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] &&
-                    targetColumn.inputGroup[inputGroupIndex].inputs && targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex]
-                ) {
-                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].dropdown_option_id = dropdownOptions;
+                const targetColumn = targetRow?.columns.find((column: any) => column.id === columnId);
+                const targetInputGroup = targetColumn?.inputGroup.find((group: any) => group.id === inputGroupId);
+                if (targetInputGroup) {
+                    const targetInput = targetInputGroup?.inputs.find((input: any) => input.id === inputId);
+                    if (targetInput) {
+                        targetInput.dropdown_option_id = dropdownOptions;
+                    }
                 }
             }
         },
         AddEditDropdownTextValueToTemplate: (state, action) => {
-            const { sectionIndex, rowIndex, columnIndex, inputIndex, inputGroupIndex, dropdownOptionsText, sectionType } = action.payload
+            const { sectionId, rowId, columnId, inputId, inputGroupId, dropdownOptionId, sectionType } = action.payload
             const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const currentSection = currentTemplate[sectionIndex];
-            const targetRow = currentSection.rows[rowIndex];
+            console.log(action.payload)
+            const currentSection = currentTemplate.find((section: any) => section.template_section_id === sectionId || section.id === sectionId);
+            const targetRow = currentSection?.rows.find((row: any) => row.template_row_id === rowId || row.id === rowId);
             if (targetRow) {
-                const targetColumn = targetRow.columns[columnIndex];
-                if (targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] &&
-                    targetColumn.inputGroup[inputGroupIndex].inputs && targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex]
-                ) {
-                    console.log(dropdownOptionsText)
-                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].dropdown_option_value = dropdownOptionsText;
+                const targetColumn = targetRow?.columns.find((column: any) => column.template_column_id === columnId || column.id === columnId);
+                const targetInputGroup = targetColumn?.inputGroup.find((group: any) => group.template_input_group_id === inputGroupId || group.id === inputGroupId);
+                if (targetInputGroup) {
+                    const targetInput = targetInputGroup?.inputs.find((input: any) => input.template_input_id === inputId || input.id === inputId);
+                    if (targetInput) {
+                        targetInput.dropdown_option_id = dropdownOptionId;
+                    }
                 }
             }
         },

@@ -3,6 +3,11 @@ export const INPUT_TYPE = {
     INPUTTYPE_2: "INPUT_TYPE_2",
     INPUTTYPE_3: "INPUT_TYPE_3",
     INPUTTYPE_4: "INPUT_TYPE_4",
+    INPUTTYPE_5: "INPUT_TYPE_5",
+    INPUTTYPE_6: "INPUT_TYPE_6",
+    INPUTTYPE_7: "INPUT_TYPE_7",
+    INPUTTYPE_8: "INPUT_TYPE_8",
+    INPUTTYPE_9: "INPUT_TYPE_9",
 } as const;
 
 export type InputType =

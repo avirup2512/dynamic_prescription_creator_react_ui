@@ -4,12 +4,14 @@ import { getColumnGridClass } from "./prescriptionCanvasUtils";
 import ColumnRenderer from "./ColumnRenderer";
 import HoverToolbar from "./HoverToolbar";
 import InsertPlaceholder from "./InsertPlaceholder";
+import { Copy, CopyPlus, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
 
 interface RowRendererProps {
     row: CanvasRow;
     mode: CanvasMode;
     selection: CanvasSelection;
     onSelect: (selection: CanvasSelection) => void;
+    sectionType: "header" | "body" | "footer";
     sectionId: string;
     onDeleteRow?: (sectionId: string, rowId: string) => void;
     onHideRow?: (sectionId: string, rowId: string) => void;
@@ -20,7 +22,7 @@ interface RowRendererProps {
     onOpenFieldEditor?: (inputId: string) => void;
 }
 
-export default function RowRenderer({ row, mode, selection, onSelect, sectionId, onDeleteRow, onHideRow, onAddColumn, onDeleteColumn, onHideColumn, onQuickStyleInput, onOpenFieldEditor }: RowRendererProps) {
+export default function RowRenderer({ row, mode, selection, sectionType, onSelect, sectionId, onDeleteRow, onHideRow, onAddColumn, onDeleteColumn, onHideColumn, onQuickStyleInput, onOpenFieldEditor }: RowRendererProps) {
     const visibleColumns = row?.columns.slice(0, 3);
     const rowLabel = `Row ${row?.id?.split("-").pop() ?? "1"}`;
 
@@ -38,34 +40,40 @@ export default function RowRenderer({ row, mode, selection, onSelect, sectionId,
                 onSelect({ rowId: row.id });
             }}
         >
-            <div className="mb-2 flex items-center justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">{rowLabel}</p>
+            {mode === "edit" ? (
+                <div className="mb-2 flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">{rowLabel}</p>
+                    </div>
+                    <HoverToolbar
+                        mode={mode}
+                        label={rowLabel}
+                        visible={mode === "edit"}
+                        showSettings={false}
+                        showDeleteIcon={false}
+                        onDelete={onDeleteRow ? () => onDeleteRow(sectionId, row.id) : undefined}
+                        quickActions={[
+                            { label: "Copy row", icon: <Copy className="h-3.5 w-3.5" />, onClick: () => { } },
+                            { label: "Hide row", icon: row?.isVisible === false ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />, onClick: () => { } },
+                            { label: "Add column", icon: <Plus className="h-3.5 w-3.5" />, onClick: () => { } },
+                            { label: "Delete section", icon: <Trash2 className="h-3.5 w-3.5" />, onClick: () => { } },
+                        ]}
+                        className="group-hover/row:flex"
+                    />
                 </div>
-                <HoverToolbar
-                    mode={mode}
-                    label={rowLabel}
-                    visible={mode === "edit"}
-                    onDelete={onDeleteRow ? () => onDeleteRow(sectionId, row.id) : undefined}
-                    quickActions={[
-                        { label: "Delete row", onClick: () => onDeleteRow?.(sectionId, row.id) },
-                        { label: "Hide row", onClick: () => onHideRow?.(sectionId, row.id) },
-                        { label: "Add column", onClick: () => onAddColumn?.(sectionId, row.id) },
-                    ]}
-                    className="group-hover/row:flex"
-                />
-            </div>
+            ) : null}
             {visibleColumns.length > 0 ? (
                 <div className={cn("grid gap-4", getColumnGridClass(visibleColumns.length))}>
-                    {visibleColumns.map((column) => (
+                    {visibleColumns.map((column: any) => (
                         <ColumnRenderer
-                            key={column.id}
+                            key={column.template_column_id}
                             column={column}
+                            sectionType={sectionType}
                             mode={mode}
                             selection={selection}
                             onSelect={onSelect}
                             sectionId={sectionId}
-                            rowId={row.id}
+                            rowId={row?.template_row_id}
                             onDeleteColumn={onDeleteColumn}
                             onHideColumn={onHideColumn}
                             onQuickStyleInput={onQuickStyleInput}

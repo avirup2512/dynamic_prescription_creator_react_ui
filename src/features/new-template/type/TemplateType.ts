@@ -39,29 +39,31 @@ export type ColumnInputItem = {
   formatArray?: Array<Format>
 }
 export type InputGroup = {
-  id: string,
-  order: number;
+  template_input_group_id: string,
+  input_group_order: number;
   name?: string,
   relation?: "or";
   inputs?: Array<ColumnInputItem>
 }
 export type Column = {
-  id: string,
-  order: number;
+  template_column_id: string,
+  column_order: number;
   name?: string,
   width?: string,
   inputGroup?: Array<InputGroup>
 }
 export type Rows = {
-  id: string,
+  template_row_id: string,
   name: string,
-  order: number,
+  row_order: number,
   columns: Column[]
 }
 export type Section = {
-  id: string,
+  id?: string,
+  section_id: string,
+  template_section_id: string,
   name: string,
-  order?: number,
+  section_order?: number,
   style?: any;
   rows: Array<Rows>
   createdAt?: string,
