@@ -4,7 +4,7 @@ import { Check, GripVertical, Palette, Pencil, Settings, X } from "lucide-react"
 import { cn } from "@/lib/utils";
 import type { CanvasInput, CanvasMode } from "./prescriptionCanvasTypes";
 import { useSelector } from "react-redux";
-import { selectInputStyle, DEFAULT_STYLE } from "@/features/new-template/store/templateStyleSlice";
+import { selectInputStyle, DEFAULT_STYLE } from "@/features/new-template/store/TemplateStyleSlice";
 import { Label } from "@radix-ui/react-dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
