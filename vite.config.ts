@@ -7,7 +7,7 @@ import { fileURLToPath, URL } from 'node:url'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
-    outDir: "../../var/www/freelancecollab.com"
+    outDir: "../../var/www/cliniureapp"
   },
   resolve: {
     alias: {
