@@ -104,13 +104,13 @@ const TemplateSlice = createSlice({
             }
         },
         RemoveSectionFromTemplate: (state, action) => {
-            const { sectionType } = action.payload;
-            const sectionIndex = action.payload.sectionIndex ?? action.payload.rowIndex;
+            const { sectionType, sectionId } = action.payload;
             console.log(action.payload)
             const currentSection: any = getTemplateSectionArray(state.CurrentTemplate, sectionType);
+            console.log(state.CurrentTemplate)
+            console.log(currentSection)
             if (!currentSection || !Array.isArray(currentSection)) return;
-            if (typeof sectionIndex !== "number") return;
-            if (sectionIndex < 0 || sectionIndex >= currentSection.length) return;
+            const sectionIndex = currentSection.findIndex((sec: any) => sec.template_section_id == sectionId);
             currentSection.splice(sectionIndex, 1);
             recalculateSectionOrder(state.CurrentTemplate);
         },

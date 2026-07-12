@@ -12,6 +12,7 @@ import { Outlet, useParams, useNavigationType } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { CurrentTemplate, SetCurrentTemplate } from "../store/TemplateSlice";
 import { redefineTemplate } from "../utils/TemplateUtilsService";
+import { toast } from "sonner"
 
 export default function CreateTemplate() {
   const templateService = TemplateService;
@@ -39,10 +40,14 @@ export default function CreateTemplate() {
     const timer = setTimeout(async () => {
       setIsSaving(true);
       await templateService.updateTemplate(id as string, { data: TemplateState.CurrentTemplate });
+      toast("Template is saved.", {
+        description: "",
+      })
       setIsSaving(false);
-    }, 1500); // Debounce 1.5 seconds
+    }, 10000); // Debounce 10 seconds
     return () => clearTimeout(timer);
   }, [TemplateState?.CurrentTemplate]);
+
   async function getTemplateInfoById(id: any) {
     try {
       const fetchedTemplateData = await templateService.getTemplateById(id);

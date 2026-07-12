@@ -7,7 +7,8 @@ import type { CanvasColumn, CanvasMode, CanvasRow, CanvasSection, CanvasSelectio
 import { getOrderedSections, normalizePrescriptionAreas, paginateSections } from "./prescriptionCanvasUtils";
 import PageBreak from "./PageBreak";
 import PrescriptionPage from "./PrescriptionPage";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { RemoveSectionFromTemplate } from "@/features/new-template/store/TemplateSlice";
 
 interface PrescriptionCanvasProps {
     header: unknown;
@@ -16,6 +17,7 @@ interface PrescriptionCanvasProps {
 }
 
 export default function PrescriptionCanvas({ header, body, footer }: PrescriptionCanvasProps) {
+    const dispatch = useDispatch();
     console.log(header)
     const { openEditor } = useBuilder();
     const [mode, setMode] = useState<CanvasMode>("edit");
@@ -27,6 +29,10 @@ export default function PrescriptionCanvas({ header, body, footer }: Prescriptio
     useEffect(() => {
         setSections(initialSections);
     }, [initialSections]);
+
+    const saveTemplate = () => {
+        
+    }
 
     const createId = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -61,9 +67,8 @@ export default function PrescriptionCanvas({ header, body, footer }: Prescriptio
         });
     };
 
-    const handleDeleteSection = (sectionId: string) => {
-        setSections((prev) => prev.filter((section) => section.id !== sectionId));
-        setSelection((prev) => (prev.sectionId === sectionId ? {} : prev));
+    const handleDeleteSection = (sectionId: string, sectionType: string) => {
+        dispatch(RemoveSectionFromTemplate({ sectionId, sectionType }))
     };
 
     const handleHideSection = (sectionId: string) => {
@@ -242,6 +247,9 @@ export default function PrescriptionCanvas({ header, body, footer }: Prescriptio
 
                 <div className="flex items-center gap-3">
                     <button type="button" className="text-[12px] font-semibold text-slate-400 transition hover:text-slate-700">
+                        Save
+                    </button>
+                    <button type="button" className="text-[12px] font-semibold text-slate-400 transition hover:text-slate-700">
                         Discard
                     </button>
                     <button
@@ -297,7 +305,6 @@ export default function PrescriptionCanvas({ header, body, footer }: Prescriptio
                             />
                         </div>
                     ))} */}
-
                 </div>
             </div>
         </div>

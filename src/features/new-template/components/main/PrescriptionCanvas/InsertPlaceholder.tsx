@@ -1,6 +1,7 @@
-import { Plus } from "lucide-react";
+import { LibraryBig, Plus } from "lucide-react";
 
 import type { CanvasMode } from "./prescriptionCanvasTypes";
+import { Button } from "@/components/ui/button";
 
 interface InsertPlaceholderProps {
     mode: CanvasMode;
@@ -12,16 +13,18 @@ export default function InsertPlaceholder({ mode, label, onClick }: InsertPlaceh
     if (mode === "preview") return null;
 
     return (
-        <button
+        <Button
             onClick={(e) => {
                 e.stopPropagation();
                 onClick?.();
             }}
-            type="button"
-            className="flex min-h-14 w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-sky-200 bg-sky-50/30 text-[11px] font-semibold text-sky-600 transition hover:border-sky-300 hover:bg-sky-50"
+            variant="outline"
+            size="sm"
+            className="h-8 justify-center gap-1.5 border-dashed text-xs font-medium text-primary hover:bg-primary/5 hover:text-primary"
         >
+            {/* <LibraryBig className="h-3.5 w-3.5" /> */}
             <Plus className="h-3.5 w-3.5" />
             {label}
-        </button>
+        </Button >
     );
 }

@@ -1,16 +1,18 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Stethoscope } from "lucide-react";
+import { Copy, EyeOff, Eye, Palette, Settings, Stethoscope, Trash2, Plus } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import type { CanvasInput, CanvasMode, CanvasSelection } from "./prescriptionCanvasTypes";
+import type { CanvasMode, CanvasSelection } from "./prescriptionCanvasTypes";
 import EditableField from "./EditableField";
 import HoverToolbar from "./HoverToolbar";
 import { INPUT_TYPE } from "@/constant/inputType.enum";
 import { useDispatch } from "react-redux";
-import { AddEditDropdownTextValueToTemplate } from "@/features/new-template/store/TemplateSlice";
-
+import { AddEditDropdownTextValueToTemplate, AddInputValueToTemplate, EditInputLabelToTemplate, AddQuantityTextValueToTemplate, EditExtraNoteValueInTemplate, SetInputStatusInTemplate, RemoveInputTypeFromTemplate } from "@/features/new-template/store/TemplateSlice";
+import SearchableOptionSelect from "@/components/shared/SearchableOptionSelect";
+import { useNavigate } from "react-router-dom";
+import type { ColumnInputItem } from "@/features/new-template/type/TemplateType";
 interface InputRendererProps {
-    input: CanvasInput;
+    input: ColumnInputItem;
     mode: CanvasMode;
     selection: CanvasSelection;
     sectionType: "header" | "body" | "footer";
@@ -30,7 +32,7 @@ function InputFrame({
     onSelect,
     children,
 }: {
-    input: CanvasInput;
+    input: ColumnInputItem;
     mode: CanvasMode;
     selected: boolean;
     onSelect: () => void;
@@ -39,19 +41,19 @@ function InputFrame({
     return (
         <div
             className={cn(
-                "group relative rounded-md",
+                "group/input relative rounded-md",
                 mode === "edit" && "border border-transparent p-2 transition hover:border-dashed hover:border-sky-200 hover:bg-sky-50/20",
                 mode === "edit" && selected && "border-sky-300 bg-sky-50/40 ring-1 ring-sky-200"
             )}
             onClick={onSelect}
         >
-            <HoverToolbar mode={mode} label={input.label} />
+            {/* <HoverToolbar mode={mode} label={input.label} /> */}
             {children}
         </div>
     );
 }
 
-function ClinicInput({ input }: { input: CanvasInput }) {
+function ClinicInput({ input }: { input: ColumnInputItem }) {
     return (
         <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-sky-100 bg-sky-50 text-sky-600">
@@ -65,12 +67,12 @@ function ClinicInput({ input }: { input: CanvasInput }) {
     );
 }
 
-function AddressInput({ input }: { input: CanvasInput }) {
+function AddressInput({ input }: { input: ColumnInputItem }) {
     return <p className="whitespace-pre-line text-right text-[11px] leading-relaxed text-slate-400">{input.value}</p>;
 }
 
-function RecipeInput({ input }: { input: CanvasInput }) {
-    const recipeData = input as CanvasInput & {
+function RecipeInput({ input }: { input: ColumnInputItem }) {
+    const recipeData = input as ColumnInputItem & {
         recipeCode?: string | null;
         description?: string | null;
         servingSize?: number | string | null;
@@ -145,7 +147,7 @@ function RecipeInput({ input }: { input: CanvasInput }) {
     );
 }
 
-function MetricInput({ input }: { input: CanvasInput }) {
+function MetricInput({ input }: { input: ColumnInputItem }) {
     return (
         <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">{input.label}</p>
@@ -154,7 +156,15 @@ function MetricInput({ input }: { input: CanvasInput }) {
     );
 }
 
-function DropdownInput({ input, mode, onValueChange }: { input: CanvasInput; mode: any, onValueChange: (value: string) => void }) {
+function DropdownInput({ input, mode, onValueChange, onExtranoteChange, onQuantityChange }: any) {
+    const [inputExtraNote, setInputExtraNote] = useState(input?.template_input_extranotes);
+    const [inputQuantityText, setInputQuantityText] = useState(input?.template_quantity_value);
+    useEffect(() => {
+        onExtranoteChange?.(inputExtraNote);
+    }, [inputExtraNote])
+    useEffect(() => {
+        onQuantityChange?.(inputQuantityText);
+    }, [inputQuantityText])
     const selectedOptionId = input.dropdown_option_id ?? "";
     const options = (input.dropdown_options ?? []).map((item, index) => {
         const optionId = item.id ?? `${input.id}-option-${index + 1}`;
@@ -162,41 +172,75 @@ function DropdownInput({ input, mode, onValueChange }: { input: CanvasInput; mod
         const optionLabel = item.label ?? item.name ?? optionValue;
         return { id: optionId, value: optionValue, label: optionLabel };
     });
-    const selectedOptionValue = options.length ? options?.find((o: any) => o.id === selectedOptionId)?.value : ''
+    const selectedOptionValue = input?.dropdown_option_value ? input.dropdown_option_value : input?.value ? input.value : "";
+    const handleInputChange = (selectedOption: any, inputGroupIndex: number, inputIndex: number,
+    ) => {
 
+    }
     return (
         <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">{mode == "edit" && input.input_name || input?.name}</p>
+
             {
-                input?.showLabel === 1 && <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">{input.label || input?.name}</p>
-            }
-            {
-                mode == "edit" && <select
-                    value={selectedOptionId}
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-700 outline-none ring-0"
-                    onChange={(e) => {
-                        onValueChange(e.target.value);
-                    }}
-                >
-                    {!selectedOptionId && <option value="">Select an option</option>}
-                    {options.map((option: any) => (
-                        <option key={option.id} value={option.id}>
-                            {option.label}
-                        </option>
-                    ))}
-                </select>
+                mode == "edit" &&
+                <SearchableOptionSelect
+                    value={input?.dropdown_option_value || input?.value || ""}
+                    input_entity_id={input?.input_entity_id || input?.id}
+                    onChange={(selectedOption) =>
+                        onValueChange(selectedOption)
+                    }
+                />
             }
             <span className={cn(
                 "whitespace-pre-line text-[13px] leading-relaxed text-slate-700",
                 input.isBold && "font-semibold text-slate-800",
                 input.fontSize === "large" && "text-[15px]"
             )}>
-                {selectedOptionValue}
+                <div className="mt-2 flex items-center gap-1.5">
+                    {
+                        mode == "edit" && <span className="h-1 w-1 rounded-full bg-primary/60" />
+                    }
+                    <span className="text-xs text-muted-foreground">
+                        {mode == "edit" && "Selected:"}
+                        <span className="font-medium text-foreground">{selectedOptionValue || "—"}</span>
+                    </span>
+                </div>
+                {
+                    mode == "edit" && input?.extra_note == 1 &&
+                    <div className=" mt-3 flex flex-col gap-1 rounded-md border border-slate-200 bg-slate-50 p-2 text-[11px] text-slate-700">
+                        <label>Extra note</label>
+                        <textarea
+                            value={inputExtraNote}
+                            onChange={(event) => { setInputExtraNote?.(event.target.value); }}
+                            className="min-h-14 w-full  resize-none border-0 p-0 pr-7 placeholder:text-slate-300"
+                            placeholder="Enter value"
+                        />
+                    </div>
+                }
+                {
+                    mode == "edit" && input?.show_quantity === 1 &&
+                    <div className=" mt-3 flex flex-col gap-1 rounded-md border border-slate-200 bg-slate-50 p-2 text-[11px] text-slate-700">
+                        <label>Quantity</label>
+                        <input
+                            value={inputQuantityText}
+                            onChange={(event) => { setInputQuantityText?.(event.target.value) }}
+                            className="w-full border-0 p-0 pr-7 placeholder:text-slate-300"
+                            placeholder="Enter value"
+                        />
+                    </div>
+                }
+                {
+                    mode == "preview" && input?.extra_note == 1 && <p className="text-sm italic leading-6 text-slate-600 text-[11px]">{inputExtraNote || "—"}</p>
+                }
+                {
+                    mode == "preview" && input?.show_quantity == 1 && <p className="text-sm leading-6 text-[11px]">{inputQuantityText || "—"}</p>
+                }
             </span>
         </div>
     );
 }
 
-function MedicineList({ input }: { input: CanvasInput }) {
+function MedicineList({ input }: { input: ColumnInputItem }) {
     return (
         <div>
             <p className="mb-5 text-[13px] font-black uppercase tracking-[0.24em] text-slate-900">RX - Medications</p>
@@ -219,7 +263,7 @@ function MedicineList({ input }: { input: CanvasInput }) {
     );
 }
 
-function TestList({ input }: { input: CanvasInput }) {
+function TestList({ input }: { input: ColumnInputItem }) {
     return (
         <div>
             <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">{input.label}</p>
@@ -235,7 +279,7 @@ function TestList({ input }: { input: CanvasInput }) {
     );
 }
 
-function InstructionList({ input }: { input: CanvasInput }) {
+function InstructionList({ input }: { input: ColumnInputItem }) {
     return (
         <div>
             <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">{input.label}</p>
@@ -248,7 +292,7 @@ function InstructionList({ input }: { input: CanvasInput }) {
     );
 }
 
-function SignatureInput({ input }: { input: CanvasInput }) {
+function SignatureInput({ input }: { input: ColumnInputItem }) {
     return (
         <div className="border-t border-slate-400 pt-2 text-center">
             <p className="text-[12px] font-black text-slate-900">{input.value}</p>
@@ -257,15 +301,37 @@ function SignatureInput({ input }: { input: CanvasInput }) {
     );
 }
 
-export default function InputRenderer({ input, mode, selection, sectionType, onSelect, sectionId, rowId, columnId, inputGroupId, onQuickStyleInput, onOpenFieldEditor }: InputRendererProps) {
+export default function InputRenderer({ input, mode, selection, sectionType, onSelect, sectionId, rowId, columnId, inputGroupId, onOpenFieldEditor }: InputRendererProps) {
     const selected = selection.inputId === input.template_input_id;
     const selectInput = () => onSelect({ inputId: input.template_input_id });
-    console.log("InputRenderer", input, mode, selection, sectionType, sectionId, rowId, columnId)
     const [variant, setVariant] = useState('');
     const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const [debounceQueryForExtraNote, setDebounceQueryForExtraNote] = useState(input?.template_input_extranotes);
+    const [debounceQueryForQuantity, setDebounceQueryForQuantity] = useState(input?.template_quantity_value);
     useEffect(() => {
-        if (input.type_name) {
-            const variant = input?.type_name === INPUT_TYPE.INPUTTYPE_1 ? "field" : input?.type_name === INPUT_TYPE.INPUTTYPE_2 ? "dropdown" : input?.type_name === INPUT_TYPE.INPUTTYPE_3 ? "address" : input?.type_name === INPUT_TYPE.INPUTTYPE_4 ? "recipe" : input?.type_name === INPUT_TYPE.INPUTTYPE_5 ? "medicines" : input?.type_name === INPUT_TYPE.INPUTTYPE_6 ? "tests" : input?.type_name === INPUT_TYPE.INPUTTYPE_7 ? "list" : input?.type_name === INPUT_TYPE.INPUTTYPE_8 ? "signature" : input?.type_name === INPUT_TYPE.INPUTTYPE_9 ? "recipe" : 'field';
+        if (debounceQueryForExtraNote !== null) {
+            const timeout = setTimeout(() => {
+                const payload = { sectionId, rowId, columnId, inputGroupId, sectionType, inputId: input.template_input_id, extraNoteValue: debounceQueryForExtraNote };
+                dispatch(EditExtraNoteValueInTemplate(payload));
+            }, 500); // or 300–500ms
+            return () => clearTimeout(timeout);
+        }
+    }, [debounceQueryForExtraNote])
+    useEffect(() => {
+        if (debounceQueryForQuantity !== null) {
+            const timeout = setTimeout(() => {
+                const payload = { sectionId, rowId, columnId, inputGroupId, sectionType, inputId: input.template_input_id, quantityValue: debounceQueryForQuantity }
+                dispatch(AddQuantityTextValueToTemplate(payload));
+            }, 500); // or 300–500ms
+            return () => clearTimeout(timeout);
+        }
+    }, [debounceQueryForQuantity])
+    useEffect(() => {
+        console.log(input)
+        const inputType = input.input_type_name || input?.type_name
+        if (inputType) {
+            const variant = inputType === INPUT_TYPE.INPUTTYPE_1 ? "field" : inputType === INPUT_TYPE.INPUTTYPE_2 ? "dropdown" : inputType === INPUT_TYPE.INPUTTYPE_3 ? "address" : inputType === INPUT_TYPE.INPUTTYPE_4 ? "recipe" : inputType === INPUT_TYPE.INPUTTYPE_5 ? "medicines" : inputType === INPUT_TYPE.INPUTTYPE_6 ? "tests" : inputType === INPUT_TYPE.INPUTTYPE_7 ? "field" : inputType === INPUT_TYPE.INPUTTYPE_8 ? "signature" : inputType === INPUT_TYPE.INPUTTYPE_9 ? "recipe" : 'field';
             setVariant(variant);
         } else {
             setVariant('field');
@@ -274,18 +340,110 @@ export default function InputRenderer({ input, mode, selection, sectionType, onS
     const AddEditDropdownValue = (value: string) => {
         console.log("AddEditDropdownValue", input);
         // Handle the value change here, e.g., update the input value in the state or make an API call
-        const payload = { sectionId, rowId, columnId, inputId: input.template_input_id || input?.id, inputGroupId, dropdownOptionId: value, sectionType }
+        const payload = { sectionId, rowId, columnId, inputId: input.template_input_id || input?.id, inputGroupId, dropdownOption: value, sectionType }
         dispatch(AddEditDropdownTextValueToTemplate(payload))
     }
     const EditFieldValue = (value: string) => {
         console.log(value);
+        console.log(input)
+        switch (input?.input_type_name) {
+            case "INPUT_TYPE_1":
+            case "INPUT_TYPE_7": {
+                const payload = { sectionId, rowId, columnId, inputId: input.template_input_id || input?.id, inputGroupId, inputValue: value, sectionType }
+                dispatch(AddInputValueToTemplate(payload))
+                return true;
+            }
+            default:
+                return false
+        }
+    }
+    const EditFieldLabel = (value: string) => {
+        switch (input?.input_type_name) {
+            case "INPUT_TYPE_1":
+            case "INPUT_TYPE_7": {
+                const payload = { sectionId, rowId, columnId, inputId: input.template_input_id || input?.id, inputGroupId, inputLabel: value, sectionType }
+                dispatch(EditInputLabelToTemplate(payload))
+                return true;
+            }
+            default:
+                return false
+        }
+    }
+    const deleteInput = () => {
+        const payload = { sectionId, rowId, columnId, inputGroupId, sectionType, inputId: input?.template_input_id }
+        dispatch(RemoveInputTypeFromTemplate(payload));
+    }
+    const openInputModal = () => {
+
+    }
+    const openInputEditor = () => {
+        navigate(`./inputEdit/${sectionId}/${rowId}/${columnId}/${inputGroupId}/${sectionType}/${input.template_input_id || input?.id}/${input.input_type_name || input?.type_name}/content`);
+    }
+    const quickStyleInput = () => {
+        navigate(`./inputEdit/${sectionId}/${rowId}/${columnId}/${inputGroupId}/${sectionType}/${input.template_input_id || input?.id}/${input.input_type_name || input?.type_name}/style`);
+    }
+    const onStatusChange = (value: any) => {
+        const payload = { sectionId, rowId, columnId, inputGroupId, sectionType, inputId: input.template_input_id, status: value?.status };
+        dispatch(SetInputStatusInTemplate(payload));
+        EditFieldLabel(value?.label);
+        EditFieldValue(value?.value);
     }
     if (variant === "field") {
-        return <EditableField input={input} mode={mode} onValueChanges={EditFieldValue} selected={selected} onSelect={selectInput} sectionId={sectionId} rowId={rowId} columnId={columnId} onQuickStyle={() => onQuickStyleInput?.(sectionId, rowId, columnId, input.id)} onSettings={() => onOpenFieldEditor?.(input.id)} />;
+        return (
+            <InputFrame input={input} mode={mode} selected={selected} onSelect={selectInput}>
+                <HoverToolbar
+                    mode={mode}
+                    label={"Input"}
+                    visible={mode === "edit"}
+                    showSettings={false}
+                    showDeleteIcon={false}
+                    className="absolute right-2 top-2 z-10 group-hover/input:flex"
+                    // onDelete={onDeleteColumn ? () => onDeleteColumn(sectionId, rowId, column.id) : undefined}
+                    quickActions={[
+                        { label: "Quick Style", icon: <Palette className="h-3.5 w-3.5" />, onClick: () => { quickStyleInput() } },
+                        { label: "Hide input", disabled: true, icon: input?.isVisible === false ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />, onClick: () => { } },
+                        {
+                            label: "Delete input", icon: <Trash2 className="h-3.5 w-3.5" />, onClick: () => { deleteInput() },
+                        },
+                        {
+                            label: "Open input modal", icon: <Settings className="h-3.5 w-3.5" />, onClick: () => { openInputEditor() },
+                        },
+                        {
+                            label: "Add input", icon: <Plus className="h-3.5 w-3.5" />, onClick: () => { openInputModal() },
+                        },
+                    ]}
+                />
+                <EditableField input={input} mode={mode} onValueChanges={EditFieldValue} onLabelChanges={EditFieldLabel} selected={selected} onSelect={selectInput} sectionId={sectionId} rowId={rowId} columnId={columnId} onSettings={() => onOpenFieldEditor?.(input.id)} onStatusChange={onStatusChange} />
+                {
+                    input?.extra_note == 1 &&
+                    <div className=" mt-3 flex flex-col gap-1 rounded-md border border-slate-200 bg-slate-50 p-2 text-[11px] text-slate-700">
+                        <label>Extra note</label>
+                        <textarea
+                            value={debounceQueryForExtraNote}
+                            onChange={(event) => { setDebounceQueryForExtraNote?.(event.target.value); }}
+                            className="min-h-14 w-full  resize-none border-0 p-0 pr-7 placeholder:text-slate-300"
+                            placeholder="Enter value"
+                        />
+                    </div>
+                }
+                {
+                    input?.show_quantity == 1 &&
+                    <div className=" mt-3 flex flex-col gap-1 rounded-md border border-slate-200 bg-slate-50 p-2 text-[11px] text-slate-700">
+                        <label>Quantity</label>
+                        <input
+                            value={debounceQueryForQuantity}
+                            onChange={(event) => { setDebounceQueryForQuantity?.(event.target.value) }}
+                            className="w-full border-0 p-0 pr-7 placeholder:text-slate-300"
+                            placeholder="Enter value"
+                        />
+                    </div>
+                }
+            </InputFrame>
+        );
     }
     const content = {
         clinic: <ClinicInput input={input} />,
-        dropdown: <DropdownInput input={input} mode={mode} onValueChange={AddEditDropdownValue} />,
+        dropdown: <DropdownInput input={input} mode={mode} onValueChange={AddEditDropdownValue} onExtranoteChange={setDebounceQueryForExtraNote} onQuantityChange={setDebounceQueryForQuantity} />,
         address: <AddressInput input={input} />,
         metric: <MetricInput input={input} />,
         medicines: <MedicineList input={input} />,
@@ -295,9 +453,30 @@ export default function InputRenderer({ input, mode, selection, sectionType, onS
         recipe: <RecipeInput input={input} />,
         field: null,
     }[variant];
-
     return (
         <InputFrame input={input} mode={mode} selected={selected} onSelect={selectInput}>
+            <HoverToolbar
+                mode={mode}
+                label={"Input"}
+                visible={mode === "edit"}
+                showSettings={false}
+                showDeleteIcon={false}
+                className="absolute right-2 top-2 z-10 group-hover/input:flex"
+                // onDelete={onDeleteColumn ? () => onDeleteColumn(sectionId, rowId, column.id) : undefined}
+                quickActions={[
+                    { label: "Quick Style", icon: <Palette className="h-3.5 w-3.5" />, onClick: () => { } },
+                    { label: "Hide input", disabled: true, icon: input?.isVisible === false ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />, onClick: () => { } },
+                    {
+                        label: "Delete input", icon: <Trash2 className="h-3.5 w-3.5" />, onClick: () => { deleteInput() },
+                    },
+                    {
+                        label: "Open input modal", icon: <Settings className="h-3.5 w-3.5" />, onClick: () => openInputEditor(),
+                    },
+                    {
+                        label: "Add input", icon: <Plus className="h-3.5 w-3.5" />, onClick: () => { openInputModal() },
+                    },
+                ]}
+            />
             {content}
         </InputFrame>
     );

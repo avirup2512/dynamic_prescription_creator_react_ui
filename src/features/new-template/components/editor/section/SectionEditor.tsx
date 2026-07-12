@@ -17,17 +17,18 @@ import StyleTab from "./StyleTab/StyleTab";
 import { useParams } from "react-router-dom";
 import type { Section as TemplateSection } from "@/features/template/type/TemplateType";
 import { AddRowToTemplateSection } from "@/features/new-template/store/TemplateSlice";
-
+// import { StylePanel } from "@/components/shared/StyleInspector";
+import Style from "@/components/shared/StyleModule/Style";
 interface SectionEditorProps {
     closeEditor?: () => void;
 }
 export default function SectionEditor({ closeEditor }: SectionEditorProps) {
+    // const [style, setStyle] = useState(DEFAULT_STYLE);
     const TemplateState = useSelector((state: any) => state.template);
     const sectionService = SectionService;
     const dispatch = useDispatch();
-    const { sectionId, sectionType } = useParams();
+    const { sectionId, sectionType, tab, entityTypeForStyle, entityId } = useParams();
     const { selectedId } = useBuilder();
-    const isEditMode = Boolean(selectedId);
     // const [sectionType, setSectionType] = useState('');
     const [localSectionType, setLocalSectionType] = useState(sectionType);
     const [currentSection, setCurrentSection] = useState<TemplateSection>();
@@ -37,15 +38,32 @@ export default function SectionEditor({ closeEditor }: SectionEditorProps) {
             getSectionDetailsById(sectionId);
         }
     }, [sectionId])
+    useEffect(() => {
+        if (tab) {
+            switch (tab) {
+                case 'content':
+                    setActiveTab("Content")
+                    break;
+                case 'layout':
+                    setActiveTab("Layout")
+                    break;
+                case 'style':
+                    setActiveTab("Style")
+                    break;
+                default:
+                    break;
+            }
+        }
+    }, [tab])
     const getSectionDetailsById = useCallback(async (sectionId: string) => {
         console.log(TemplateState.CurrentTemplate)
         try {
             if (sectionType) {
                 console.log(sectionType);
                 console.log(TemplateState?.CurrentTemplate);
-                TemplateState?.CurrentTemplate[sectionType]?.forEach((header: any) => {
-                    if (header?.template_section_id == sectionId || header?.id == sectionId) {
-                        setCurrentSection(header);
+                TemplateState?.CurrentTemplate[sectionType]?.forEach((section: any) => {
+                    if (section?.template_section_id == sectionId || section?.id == sectionId) {
+                        setCurrentSection(section);
                     }
                 });
             }
@@ -114,18 +132,18 @@ export default function SectionEditor({ closeEditor }: SectionEditorProps) {
     }
 
     return (
-        <div className="flex h-screen max-h-screen w-[360px] flex-col border-l border-slate-200 bg-[#fbfbfa] shadow-[0_8px_30px_rgba(15,23,42,0.08)]">
-            <div className="shrink-0 border-b border-slate-200/80 bg-white px-3 py-3">
+        <div className="flex h-screen max-h-screen w-[360px] flex-col border-l border-slate-200 bg-white shadow-[0_8px_30px_rgba(15,23,42,0.08)]">
+            <div className="shrink-0 border-b border-slate-200 px-3 py-3">
                 <div className="flex items-center justify-between gap-2">
                     <div className="flex min-w-0 flex-1 items-center gap-2">
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-600 ring-1 ring-blue-100">
                             <Section className="h-4 w-4" />
                         </div>
                         <div className="min-w-0 flex-1">
-                            <h3 className="truncate text-[13px] font-semibold text-slate-900">
+                            <h3 className="truncate text-sm font-semibold text-slate-900">
                                 {currentSection?.name}
                             </h3>
-                            <p className="mt-0.5 text-[11px] text-slate-500">
+                            <p className="mt-0.5 text-xs text-slate-500">
                                 Section - {currentSection?.rows?.length} rows - 6 fields
                             </p>
                         </div>
@@ -141,11 +159,17 @@ export default function SectionEditor({ closeEditor }: SectionEditorProps) {
                 </div>
             </div>
 
-            <div className="shrink-0 bg-white">
+            <div className="shrink-0 border-b border-slate-200">
                 <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto bg-white px-3 py-3">
+            <div
+                className="editor-scrollbar min-h-0 flex-1 overflow-y-auto bg-white px-3 py-3 pb-24"
+                style={{
+                    scrollbarWidth: "thin",
+                    scrollbarColor: "#cbd5e1 transparent"
+                }}
+            >
                 {activeTab === "Content" && (
                     <div className="space-y-3">
                         <SectionHeader
@@ -164,14 +188,14 @@ export default function SectionEditor({ closeEditor }: SectionEditorProps) {
                         {currentSection?.rows.map((row: any, rowIndex: number) => (
                             <div
                                 key={row.id ?? row.template_row_id}
-                                className="overflow-hidden  border border-slate-200 bg-white shadow-[0_1px_1px_rgba(15,23,42,0.02)]"
+                                className="overflow-hidden border border-slate-200 bg-white shadow-[0_1px_1px_rgba(15,23,42,0.02)]"
                             >
                                 <RowNode row={row as any} sectionId={sectionId} sectionType={sectionType} rowIndex={rowIndex} />
                             </div>
                         ))}
                         <button
                             onClick={AddRowToTemplate}
-                            className="flex h-7 w-full items-center justify-center mt-3 gap-1.5 border border-dashed border-slate-200 bg-white text-[11px] font-medium text-slate-500 hover:border-blue-200 hover:bg-blue-50/60 hover:text-slate-900"
+                            className="flex h-7 w-full items-center justify-center mt-3 gap-1.5 border border-dashed border-slate-200 bg-white text-xs font-medium text-slate-500 hover:border-blue-200 hover:bg-blue-50/60 hover:text-slate-900"
                         >
                             <Plus className="h-3 w-3" /> Add Row
                         </button>
@@ -180,30 +204,54 @@ export default function SectionEditor({ closeEditor }: SectionEditorProps) {
 
                 {activeTab === "Style" && (
                     <div className="space-y-2">
-                        <StyleTab />
+                        {/* <StyleTab /> */}
+                        {/* <StylePanel onApply={(state) => console.log(state)} /> */}
+                        {
+                            entityTypeForStyle && entityId &&
+                            <Style entityType={entityTypeForStyle} entityId={entityId} />
+                        }
                     </div>
                 )}
 
                 {activeTab === "Validation" && (
                     <div className="rounded-md border border-dashed border-slate-200 bg-white py-10 text-center text-slate-400">
-                        <p className="text-[12px]">Validation settings</p>
+                        <p className="text-xs">Validation settings</p>
                     </div>
                 )}
 
                 {activeTab === "Logic" && (
                     <div className="rounded-md border border-dashed border-slate-200 bg-white py-10 text-center text-slate-400">
-                        <p className="text-[12px]">Logic settings</p>
+                        <p className="text-xs">Logic settings</p>
                     </div>
                 )}
             </div>
 
-            <div className="sticky bottom-0 z-10 shrink-0 border-t border-slate-200 bg-white px-3 py-2.5">
-                <div className="mb-2 text-[11px] text-slate-500">Last edited by Dr. Patel - 2m ago</div>
+            <div className="sticky bottom-0 z-10 shrink-0 border-t border-slate-200 bg-white px-3 py-2.5 shadow-[0_-4px_12px_rgba(15,23,42,0.08)]">
+                <div className="text-xs text-slate-500 mb-2">Last edited by Dr. Patel - 2m ago</div>
                 <div className="space-y-2">
                     <ActionButtons onCancel={handleCancel} onSave={handleSave} />
-                    {isSaving ? <p className="text-[11px] text-blue-600">Saving section…</p> : null}
+                    {isSaving ? <p className="text-xs text-blue-600">Saving section…</p> : null}
                 </div>
             </div>
+
+            <style>{`
+              .editor-scrollbar::-webkit-scrollbar {
+                width: 6px;
+              }
+              .editor-scrollbar::-webkit-scrollbar-track {
+                background: transparent;
+              }
+              .editor-scrollbar::-webkit-scrollbar-thumb {
+                background-color: #cbd5e1;
+                border-radius: 3px;
+                border: 2px solid transparent;
+                background-clip: padding-box;
+              }
+              .editor-scrollbar::-webkit-scrollbar-thumb:hover {
+                background-color: #94a3b8;
+                background-clip: padding-box;
+              }
+            `}</style>
         </div>
     );
 }

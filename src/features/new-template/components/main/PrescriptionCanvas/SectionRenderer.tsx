@@ -6,18 +6,21 @@ import HoverToolbar from "./HoverToolbar";
 import InsertPlaceholder from "./InsertPlaceholder";
 import RowRenderer from "./RowRenderer";
 import { useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { AddRowToTemplateSection, CopyTemplateSection, ToggleVisibilityInTemplate } from "@/features/new-template/store/TemplateSlice";
+import { current } from "@reduxjs/toolkit";
 
 interface SectionRendererProps {
     section: any;
     mode: CanvasMode;
     selection: CanvasSelection;
-    sectionType: "header" | "body" | "footer";
+    sectionType: string;
     onSelect: (selection: CanvasSelection) => void;
-    onOpenSectionEditor: (sectionId: string) => void;
-    onCopySection: (sectionId: string) => void;
-    onDeleteSection: (sectionId: string) => void;
-    onHideSection: (sectionId: string) => void;
-    onAddRow: (sectionId: string) => void;
+    onOpenSectionEditor: (sectionId: string, sectionType: string) => void;
+    onCopySection: (sectionId: string, sectionType: string) => void;
+    onDeleteSection: (sectionId: string, sectionType: string) => void;
+    onHideSection: (sectionId: string, sectionType: string) => void;
+    onAddRow: (sectionId: string, sectionType: string) => void;
     onDeleteRow: (sectionId: string, rowId: string) => void;
     onHideRow: (sectionId: string, rowId: string) => void;
     onAddColumn: (sectionId: string, rowId: string) => void;
@@ -34,10 +37,7 @@ export default function SectionRenderer({
     sectionType,
     onSelect,
     onOpenSectionEditor,
-    onCopySection,
     onDeleteSection,
-    onHideSection,
-    onAddRow,
     onDeleteRow,
     onHideRow,
     onAddColumn,
@@ -50,11 +50,26 @@ export default function SectionRenderer({
     const sectionLabel = section.name?.trim() || `Section ${section.area === "header" ? 1 : section.area === "footer" ? 3 : 2}`;
     const navigate = useNavigate();
     const { id } = useParams();
+    const dispatch = useDispatch();
+    const TemplateState = useSelector((state: any) => state.template);
     if (section.isVisible === false) return null;
     const editSection = () => {
         console.log(section)
         const sectionType = section?.is_header ? "header" : section?.is_body ? "body" : "footer";
-        navigate("/dashboard/new-template/edit/" + id + "/section/" + section?.template_section_id + "/" + sectionType)
+        navigate("/dashboard/new-template/edit/" + id + "/section/" + section?.template_section_id + "/" + sectionType + "/content")
+    }
+    const onCopySection = (sectionId: string, sectionType: string) => {
+        const payload = { sectionId, sectionType }
+        console.log(TemplateState?.CurrentTemplate)
+        dispatch(CopyTemplateSection(payload))
+    }
+    const onHideSection = (sectionId: string, sectionType: string) => {
+        const payload = { sectionId, sectionType }
+        dispatch(ToggleVisibilityInTemplate(payload));
+    }
+    const onAddRow = (sectionId: string, sectionType: string) => {
+        const payload = { sectionId, sectionType }
+        dispatch(AddRowToTemplateSection(payload));
     }
     return (
         <section
@@ -81,12 +96,12 @@ export default function SectionRenderer({
                         label={sectionLabel}
                         visible={mode === "edit"}
                         onSettings={editSection}
-                        onDelete={() => onDeleteSection(section.id)}
+                        onDelete={() => onDeleteSection(section.template_section_id, sectionType)}
                         quickActions={[
-                            { label: "Copy section", icon: <Copy className="h-3.5 w-3.5" />, onClick: () => onCopySection(section.id) },
-                            { label: "Delete section", icon: <Trash2 className="h-3.5 w-3.5" />, onClick: () => onDeleteSection(section.id) },
-                            { label: "Hide section", icon: section.isVisible === false ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />, onClick: () => onHideSection(section.id) },
-                            { label: "Add row", icon: <Plus className="h-3.5 w-3.5" />, onClick: () => onAddRow(section.id) },
+                            { label: "Copy section", icon: <Copy className="h-3.5 w-3.5" />, onClick: () => onCopySection(section.template_section_id, sectionType) },
+                            { label: "Delete section", icon: <Trash2 className="h-3.5 w-3.5" />, onClick: () => onDeleteSection(section.template_section_id, sectionType) },
+                            { label: "Hide section", icon: section.is_visible === 0 ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />, onClick: () => onHideSection(section.template_section_id, sectionType) },
+                            { label: "Add row", icon: <Plus className="h-3.5 w-3.5" />, onClick: () => onAddRow(section.template_section_id, sectionType) },
                         ]}
                         showDeleteIcon={false}
                         className="group-hover/section:flex"

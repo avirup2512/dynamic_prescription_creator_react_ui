@@ -3,7 +3,7 @@ import { ChevronDown, FileText, Type } from "lucide-react";
 import type { TemplateDataType } from "../type/TemplateType";
 import { INPUT_TYPE } from "../../../constant/inputType.enum";
 import { id } from "date-fns/locale";
-
+import { v4 as uuid } from "uuid"
 export const INPUT_TYPES = [
     { id: INPUT_TYPE.INPUTTYPE_1, name: "Input", color: "bg-blue-50 border-blue-200", icon: Type },
     { id: INPUT_TYPE.INPUTTYPE_2, name: "Dropdown", color: "bg-purple-50 border-purple-200", icon: ChevronDown },
@@ -28,7 +28,7 @@ function getTemplateSectionArray(currentTemplate: any, sectionType: "header" | "
 }
 
 function recalculateSectionOrder(currentTemplate: any) {
-    let sectionOrder = 1;
+    let section_order = 1;
 
     sectionTypes.forEach((sectionType) => {
         const sections = getTemplateSectionArray(currentTemplate, sectionType);
@@ -39,13 +39,87 @@ function recalculateSectionOrder(currentTemplate: any) {
 
             const orderedSection = {
                 ...section,
-                SectionOrder: sectionOrder,
+                section_order: section_order,
             };
-            sectionOrder += 1;
+            section_order += 1;
             return orderedSection;
         });
     });
 }
+function recalculateRowOrder(currentTemplate: any) {
+    sectionTypes.forEach((sectionType) => {
+        const sections = getTemplateSectionArray(currentTemplate, sectionType);
+        if (!Array.isArray(sections)) return;
+
+        sections.forEach((section: any) => {
+            if (!Array.isArray(section?.rows)) return;
+
+            section.rows = section.rows.map((row: any, index: number) => ({
+                ...row,
+                row_order: index + 1,
+            }));
+        });
+    });
+}
+function recalculateColumnOrder(currentTemplate: any) {
+    sectionTypes.forEach((sectionType) => {
+        const sections = getTemplateSectionArray(currentTemplate, sectionType);
+        if (!Array.isArray(sections)) return;
+        sections.forEach((section: any) => {
+            if (!Array.isArray(section?.rows)) return;
+            section.rows.forEach((row: any) => {
+                if (!Array.isArray(row?.columns)) return;
+                row.columns = row.columns.map((column: any, index: number) => ({
+                    ...column,
+                    column_order: index + 1,
+                }));
+            }
+            );
+        });
+    }
+    );
+}
+function reCalculateInputGroupOrder(currentTemplate: any) {
+    sectionTypes.forEach((sectionType) => {
+        const sections = getTemplateSectionArray(currentTemplate, sectionType);
+        if (!Array.isArray(sections)) return;
+        sections.forEach((section: any) => {
+            if (!Array.isArray(section?.rows)) return;
+            section.rows.forEach((row: any) => {
+                if (!Array.isArray(row?.columns)) return;
+                row.columns.forEach((column: any) => {
+                    if (!Array.isArray(column?.inputGroup)) return;
+                    column.inputGroup = column.inputGroup.map((group: any, index: number) => ({
+                        ...group,
+                        input_group_order: index + 1,
+                    }));
+                });
+            });
+        });
+    });
+}
+function reCalculateInputOrder(currentTemplate: any) {
+    sectionTypes.forEach((sectionType) => {
+        const sections = getTemplateSectionArray(currentTemplate, sectionType);
+        if (!Array.isArray(sections)) return;
+        sections.forEach((section: any) => {
+            if (!Array.isArray(section?.rows)) return;
+            section.rows.forEach((row: any) => {
+                if (!Array.isArray(row?.columns)) return;
+                row.columns.forEach((column: any) => {
+                    if (!Array.isArray(column?.inputGroup)) return;
+                    column.inputGroup.forEach((group: any) => {
+                        group.inputs = group.inputs.map((input: any, index: number) => ({
+                            ...input,
+                            input_order: index + 1,
+                        }));
+                    })
+                });
+            });
+        });
+    });
+}
+
 
 function normalizeInputOrder(inputs: any[] = []) {
     if (!Array.isArray(inputs)) return inputs;
@@ -89,7 +163,7 @@ const TemplateSlice = createSlice({
             state.CurrentTemplate = { ...state.CurrentTemplate, header, body, footer, created_by, created_at, name };
             recalculateSectionOrder(state.CurrentTemplate);
         },
-        AddCoulmnToSection: (state: any, action: any) => {
+        AddColumnToSection: (state: any, action: any) => {
             const { columnData, sectionIndex, rowIndex, sectionType } = action.payload;
             console.log(action.payload)
             const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
@@ -106,15 +180,15 @@ const TemplateSlice = createSlice({
             const currentSection = currentTemplate.find((section: any) => section.template_section_id === sectionId);
             if (currentSection) {
                 const newRow = {
-                    template_row_id: `row-${Date.now()}`,
-                    name: "Section" + (currentSection.rows.length + 1),
+                    template_row_id: uuid(),
+                    name: "Row" + (currentSection.rows.length + 1),
                     row_order: currentSection.rows.length + 1,
                     columns: [
                         {
-                            template_column_id: `column-${Date.now()}`,
+                            template_column_id: uuid(),
                             name: "Column1",
                             inputGroup: [{
-                                template_input_group_id: `group-${Date.now()}`,
+                                template_input_group_id: uuid(),
                                 input_group_order: 1,
                                 inputs: []
                             }]
@@ -133,19 +207,48 @@ const TemplateSlice = createSlice({
             if (currentSection) {
                 const currentRow = currentSection?.rows.find((row: any) => row.template_row_id === rowId || row.id === rowId);
                 const newColumn = {
-                    template_column_id: `column-${Date.now()}`,
+                    template_column_id: uuid(),
                     name: "Column" + (currentRow?.columns.length + 1),
                     column_order: currentRow.columns.length + 1,
                     data: null,
                     inputGroup: [{
-                        template_input_group_id: `group-${Date.now()}`,
+                        template_input_group_id: uuid(),
                         input_group_order: 1,
                         inputs: []
                     }],
                 };
-                currentRow.columns.push(newColumn);
-                recalculateSectionOrder(state.CurrentTemplate);
+                if (currentRow?.columns.length < 3)
+                    currentRow.columns.push(newColumn);
+                else
+                    alert("Oye tu ki kartah..")
+                recalculateColumnOrder(state.CurrentTemplate);
             }
+        },
+        RemoveColumnToTemplateRow: (state, action) => {
+            const { sectionId, rowId, columnId, sectionType } = action.payload;
+            const currentTemplate =
+                sectionType === "header"
+                    ? state.CurrentTemplate.header
+                    : state.CurrentTemplate.body;
+            const currentSection = currentTemplate.find(
+                (section: any) => section.template_section_id === sectionId
+            );
+            if (!currentSection) return;
+            const currentRow = currentSection.rows.find(
+                (row: any) =>
+                    row.template_row_id === rowId ||
+                    row.id === rowId
+            );
+            if (!currentRow) return;
+            const columnIndex = currentRow.columns.findIndex(
+                (col: any) =>
+                    col.template_column_id === columnId ||
+                    col.id === columnId
+            );
+            if (columnIndex !== -1) {
+                currentRow.columns.splice(columnIndex, 1);
+            }
+            // recalculateSectionOrder(state.CurrentTemplate);
         },
         SelectBodyTemplate: (state, action) => {
             state.CurrentTemplate.body = action.payload
@@ -172,13 +275,10 @@ const TemplateSlice = createSlice({
             }
         },
         RemoveSectionFromTemplate: (state, action) => {
-            const { sectionType } = action.payload;
-            const sectionIndex = action.payload.sectionIndex ?? action.payload.rowIndex;
-            console.log(action.payload)
+            const { sectionType, sectionId } = action.payload;
             const currentSection: any = getTemplateSectionArray(state.CurrentTemplate, sectionType);
             if (!currentSection || !Array.isArray(currentSection)) return;
-            if (typeof sectionIndex !== "number") return;
-            if (sectionIndex < 0 || sectionIndex >= currentSection.length) return;
+            const sectionIndex = currentSection.findIndex((sec: any) => sec.template_section_id == sectionId);
             currentSection.splice(sectionIndex, 1);
             recalculateSectionOrder(state.CurrentTemplate);
         },
@@ -212,9 +312,9 @@ const TemplateSlice = createSlice({
                 const currentColumn = targetRow.columns.find((c: any) => c.template_column_id === columnId);
                 if (currentColumn && currentColumn?.inputGroup && Array.isArray(currentColumn.inputGroup)) {
                     if (!sameGroup) {
-                        const inputGroup = { id: 'group' + Date.now(), input_group_order: currentColumn.inputGroup.length + 1, inputs: [input] };
+                        const inputGroup = { template_input_group_id: uuid(), input_group_order: currentColumn.inputGroup.length + 1, inputs: [input] };
                         currentColumn.inputGroup.push(inputGroup);
-                        lastId = inputGroup.id;
+                        lastId = inputGroup.template_input_group_id;
                     } else {
                         const inputGroup = currentColumn.inputGroup.find((g: any) => g.template_input_group_id === inputGroupId);
                         if (inputGroup) {
@@ -239,49 +339,58 @@ const TemplateSlice = createSlice({
             }
         },
         RemoveInputTypeFromTemplate: (state, action) => {
-            const { sectionIndex, rowIndex, columnIndex, sectionType, inputIndex } = action.payload
+            const { sectionId, rowId, columnId, inputGroupId, sectionType, inputId } = action.payload
             const currentSection = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const section = currentSection[sectionIndex];
-            const targetRow = section.rows[rowIndex];
+            console.log(action.payload)
+            const section = currentSection.find((sec: any) => sec.template_section_id === sectionId || sec.id === sectionId);
+            const targetRow = section.rows.find((r: any) => r.template_row_id === rowId);
             if (targetRow) {
-                const currentColumn = targetRow.columns[columnIndex];
+                const currentColumn = targetRow.columns.find((c: any) => c.template_column_id === columnId);
                 if (currentColumn && currentColumn?.inputGroup && Array.isArray(currentColumn.inputGroup)) {
-                    currentColumn.inputGroup.splice(inputIndex, 1);
-                }
-            }
-        },
-        RemoveInputGroupFromTemplate: (state, action) => {
-            const { sectionIndex, rowIndex, columnIndex, sectionType, inputGroupIndex } = action.payload
-            const currentSection = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const section = currentSection[sectionIndex];
-            const targetRow = section.rows[rowIndex];
-            if (targetRow) {
-                const currentColumn = targetRow.columns[columnIndex];
-                if (currentColumn && currentColumn?.inputGroup && Array.isArray(currentColumn.inputGroup)) {
-                    currentColumn.inputGroup.splice(inputGroupIndex, 1);
-                }
-                if (currentColumn && currentColumn.inputGroup) {
-                    currentColumn.inputGroup.forEach((item: any, idx: number) => {
-                        item.input_group_order = idx + 1; // or idx if you use 0-based ordering
-                    });
+                    const inputGroup = currentColumn.inputGroup.find((g: any) => g.template_input_group_id === inputGroupId);
+                    if (inputGroup && inputGroup?.inputs) {
+                        const inputIndex = inputGroup?.inputs.findIndex((input: any) => input?.template_input_id == inputId);
+                        if (inputIndex !== -1) {
+                            inputGroup?.inputs.splice(inputIndex, 1);
+                            reCalculateInputOrder(state?.CurrentTemplate);
+                        }
+                    }
                 }
             }
         },
         AddInputValueToTemplate: (state, action) => {
-            const { sectionIndex, rowIndex, columnIndex, inputGroupIndex, inputIndex, input, sectionType } = action.payload;
+            const { sectionId, rowId, columnId, inputGroupId, sectionType, inputId, inputValue } = action.payload
+            const currentSection = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
             console.log(action.payload)
-            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const currentSection = currentTemplate[sectionIndex];
-            const targetRows = currentSection.rows[rowIndex];
-            if (targetRows) {
-                const targetColumn = targetRows.columns[columnIndex];
-                if (targetColumn && targetColumn.inputGroup && Array.isArray(targetColumn.inputGroup) &&
-                    targetColumn.inputGroup[inputGroupIndex].inputs && Array.isArray(targetColumn.inputGroup[inputGroupIndex].inputs) &&
-                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex]
-                ) {
-                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].input_entity_value = input.value;
-                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].template_input_value = input.value;
-                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].label = input.label;
+            const section = currentSection.find((sec: any) => sec.template_section_id === sectionId || sec.id === sectionId);
+            const targetRow = section.rows.find((r: any) => r.template_row_id === rowId);
+            if (targetRow) {
+                const currentColumn = targetRow.columns.find((c: any) => c.template_column_id === columnId);
+                if (currentColumn && currentColumn?.inputGroup && Array.isArray(currentColumn.inputGroup)) {
+                    const inputGroup = currentColumn.inputGroup.find((g: any) => g.template_input_group_id === inputGroupId);
+                    if (inputGroup && inputGroup?.inputs) {
+                        const input = inputGroup?.inputs.find((input: any) => input?.template_input_id == inputId);
+                        if (input)
+                            input.template_input_value = inputValue;
+                    }
+                }
+            }
+        },
+        EditInputLabelToTemplate: (state, action) => {
+            const { sectionId, rowId, columnId, inputGroupId, sectionType, inputId, inputLabel } = action.payload
+            const currentSection = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            console.log(action.payload)
+            const section = currentSection.find((sec: any) => sec.template_section_id === sectionId || sec.id === sectionId);
+            const targetRow = section.rows.find((r: any) => r.template_row_id === rowId);
+            if (targetRow) {
+                const currentColumn = targetRow.columns.find((c: any) => c.template_column_id === columnId);
+                if (currentColumn && currentColumn?.inputGroup && Array.isArray(currentColumn.inputGroup)) {
+                    const inputGroup = currentColumn.inputGroup.find((g: any) => g.template_input_group_id === inputGroupId);
+                    if (inputGroup && inputGroup?.inputs) {
+                        const input = inputGroup?.inputs.find((input: any) => input?.template_input_id == inputId);
+                        if (input)
+                            input.input_name = inputLabel;
+                    }
                 }
             }
         },
@@ -316,7 +425,7 @@ const TemplateSlice = createSlice({
             }
         },
         AddEditDropdownTextValueToTemplate: (state, action) => {
-            const { sectionId, rowId, columnId, inputId, inputGroupId, dropdownOptionId, sectionType } = action.payload
+            const { sectionId, rowId, columnId, inputId, inputGroupId, dropdownOption, sectionType } = action.payload
             const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
             console.log(action.payload)
             const currentSection = currentTemplate.find((section: any) => section.template_section_id === sectionId || section.id === sectionId);
@@ -327,7 +436,8 @@ const TemplateSlice = createSlice({
                 if (targetInputGroup) {
                     const targetInput = targetInputGroup?.inputs.find((input: any) => input.template_input_id === inputId || input.id === inputId);
                     if (targetInput) {
-                        targetInput.dropdown_option_id = dropdownOptionId;
+                        targetInput.dropdown_option_id = dropdownOption?.id;
+                        targetInput.dropdown_option_value = dropdownOption?.value;
                     }
                 }
             }
@@ -389,28 +499,75 @@ const TemplateSlice = createSlice({
             }
         },
         AddQuantityTextValueToTemplate: (state, action) => {
+            const { sectionId, rowId, columnId, inputGroupId, sectionType, inputId, quantityValue } = action.payload
+            const currentSection = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
             console.log(action.payload)
-            const { sectionIndex, rowIndex, columnIndex, inputIndex, inputGroupIndex, quantityText, sectionType } = action.payload
-            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const currentSection = currentTemplate[sectionIndex];
-            const targetRow = currentSection.rows[rowIndex];
+            const section = currentSection.find((sec: any) => sec.template_section_id === sectionId || sec.id === sectionId);
+            const targetRow = section.rows.find((r: any) => r.template_row_id === rowId);
             if (targetRow) {
-                const targetColumn = targetRow.columns[columnIndex];
-                if (targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] && targetColumn.inputGroup[inputGroupIndex].inputs) {
-                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].quantityTextValue = quantityText;
-                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].template_quantity_value = quantityText;
+                const currentColumn = targetRow.columns.find((c: any) => c.template_column_id === columnId);
+                if (currentColumn && currentColumn?.inputGroup && Array.isArray(currentColumn.inputGroup)) {
+                    const inputGroup = currentColumn.inputGroup.find((g: any) => g.template_input_group_id === inputGroupId);
+                    if (inputGroup && inputGroup?.inputs) {
+                        const input = inputGroup?.inputs.find((input: any) => input?.template_input_id == inputId);
+                        if (input)
+                            input.template_quantity_value = quantityValue;
+                    }
+                }
+            }
+        },
+        SetInputStatusInTemplate: (state, action) => {
+            const { sectionId, rowId, columnId, inputGroupId, sectionType, inputId, status } = action.payload
+            const currentSection = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            console.log(action.payload)
+            const section = currentSection.find((sec: any) => sec.template_section_id === sectionId || sec.id === sectionId);
+            const targetRow = section.rows.find((r: any) => r.template_row_id === rowId);
+            if (targetRow) {
+                const currentColumn = targetRow.columns.find((c: any) => c.template_column_id === columnId);
+                if (currentColumn && currentColumn?.inputGroup && Array.isArray(currentColumn.inputGroup)) {
+                    const inputGroup = currentColumn.inputGroup.find((g: any) => g.template_input_group_id === inputGroupId);
+                    if (inputGroup && inputGroup?.inputs) {
+                        const input = inputGroup?.inputs.find((input: any) => input?.template_input_id == inputId);
+                        if (input) {
+                            input.status = status;
+                        }
+                    }
                 }
             }
         },
         AddQuantityFieldToTemplate: (state, action) => {
-            const { sectionIndex, rowIndex, columnIndex, inputIndex, inputGroupIndex, quantity, sectionType } = action.payload;
-            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const currentSection = currentTemplate[sectionIndex];
-            const targetRow = currentSection.rows[Number(rowIndex)];
+            const { sectionId, rowId, columnId, inputGroupId, sectionType, inputId, showQuantity } = action.payload
+            const currentSection = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            console.log(action.payload)
+            const section = currentSection.find((sec: any) => sec.template_section_id === sectionId || sec.id === sectionId);
+            const targetRow = section.rows.find((r: any) => r.template_row_id === rowId);
             if (targetRow) {
-                const targetColumn = targetRow.columns[columnIndex];
-                if (targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] && targetColumn.inputGroup[inputGroupIndex].inputs) {
-                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].show_quantity = quantity;
+                const currentColumn = targetRow.columns.find((c: any) => c.template_column_id === columnId);
+                if (currentColumn && currentColumn?.inputGroup && Array.isArray(currentColumn.inputGroup)) {
+                    const inputGroup = currentColumn.inputGroup.find((g: any) => g.template_input_group_id === inputGroupId);
+                    if (inputGroup && inputGroup?.inputs) {
+                        const input = inputGroup?.inputs.find((input: any) => input?.template_input_id == inputId);
+                        if (input)
+                            input.show_quantity = showQuantity;
+                    }
+                }
+            }
+        },
+        AddVisibilityFieldToTemplate: (state, action) => {
+            const { sectionId, rowId, columnId, inputGroupId, sectionType, inputId, isVisible } = action.payload
+            const currentSection = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            console.log(action.payload)
+            const section = currentSection.find((sec: any) => sec.template_section_id === sectionId || sec.id === sectionId);
+            const targetRow = section.rows.find((r: any) => r.template_row_id === rowId);
+            if (targetRow) {
+                const currentColumn = targetRow.columns.find((c: any) => c.template_column_id === columnId);
+                if (currentColumn && currentColumn?.inputGroup && Array.isArray(currentColumn.inputGroup)) {
+                    const inputGroup = currentColumn.inputGroup.find((g: any) => g.template_input_group_id === inputGroupId);
+                    if (inputGroup && inputGroup?.inputs) {
+                        const input = inputGroup?.inputs.find((input: any) => input?.template_input_id == inputId);
+                        if (input)
+                            input.is_visible = isVisible;
+                    }
                 }
             }
         },
@@ -464,14 +621,20 @@ const TemplateSlice = createSlice({
             }
         },
         EditExtraNoteInTemplate: (state, action) => {
-            const { sectionIndex, rowIndex, columnIndex, inputIndex, inputGroupIndex, extra_note, sectionType } = action.payload
-            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const currentSection = currentTemplate[sectionIndex];
-            const targetRow = currentSection.rows[rowIndex];
+            const { sectionId, rowId, columnId, inputGroupId, sectionType, inputId, extraNote } = action.payload
+            const currentSection = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            console.log(action.payload)
+            const section = currentSection.find((sec: any) => sec.template_section_id === sectionId || sec.id === sectionId);
+            const targetRow = section.rows.find((r: any) => r.template_row_id === rowId);
             if (targetRow) {
-                const targetColumn = targetRow.columns[columnIndex];
-                if (targetColumn && targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] && targetColumn.inputGroup[inputGroupIndex].inputs) {
-                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].extra_note = extra_note;
+                const currentColumn = targetRow.columns.find((c: any) => c.template_column_id === columnId);
+                if (currentColumn && currentColumn?.inputGroup && Array.isArray(currentColumn.inputGroup)) {
+                    const inputGroup = currentColumn.inputGroup.find((g: any) => g.template_input_group_id === inputGroupId);
+                    if (inputGroup && inputGroup?.inputs) {
+                        const input = inputGroup?.inputs.find((input: any) => input?.template_input_id == inputId);
+                        if (input)
+                            input.extra_note = extraNote;
+                    }
                 }
             }
         },
@@ -488,15 +651,20 @@ const TemplateSlice = createSlice({
             }
         },
         EditExtraNoteValueInTemplate: (state, action) => {
-            const { sectionIndex, rowIndex, columnIndex, inputIndex, inputGroupIndex, extra_note_value, sectionType } = action.payload
-            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const currentSection = currentTemplate[sectionIndex];
-            const targetRow = currentSection.rows[rowIndex];
+            const { sectionId, rowId, columnId, inputGroupId, sectionType, inputId, extraNoteValue } = action.payload
+            const currentSection = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
+            console.log(action.payload)
+            const section = currentSection.find((sec: any) => sec.template_section_id === sectionId || sec.id === sectionId);
+            const targetRow = section.rows.find((r: any) => r.template_row_id === rowId);
             if (targetRow) {
-                const targetColumn = targetRow.columns[columnIndex];
-                if (targetColumn && targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] && targetColumn.inputGroup[inputGroupIndex].inputs) {
-                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].extra_note_value = extra_note_value;
-                    targetColumn.inputGroup[inputGroupIndex].inputs[inputIndex].template_input_extranotes = extra_note_value;
+                const currentColumn = targetRow.columns.find((c: any) => c.template_column_id === columnId);
+                if (currentColumn && currentColumn?.inputGroup && Array.isArray(currentColumn.inputGroup)) {
+                    const inputGroup = currentColumn.inputGroup.find((g: any) => g.template_input_group_id === inputGroupId);
+                    if (inputGroup && inputGroup?.inputs) {
+                        const input = inputGroup?.inputs.find((input: any) => input?.template_input_id == inputId);
+                        if (input)
+                            input.template_input_extranotes = extraNoteValue;
+                    }
                 }
             }
         },
@@ -513,7 +681,7 @@ const TemplateSlice = createSlice({
                         if (targetColumn && targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] && Array.isArray(targetColumn.inputGroup[inputGroupIndex].inputs)) {
                             delete input.input_id;
                             if (!targetColumn.inputGroup[inputGroupIndex].template_input_group_id) {
-                                targetColumn.inputGroup[inputGroupIndex].template_input_group_id = `group-${Date.now()}`; // Assign a unique ID if it doesn't exist
+                                targetColumn.inputGroup[inputGroupIndex].template_input_group_id = uuid(); // Assign a unique ID if it doesn't exist
                             }
                             targetColumn.inputGroup[inputGroupIndex].inputs.push(input);
                             targetColumn.inputGroup[inputGroupIndex].inputs = normalizeInputOrder(targetColumn.inputGroup[inputGroupIndex].inputs);
@@ -523,7 +691,7 @@ const TemplateSlice = createSlice({
                         if (targetColumn && targetColumn.inputGroup && Array.isArray(targetColumn.inputGroup)) {
                             const newInputGroup = {
                                 inputs: [],
-                                template_input_group_id: `group-${Date.now()}`,
+                                template_input_group_id: uuid(),
                                 input_group_order: targetColumn.inputGroup.length + 1,
                             }
                             targetColumn.inputGroup.push(newInputGroup);
@@ -544,12 +712,13 @@ const TemplateSlice = createSlice({
                 const targetColumn = targetRow.columns[columnIndex];
                 if (targetColumn && targetColumn.inputGroup && targetColumn.inputGroup[inputGroupIndex] && Array.isArray(targetColumn.inputGroup[inputGroupIndex].inputs)) {
                     delete input.input_id;
-                    input.input_id = "input" + Date.now();
+                    input.input_id = uuid();
                     targetColumn.inputGroup[inputGroupIndex].inputs.splice(index, 0, input);
                     targetColumn.inputGroup[inputGroupIndex].inputs = normalizeInputOrder(targetColumn.inputGroup[inputGroupIndex].inputs);
                 }
             }
         },
+
         AddSameTypeOfInputGroupInTemplateSectionInOrCondition: (state: any, action: any) => {
             const { sectionIndex, rowIndex, columnIndex, inputGroup, inputGroupIndex, sectionType } = action.payload
             console.log(action.payload)
@@ -563,14 +732,6 @@ const TemplateSlice = createSlice({
                     targetColumn.inputGroup.splice(inputGroupIndex + 1, 0, inputGroup);
                     targetColumn.inputGroup = normalizeInputGroupOrder(targetColumn.inputGroup);
                 }
-            }
-        },
-        ToggleVisibilityInTemplate: (state, action) => {
-            const { sectionIndex, isVisible, sectionType } = action.payload;
-            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const currentSection = currentTemplate[sectionIndex];
-            if (currentSection) {
-                currentSection.isVisible = !currentSection.isVisible;
             }
         },
         ReorderInputsGroupInTemplate: (state, action) => {
@@ -588,18 +749,6 @@ const TemplateSlice = createSlice({
                     targetColumn.inputGroup.splice(toIndex, 0, movedInput);
                     targetColumn.inputGroup = normalizeInputGroupOrder(targetColumn.inputGroup);
                 }
-            }
-        },
-        CopySectionInTemplate: (state, action) => {
-            const { sectionIndex, sectionType } = action.payload;
-            const currentTemplate = sectionType === 'header' ? state.CurrentTemplate.header : state.CurrentTemplate.body;
-            const currentSection = currentTemplate[sectionIndex];
-            if (currentSection) {
-                const newSection = JSON.parse(JSON.stringify(currentSection));
-                newSection.id = `section-${Date.now()}`;
-                newSection.name = action.payload.sectionName || `${currentSection.name} Copy`;
-                currentTemplate.push(newSection);
-                recalculateSectionOrder(state.CurrentTemplate);
             }
         },
         AddNewDropdownEntityToTemplate: (state, action) => {
@@ -635,6 +784,207 @@ const TemplateSlice = createSlice({
         },
         toggleCallTemplateAPI: (state, action) => {
             state.callTemplateAPI = action.payload;
+        },
+        CopyTemplateSection: (state, action) => {
+            const { sectionId, sectionType } = action.payload;
+            if (!sectionId || !sectionType) return;
+            const currentSectionArray: any = getTemplateSectionArray(state.CurrentTemplate, sectionType);
+            if (!currentSectionArray) return;
+            const originalSection = currentSectionArray.find((section: any) => (section?.template_section_id == sectionId));
+            const currentSection = JSON.parse(JSON.stringify(originalSection))
+            currentSection.template_section_id = uuid();
+            if (currentSection?.rows && currentSection?.rows.length) {
+                for (let x = 0; x < currentSection?.rows.length; x++) {
+                    currentSection.rows[x].template_row_id = uuid();
+                    if (currentSection.rows[x]?.columns && currentSection.rows[x].columns.length) {
+                        for (let i = 0; i < currentSection.rows[x].columns.length; i++) {
+                            currentSection.rows[x].columns[i].template_column_id = uuid();
+                            if (currentSection.rows[x].columns[i]?.inputGroup && currentSection.rows[x].columns[i]?.inputGroup.length) {
+                                for (let j = 0; j < currentSection.rows[x].columns[i]?.inputGroup.length; j++) {
+                                    currentSection.rows[x].columns[i].inputGroup[j].template_input_group_id = uuid();
+                                    if (currentSection.rows[x].columns[i].inputGroup[j].inputs && currentSection.rows[x].columns?.[i].inputGroup[j].inputs.length) {
+                                        for (let k = 0; k < currentSection.rows[x].columns[i]?.inputGroup[j].inputs.length; k++) {
+                                            currentSection.rows[x].columns[i].inputGroup[j].inputs[k].template_input_id = uuid();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            currentSectionArray.push({ ...currentSection });
+            recalculateSectionOrder(state.CurrentTemplate);
+        },
+        CopyTemplateSectionRow: (state, action) => {
+            const { sectionId, rowId, sectionType } = action.payload;
+            if (!sectionId || !rowId || !sectionType) return;
+            const currentSectionArray: any = getTemplateSectionArray(
+                state.CurrentTemplate,
+                sectionType
+            );
+            if (!currentSectionArray) return;
+            const currentSection = currentSectionArray.find(
+                (section: any) => section.template_section_id === sectionId
+            );
+            if (!currentSection) return;
+            const originalRow = currentSection.rows.find(
+                (row: any) => row.template_row_id === rowId || row.id === rowId
+            );
+            if (!originalRow) return;
+            const copiedRow = JSON.parse(JSON.stringify(originalRow));
+            copiedRow.template_row_id = uuid();
+            if (copiedRow.columns?.length) {
+                for (let i = 0; i < copiedRow.columns.length; i++) {
+                    copiedRow.columns[i].template_column_id = uuid();
+
+                    if (copiedRow.columns[i].inputGroup?.length) {
+                        for (let j = 0; j < copiedRow.columns[i].inputGroup.length; j++) {
+                            copiedRow.columns[i].inputGroup[j].template_input_group_id = uuid();
+
+                            if (copiedRow.columns[i].inputGroup[j].inputs?.length) {
+                                for (let k = 0; k < copiedRow.columns[i].inputGroup[j].inputs.length; k++) {
+                                    copiedRow.columns[i].inputGroup[j].inputs[k].template_input_id = uuid();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            currentSection.rows.push(copiedRow);
+            recalculateRowOrder(state.CurrentTemplate);
+        },
+        ToggleVisibilityInTemplate: (state, action) => {
+            const { sectionId, sectionType } = action.payload;
+            if (!sectionId || !sectionType) return;
+            const currentSectionArray: any = getTemplateSectionArray(state.CurrentTemplate, sectionType);
+            if (!currentSectionArray) return;
+            const currentSection = currentSectionArray.find((section: any) => (section?.template_section_id == sectionId));
+            if (currentSection) {
+                currentSection.is_visible = currentSection.is_visible == 1 ? 0 : 1;
+            }
+        },
+        ToggleRowVisibilityInTemplate: (state, action) => {
+            const { sectionId, rowId, sectionType } = action.payload;
+            if (!sectionId || !rowId || !sectionType) return;
+            const currentSectionArray: any = getTemplateSectionArray(
+                state.CurrentTemplate,
+                sectionType
+            );
+            if (!currentSectionArray) return;
+            const currentSection = currentSectionArray.find(
+                (section: any) => section.template_section_id === sectionId
+            );
+            if (!currentSection) return;
+            const currentRow = currentSection.rows.find(
+                (row: any) =>
+                    row.template_row_id === rowId ||
+                    row.id === rowId
+            );
+            if (!currentRow) return;
+            currentRow.is_visible = currentRow.is_visible ? 0 : 1;
+        },
+        RemoveRowFromTemplateSection: (state, action) => {
+            const { sectionId, rowId, sectionType } = action.payload;
+            const currentSectionArray: any = getTemplateSectionArray(
+                state.CurrentTemplate,
+                sectionType
+            );
+            if (!currentSectionArray || !Array.isArray(currentSectionArray)) return;
+            const currentSection = currentSectionArray.find(
+                (section: any) => section.template_section_id === sectionId
+            );
+            if (!currentSection || !Array.isArray(currentSection.rows)) return;
+            const rowIndex = currentSection.rows.findIndex(
+                (row: any) =>
+                    row.template_row_id === rowId ||
+                    row.id === rowId
+            );
+            if (rowIndex === -1) return;
+            currentSection.rows.splice(rowIndex, 1);
+            recalculateRowOrder(state.CurrentTemplate);
+        },
+        AddInputGroupToTemplateColumn: (state, action) => {
+            const { sectionId, rowId, columnId, inputGroup, sectionType } = action.payload;
+            const currentSectionArray: any = getTemplateSectionArray(
+                state.CurrentTemplate,
+                sectionType
+            );
+            if (!currentSectionArray || !Array.isArray(currentSectionArray)) return;
+            const currentSection = currentSectionArray.find(
+                (section: any) => section.template_section_id === sectionId
+            );
+            if (!currentSection || !Array.isArray(currentSection.rows)) return;
+            const currentRow = currentSection.rows.find(
+                (row: any) =>
+                    row.template_row_id === rowId ||
+                    row.id === rowId
+            );
+            if (!currentRow || !Array.isArray(currentRow.columns)) return;
+            const currentColumn = currentRow.columns.find(
+                (column: any) => column.template_column_id === columnId
+            );
+            if (!currentColumn || !Array.isArray(currentColumn.inputGroup)) return;
+            currentColumn.inputGroup.push(inputGroup);
+            reCalculateInputGroupOrder(state.CurrentTemplate);
+        },
+        RemoveInputGroupFromTemplate: (state, action) => {
+            const { sectionId, rowId, columnId, inputGroupId, sectionType } = action.payload;
+            const currentSectionArray: any = getTemplateSectionArray(
+                state.CurrentTemplate,
+                sectionType
+            );
+            if (!currentSectionArray || !Array.isArray(currentSectionArray)) return;
+            const currentSection = currentSectionArray.find(
+                (section: any) => section.template_section_id === sectionId
+            );
+            if (!currentSection || !Array.isArray(currentSection.rows)) return;
+            const currentRow = currentSection.rows.find(
+                (row: any) =>
+                    row.template_row_id === rowId ||
+                    row.id === rowId
+            );
+            if (!currentRow || !Array.isArray(currentRow.columns)) return;
+            const currentColumn = currentRow.columns.find(
+                (column: any) => column.template_column_id === columnId
+            );
+            if (!currentColumn || !Array.isArray(currentColumn.inputGroup)) return;
+            const inputGroupIndex = currentColumn.inputGroup.findIndex(
+                (group: any) => group.template_input_group_id === inputGroupId
+            );
+            if (inputGroupIndex === -1) return;
+            currentColumn.inputGroup.splice(inputGroupIndex, 1);
+            reCalculateInputGroupOrder(state.CurrentTemplate);
+        },
+        AddOrInputGroupToTemplateColumn: (state, action) => {
+            const { sectionId, rowId, columnId, inputGroup, sectionType } = action.payload;
+            const currentSectionArray: any = getTemplateSectionArray(
+                state.CurrentTemplate,
+                sectionType
+            );
+            if (!currentSectionArray || !Array.isArray(currentSectionArray)) return;
+            const currentSection = currentSectionArray.find(
+                (section: any) => section.template_section_id === sectionId
+            );
+            if (!currentSection || !Array.isArray(currentSection.rows)) return;
+            const currentRow = currentSection.rows.find(
+                (row: any) =>
+                    row.template_row_id === rowId ||
+                    row.id === rowId
+            );
+            if (!currentRow || !Array.isArray(currentRow.columns)) return;
+            const currentColumn = currentRow.columns.find(
+                (column: any) => column.template_column_id === columnId
+            );
+            if (!currentColumn || !Array.isArray(currentColumn.inputGroup)) return;
+            const inputGroupCopy = JSON.parse(JSON.stringify(inputGroup));
+            inputGroupCopy.or_input_group_id = inputGroup?.or_input_group_id
+                ? inputGroup.or_input_group_id
+                : inputGroup.template_input_group_id;
+            inputGroupCopy.template_input_group_id = uuid();
+            console.log(inputGroupCopy)
+            currentColumn.inputGroup.push(inputGroupCopy);
+            reCalculateInputGroupOrder(state.CurrentTemplate);
         }
     },
 });
@@ -652,7 +1002,7 @@ export const {
     AddDropdownOptionValueToTemplate,
     AddQuantityFieldToTemplate,
     onDeleteInputFromTemplate,
-    AddCoulmnToSection,
+    AddColumnToSection,
     UpdateWidthOfColumn,
     EditShowLabelInTemplate,
     EditIsBoldInTemplate,
@@ -674,13 +1024,22 @@ export const {
     AddSameTypeOfInputInTemplateSectionInOrCondition,
     AddSameTypeOfInputGroupInTemplateSectionInOrCondition,
     ReorderInputsGroupInTemplate,
-    CopySectionInTemplate,
     AddNewDropdownEntityToTemplate,
     RemoveInputGroupFromTemplate,
     SelectTemplateSection,
     AddRowToTemplateSection,
     AddColumnToTemplateRow,
-    toggleCallTemplateAPI
+    toggleCallTemplateAPI,
+    RemoveColumnToTemplateRow,
+    CopyTemplateSection,
+    CopyTemplateSectionRow,
+    ToggleRowVisibilityInTemplate,
+    RemoveRowFromTemplateSection,
+    EditInputLabelToTemplate,
+    AddInputGroupToTemplateColumn,
+    AddOrInputGroupToTemplateColumn,
+    AddVisibilityFieldToTemplate,
+    SetInputStatusInTemplate
 } = TemplateSlice.actions;
 
 export default TemplateSlice.reducer;

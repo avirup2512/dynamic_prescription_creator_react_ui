@@ -6,7 +6,7 @@ export interface CanvasInput {
     label: string;
     name?: string;
     value?: string;
-    type_name?: string;
+    input_type_name?: string;
     note?: string;
     type?: string;
     showLabel?: boolean;
@@ -32,7 +32,7 @@ export interface CanvasColumn {
 
 export interface CanvasRow {
     template_row_id: string;
-    isVisible?: boolean;
+    is_visible?: boolean;
     columns: CanvasColumn[];
 }
 

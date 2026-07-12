@@ -14,6 +14,9 @@ export default function PreviewLayer({ sections }: PreviewLayerProps) {
             {TemplateState?.CurrentTemplate?.header?.map((section: any) => (
                 <SectionRenderer key={section.id} section={section} mode="preview" selection={{}} onSelect={() => undefined} />
             ))}
+            {TemplateState?.CurrentTemplate?.body?.map((section: any) => (
+                <SectionRenderer key={section.id} section={section} mode="preview" selection={{}} onSelect={() => undefined} />
+            ))}
         </div>
     );
 }

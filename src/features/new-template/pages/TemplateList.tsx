@@ -16,7 +16,7 @@ export default function TemplateList() {
             const createDraftTemplate = await templateService.createDraftTemplate({ data: { templateName: "untitile-template" } });
             if (createDraftTemplate && createDraftTemplate.success) {
                 const createdDraftId = createDraftTemplate?.data?.rows?.[0]?.id;
-                navigate('edit/' + createdDraftId);
+                navigate('edit/' + createdDraftId + "/header");
             }
         } catch (error) {
 
@@ -39,7 +39,7 @@ export default function TemplateList() {
         }
     }
     const onEdit = (item: any) => {
-        navigate(`../edit/${item.id}`, { state: { editData: item } })
+        navigate(`../edit/${item.id}/header`, { state: { editData: item } })
     }
     const onDelete = (item: any) => {
         // navigate(`../edit/${item.id}`, { state: { editData: item } })

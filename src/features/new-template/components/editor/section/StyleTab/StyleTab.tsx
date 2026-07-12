@@ -273,7 +273,7 @@ export default function StyleTab() {
         backgroundColor: "#f8fafc",
         borderColor: "#e5e7eb",
         borderStyle: "solid",
-        borderWidth: 1,
+        borderWidth: 0,
         borderRadius: 12,
         shadow: "soft",
         headingSize: "13",

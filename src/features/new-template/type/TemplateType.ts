@@ -10,6 +10,7 @@ export type Format = {
 }
 export type ColumnInputItem = {
   id: string
+  template_input_id: string,
   type: InputType,
   input_type_name?: string,
   label?: string
@@ -37,6 +38,11 @@ export type ColumnInputItem = {
   inputEntityTypeId?: string
   input_entity_id?: string,
   formatArray?: Array<Format>
+  isVisible?: boolean,
+  general?: FieldGeneralConfig;
+  style?: FieldStyleConfig;
+  logic?: FieldLogicConfig;
+  status?: string
 }
 export type InputGroup = {
   template_input_group_id: string,
