@@ -8,7 +8,7 @@ import AuthGuard from './guard/AuthGuard'
 
 function AppRouter() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/app">
       <Routes>
         <Route path="/" element={<Navigate to="auth/" replace />} />
         <Route element={<AuthLayout />}>
