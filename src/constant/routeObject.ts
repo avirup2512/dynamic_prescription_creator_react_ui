@@ -1,18 +1,18 @@
 import InputEntityTypeArray from './inputEntityType'
 
 const RouteArray: any = [
-    {
-        label: "Prescriptions",
-        url: "prescription",
-        show: true
-    },
+    // {
+    //     label: "Prescriptions",
+    //     url: "prescription",
+    //     show: true
+    // },
+    // {
+    //     label: "Templates",
+    //     url: "template",
+    //     show: true
+    // },
     {
         label: "Templates",
-        url: "template",
-        show: true
-    },
-    {
-        label: "New Templates",
         url: "new-template",
         show: true
     },
@@ -73,18 +73,18 @@ const RouteArray: any = [
     //         },
     //     ]
     // },
+    // {
+    //     label: "Sections",
+    //     url: "section",
+    //     show: true,
+    // },
+    // {
+    //     label: "Patient",
+    //     url: "patient",
+    //     show: true
+    // },
     {
-        label: "Sections",
-        url: "section",
-        show: true,
-    },
-    {
-        label: "Patient",
-        url: "patient",
-        show: true
-    },
-    {
-        label: "Input Entity",
+        label: "Input Fields",
         url: "inputEntity",
         show: true,
         children: InputEntityTypeArray.map((entityType: any) => ({

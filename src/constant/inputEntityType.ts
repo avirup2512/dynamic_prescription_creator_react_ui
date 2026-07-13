@@ -1,19 +1,19 @@
-const InputEntityTypeArray:any = [
+const InputEntityTypeArray: any = [
     {
-        label:"Input",
-        type:"input"
+        label: "Input Fields",
+        type: "input"
     },
+    // {
+    //     label:"Textbox",
+    //     type:"textbox"
+    // },
     {
-        label:"Textbox",
-        type:"textbox"
+        label: "List",
+        type: "dropdown"
     },
-    {
-        label:"Dropdown",
-        type:"dropdown"
-    },
-    {
-        label:"Quantity",
-        type:"quantity"
-    }
+    // {
+    //     label: "Quantity",
+    //     type: "quantity"
+    // }
 ]
 export default InputEntityTypeArray;

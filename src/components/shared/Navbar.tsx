@@ -15,7 +15,7 @@ import AuthService from '@/features/auth/service/AuthService'
 import { SetLoggedInUser } from '@/features/auth/store/AuthSlice'
 
 function Navbar() {
-  const authSelector = useSelector((state:any) => state.auth);
+  const authSelector = useSelector((state: any) => state.auth);
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
 
@@ -37,7 +37,7 @@ function Navbar() {
       </div>
 
       <div className="flex items-center gap-3">
-        <label className="relative hidden sm:block">
+        {/* <label className="relative hidden sm:block">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
             className="h-9 w-64 rounded-lg border border-input bg-background pl-9 pr-3 text-sm outline-none transition placeholder:text-muted-foreground focus:border-ring focus:ring-3 focus:ring-ring/20"
@@ -48,8 +48,8 @@ function Navbar() {
 
         <Button variant="outline" size="icon" aria-label="Notifications">
           <Bell />
-        </Button>
-        <ThemeToggle />
+        </Button> */}
+        {/* <ThemeToggle /> */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-9 gap-2 px-2">
@@ -61,9 +61,9 @@ function Navbar() {
                     </span>
                   </> :
                   <>
-                  <span className="flex size-7 items-center justify-center rounded-full bg-muted">
-                    <UserRound className="size-4" />
-                  </span>
+                    <span className="flex size-7 items-center justify-center rounded-full bg-muted">
+                      <UserRound className="size-4" />
+                    </span>
                   </>
               }
               <span className="hidden text-sm font-medium sm:inline">Account</span>

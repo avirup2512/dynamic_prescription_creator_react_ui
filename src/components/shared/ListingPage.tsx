@@ -88,7 +88,7 @@ function ListingPage<T extends { id: string | number }>({
     <div className="p-6">
       {/* Breadcrumb + header */}
       <div className="mb-4 flex items-start justify-between gap-6">
-        <div className="min-w-0">
+        <div className="min-w-0 shrink-0">
           <nav className="mb-2 text-sm text-slate-500">Dashboard &gt; <span className="text-slate-700">{title}</span></nav>
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{title}</h1>
@@ -102,7 +102,7 @@ function ListingPage<T extends { id: string | number }>({
         </div>
 
         <div className="flex shrink-0 items-center gap-3">
-          <Button variant="outline" className="h-9 gap-2">
+          {/* <Button variant="outline" className="h-9 gap-2">
             <Search className="size-4" />
             Filter
             <ChevronDown className="size-4" />
@@ -114,7 +114,7 @@ function ListingPage<T extends { id: string | number }>({
           <Button variant="outline" className="h-9 gap-2">
             Sort: Last Visit
             <ChevronDown className="size-4" />
-          </Button>
+          </Button> */}
           <Button className="h-9 bg-blue-600 text-white hover:bg-blue-700" onClick={onCreate}>
             <Plus className="size-4 text-white" />
             New {createLabel}
@@ -124,7 +124,7 @@ function ListingPage<T extends { id: string | number }>({
 
       {/* Filters row (visual only) */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="flex gap-2">
+        {/* <div className="flex gap-2">
           <select className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-slate-700">
             <option>Status</option>
           </select>
@@ -140,7 +140,7 @@ function ListingPage<T extends { id: string | number }>({
           <select className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-slate-700">
             <option>Tags</option>
           </select>
-        </div>
+        </div> */}
 
         <div className="ml-auto w-72">
           <label className="relative block">
