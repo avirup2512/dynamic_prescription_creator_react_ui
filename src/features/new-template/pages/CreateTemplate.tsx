@@ -31,12 +31,10 @@ export default function CreateTemplate() {
     return window.innerWidth < 768;
   });
   useEffect(() => {
-    if (TemplateState.callTemplateAPI) {
-      if (id && isEditMode) {
-        getTemplateInfoById(id);
-      } else {
-        dispatch(SetCurrentTemplate(CurrentTemplate))
-      }
+    if (id && isEditMode) {
+      getTemplateInfoById(id);
+    } else {
+      dispatch(SetCurrentTemplate(CurrentTemplate))
     }
   }, [id, isEditMode]);
   useEffect(() => {
