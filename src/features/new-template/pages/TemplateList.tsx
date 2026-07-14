@@ -1,135 +1,19 @@
-import { useDispatch, useSelector } from 'react-redux'
-import ListingPage from '../../../components/shared/ListingPage'
-import { useNavigate } from 'react-router-dom'
-import TemplateService from '../service/TemplateService';
-import { useEffect, useState } from 'react';
-import { SetAllTemplateList } from "../store/TemplateSlice";
-import type { ListingAction } from '@/components/shared/type/ListingType';
-import { Edit, Trash2 } from 'lucide-react';
-import { useLoader } from "@/hooks/useLoader";
+import TemplateLibrary from '../components/TemplateLibrary';
 
+/**
+ * TemplateList - Template Management Page
+ * 
+ * Renders the premium Template Library interface for managing prescription templates.
+ * This page provides:
+ * - Responsive grid layout (4 cols desktop, 3 cols laptop, 2 cols tablet, 1 col mobile)
+ * - Beautiful template cards with visual previews
+ * - Real-time search and filtering
+ * - Sorting options (recent, newest, oldest, alphabetical, most used)
+ * - Grid/List view toggle
+ * - Empty state for new users
+ * - Loading skeletons
+ * - Full template management (create, edit, duplicate, preview, delete)
+ */
 export default function TemplateList() {
-    const TemplateState = useSelector((state: any) => state.template);
-    const templateService = TemplateService;
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const [disableButton, setDisableButton] = useState(false);
-    const { showLoader, hideLoader } = useLoader();
-
-    const onCreate = async () => {
-        try {
-            setDisableButton(true);
-            const createDraftTemplate = await templateService.createDraftTemplate({ data: { templateName: "untitile-template" } });
-            if (createDraftTemplate && createDraftTemplate.success) {
-                const createdDraftId = createDraftTemplate?.data?.rows?.[0]?.id;
-                navigate('edit/' + createdDraftId + "/header");
-            }
-        } catch (error) {
-            setDisableButton(false);
-        }
-    }
-    useEffect(() => {
-        fetchTemplates();
-    }, []);
-    async function fetchTemplates() {
-        try {
-            showLoader({
-                title: "Creating Template",
-                description: "Preparing your workspace..."
-            });
-            const response = await templateService.getAllTemplates();
-            if (response.success) {
-                console.log("Fetched templates:", response.data);
-                dispatch(SetAllTemplateList(response.data));
-                // You can also update the state or local storage with the fetched templates here
-
-            }
-        } catch (error) {
-            console.error("Error fetching templates:", error);
-        } finally {
-            hideLoader();
-        }
-    }
-    const onEdit = (item: any) => {
-        navigate(`../edit/${item.id}/header`, { state: { editData: item } })
-    }
-    const onDelete = (item: any) => {
-        // navigate(`../edit/${item.id}`, { state: { editData: item } })
-    }
-    const actions: ListingAction<any>[] = [
-        { label: 'Edit', icon: <Edit className="size-4" />, onClick: onEdit },
-        { label: 'Delete', icon: <Trash2 className="size-4" />, onClick: onDelete },
-    ]
-    return (
-        <ListingPage
-            title="Full Prescription Templates"
-            onCreate={onCreate}
-            createButtonDisable={disableButton}
-            description="Create and manage complete prescription templates combining headers, bodies, and footers."
-            createLabel="New template"
-            searchPlaceholder="Search templates"
-            columns={[
-                { key: 'name', label: 'Name' },
-                // {
-                //     key: 'header', label: 'Header',
-                //     render: (item) => (
-                //         (item.is_header == 1 || item.is_header == true) &&
-                //         <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
-                //             {item?.section_name}
-                //         </span>
-                //     ),
-                // },
-                // {
-                //     key: 'body', label: 'Body',
-                //     render: (item) => (
-                //         (item.is_body == 1 || item.is_body == true) &&
-                //         <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
-                //             {item?.section_name}
-                //         </span>
-                //     ),
-                // },
-                // {
-                //     key: 'footer', label: 'Footer',
-                //     render: (item) => (
-                //         (item.is_footer == 1 || item.is_footer == true) &&
-                //         <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
-                //             {item?.section_name}
-                //         </span>
-                //     ),
-                // },
-                // {
-                //     key: 'status',
-                //     label: 'Status',
-                //     render: (item) => (
-                //         <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
-                //             {item.status}
-                //         </span>
-                //     ),
-                // },
-                {
-                    key: 'status', label: 'Status',
-                    render: (item) => (
-                        (item.is_draft == 1 || item.is_draft == true) ?
-                            <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
-                                Draft
-                            </span>
-                            : <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground">
-                                Active
-                            </span>
-                    ),
-                },
-                {
-                    key: 'updated_at', label: 'Updated',
-                    render: (item) => {
-                        const date = new Date(item?.created_at).toUTCString();
-                        return (
-                            <span>{date}</span>
-                        )
-                    }
-                },
-            ]}
-            data={TemplateState.allTemplates}
-            actions={actions}
-        />
-    )
+    return <TemplateLibrary />;
 }
