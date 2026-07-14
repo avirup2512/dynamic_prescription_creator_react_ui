@@ -23,7 +23,7 @@ class TemplateService {
     return response.json();
   }
   async createDraftTemplate({ data }: { data: any }): Promise<ApiResponse<any>> {
-    const response = await fetch(`${API_BASE_URL}/templates/createDraft`, {
+    const response = await fetch(`${API_BASE_URL}/templates`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
