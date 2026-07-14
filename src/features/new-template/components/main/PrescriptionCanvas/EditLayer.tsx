@@ -23,7 +23,7 @@ interface EditLayerProps {
 
 export default function EditLayer({ sections, sectionType, selection, onSelect, onOpenSectionEditor, onCopySection, onDeleteSection, onHideSection, onAddRow, onDeleteRow, onHideRow, onAddColumn, onDeleteColumn, onHideColumn, onQuickStyleInput, onOpenFieldEditor }: EditLayerProps) {
     const TemplateState = useSelector((state: any) => state.template);
-
+    console.log(TemplateState)
     return (
         <div>
             {
@@ -33,32 +33,6 @@ export default function EditLayer({ sections, sectionType, selection, onSelect, 
                             key={sections.id}
                             section={sections}
                             sectionType={sectionType as string}
-                            mode="edit"
-                            selection={selection}
-                            onSelect={onSelect}
-                            onOpenSectionEditor={onOpenSectionEditor}
-                            onCopySection={onCopySection}
-                            onDeleteSection={onDeleteSection}
-                            onHideSection={onHideSection}
-                            onAddRow={onAddRow}
-                            onDeleteRow={onDeleteRow}
-                            onHideRow={onHideRow}
-                            onAddColumn={onAddColumn}
-                            onDeleteColumn={onDeleteColumn}
-                            onHideColumn={onHideColumn}
-                            onQuickStyleInput={onQuickStyleInput}
-                            onOpenFieldEditor={onOpenFieldEditor}
-                        />
-                    )
-                })
-            }
-            {
-                TemplateState?.CurrentTemplate?.body?.map((sections: any) => {
-                    return (
-                        <SectionRenderer
-                            key={sections.id}
-                            section={sections}
-                            sectionType="header"
                             mode="edit"
                             selection={selection}
                             onSelect={onSelect}

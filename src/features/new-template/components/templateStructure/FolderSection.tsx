@@ -15,6 +15,7 @@ import { AppendSectionInTemplate } from "../../store/TemplateSlice";
 import type { Section } from "../../type/TemplateType";
 import { v4 as uuid } from "uuid"
 import SectionService from "@/features/section/service/SectionService";
+import { useLoader } from "@/hooks/useLoader";
 
 const FolderSection: React.FC<{ folder: any, sectionType: string }> = ({ folder, sectionType }) => {
     const templateService = TemplateService;
@@ -23,15 +24,17 @@ const FolderSection: React.FC<{ folder: any, sectionType: string }> = ({ folder,
     const navigate = useNavigate();
     const { id } = useParams();
     const [open, setOpen] = useState(false);
+    const { showLoader, hideLoader } = useLoader();
     const dispatch = useDispatch();
     useEffect(() => {
         console.log(folder)
     }, [folder]);
     const AddNewSectionEditor = async () => {
         try {
-            const is_header = sectionType === "header" ? 1 : 0;
-            const is_body = sectionType === "body" ? 1 : 0;
-            const is_footer = sectionType === "footer" ? 1 : 0;
+            showLoader({
+                title: `Creating section in ${sectionType.toUpperCase()}`,
+                description: "Preparing your workspace..."
+            });
             const section: any = {
                 id: uuid(),
                 name: 'Untitled-Section' + TemplateState?.CurrentTemplate?.[sectionType].length + 1,
@@ -94,37 +97,10 @@ const FolderSection: React.FC<{ folder: any, sectionType: string }> = ({ folder,
                     dispatch(AppendSectionInTemplate({ section: templateSection, sectionType }));
                 }
             }
-            // if (createdSection && createdSection.success) {
-            //     const section: Section = {
-            //         id: createdSection?.data?.templateSection?.id,
-            //         name: createdSection?.data?.section?.name,
-            //         order: createdSection?.data?.section?.section_order,
-            //         rows: [
-            //             {
-            //                 id: createdSection?.data?.templateRow?.id,
-            //                 name: createdSection?.data?.row?.name,
-            //                 order: createdSection?.data?.row?.row_order,
-            //                 columns: [{
-            //                     id: createdSection?.data?.templateColumn?.id,
-            //                     name: createdSection?.data?.column?.name,
-            //                     order: createdSection?.data?.column?.column_order,
-            //                     width: createdSection?.data?.column?.width,
-            //                     inputGroup: [{
-            //                         id: createdSection?.data?.templateInputGroup?.id,
-            //                         order: createdSection?.data?.inputGroup?.input_group_order,
-            //                         inputs: []
-            //                     }]
-            //                 }]
-            //             }
-            //         ],
-            //         isVisible: createdSection?.data?.templateSection?.is_visible,
-            //     }
-            //     console.log(TemplateState?.CurrentTemplate)
-            //     dispatch(AppendSectionInTemplate({ section, sectionType }));
-            //     navigate(`/dashboard/new-template/edit/${id}/section/${createdSection?.data?.templateSection?.id}/${sectionType}`);
-            // }
         } catch (error) {
             console.log(error)
+        } finally {
+            hideLoader()
         }
     }
     return (

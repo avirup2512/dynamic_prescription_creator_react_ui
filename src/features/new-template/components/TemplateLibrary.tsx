@@ -113,7 +113,7 @@ export function TemplateLibrary() {
         try {
             setIsLoading(true);
             showLoader({
-                title: 'Loading Templates',
+                title: 'Loading Templates List',
                 description: 'Fetching your prescription templates...',
             });
 
@@ -135,12 +135,16 @@ export function TemplateLibrary() {
     const handleCreateTemplate = async () => {
         try {
             setIsCreating(true);
+            showLoader({
+                title: 'Creating your template',
+                description: 'creating your prescription templates...',
+            });
             const response = await TemplateService.createDraftTemplate({
                 data: { templateName: 'New Template' },
             });
 
-            if (response.success) {
-                const newTemplateId = response?.data?.rows?.[0]?.id;
+            if (response.success && response?.data && response.data?.templateId) {
+                const newTemplateId = response.data?.templateId;
                 if (newTemplateId) {
                     navigate(`edit/${newTemplateId}/header`);
                 }
@@ -149,6 +153,7 @@ export function TemplateLibrary() {
             console.error('Error creating template:', error);
         } finally {
             setIsCreating(false);
+            hideLoader();
         }
     };
 

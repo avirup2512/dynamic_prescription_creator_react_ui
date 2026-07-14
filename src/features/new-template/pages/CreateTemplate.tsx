@@ -24,6 +24,7 @@ export default function CreateTemplate() {
   const [template, setTemplate] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const { showLoader, hideLoader } = useLoader();
+  const [lastSavedTime, setLastSavedTime] = useState<number | null>(null);
 
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -58,6 +59,7 @@ export default function CreateTemplate() {
     const timer = setTimeout(async () => {
       setIsSaving(true);
       await templateService.updateTemplate(id as string, { data: TemplateState.CurrentTemplate });
+      setLastSavedTime(Date.now());
       toast("Template is saved.", {
         description: "",
       })
@@ -98,9 +100,12 @@ export default function CreateTemplate() {
               minSize={isMobile ? 22 : 15}
               className="min-h-0 overflow-auto"
             >
-              <TemplateStructurePanel header={TemplateState.CurrentTemplate.header}
+              <TemplateStructurePanel
+                header={TemplateState.CurrentTemplate.header}
                 body={TemplateState.CurrentTemplate.body}
-                footer={TemplateState.CurrentTemplate.footer} />
+                footer={TemplateState.CurrentTemplate.footer}
+                lastSavedTime={lastSavedTime}
+              />
             </ResizablePanel>
 
             <ResizableHandle className={isMobile ? "h-2 w-full" : "w-2"} />

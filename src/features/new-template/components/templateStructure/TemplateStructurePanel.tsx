@@ -8,7 +8,7 @@ import type { FolderGroup } from "../../type/TemplateStructure";
 import { useEffect } from "react";
 
 // ---------- Root component ----------
-const TemplateStructurePanel: React.FC<{ header: FolderGroup, body: FolderGroup, footer: FolderGroup }> = ({ header, body, footer }) => {
+const TemplateStructurePanel: React.FC<{ header: FolderGroup, body: FolderGroup, footer: FolderGroup, lastSavedTime?: number | null }> = ({ header, body, footer, lastSavedTime }) => {
     useEffect(() => {
         console.log(header)
     }, [header])
@@ -25,7 +25,7 @@ const TemplateStructurePanel: React.FC<{ header: FolderGroup, body: FolderGroup,
                 </div>
 
                 <MetadataFooter />
-                <Footer />
+                <Footer lastSavedTime={lastSavedTime} />
             </div>
         </div>
     );
