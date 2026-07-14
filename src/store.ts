@@ -12,6 +12,8 @@ import RecipeSlice from "./features/inputs/store/RecipeSlice";
 import ToggleSlice from "./features/inputs/store/ToggleSlice";
 import CheckboxSlice from "./features/inputs/store/CheckboxSlice";
 import RouterSlice from "./global_store/RouterSlice"
+import LoaderReducer from "./store/loader/loaderSlice"
+
 export const store = configureStore({
   reducer: {
     header: HeaderReducer,
@@ -26,7 +28,8 @@ export const store = configureStore({
     recipe: RecipeSlice,
     toggle: ToggleSlice,
     checkbox: CheckboxSlice,
-    router: RouterSlice
+    router: RouterSlice,
+    loader: LoaderReducer,
   },
 });
 

@@ -13,8 +13,8 @@ const TemplateStructurePanel: React.FC<{ header: FolderGroup, body: FolderGroup,
         console.log(header)
     }, [header])
     return (
-        <div className="h-fit w-full bg-[#fbfbfa] text-slate-800">
-            <div className="mx-auto w-full max-w-[640px] bg-white px-2.5 py-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+        <div className="h-full min-h-0 w-full overflow-auto bg-[#fbfbfa] text-slate-800">
+            <div className="mx-auto w-full max-w-full bg-white px-2.5 py-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.03)] md:max-w-[640px]">
                 <PanelHeader />
 
                 <div className="mt-2 space-y-0.5">

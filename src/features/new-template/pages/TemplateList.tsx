@@ -2,24 +2,30 @@ import { useDispatch, useSelector } from 'react-redux'
 import ListingPage from '../../../components/shared/ListingPage'
 import { useNavigate } from 'react-router-dom'
 import TemplateService from '../service/TemplateService';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { SetAllTemplateList } from "../store/TemplateSlice";
 import type { ListingAction } from '@/components/shared/type/ListingType';
 import { Edit, Trash2 } from 'lucide-react';
+import { useLoader } from "@/hooks/useLoader";
+
 export default function TemplateList() {
     const TemplateState = useSelector((state: any) => state.template);
     const templateService = TemplateService;
     const dispatch = useDispatch();
-    const navigate = useNavigate()
+    const navigate = useNavigate();
+    const [disableButton, setDisableButton] = useState(false);
+    const { showLoader, hideLoader } = useLoader();
+
     const onCreate = async () => {
         try {
+            setDisableButton(true);
             const createDraftTemplate = await templateService.createDraftTemplate({ data: { templateName: "untitile-template" } });
             if (createDraftTemplate && createDraftTemplate.success) {
                 const createdDraftId = createDraftTemplate?.data?.rows?.[0]?.id;
                 navigate('edit/' + createdDraftId + "/header");
             }
         } catch (error) {
-
+            setDisableButton(false);
         }
     }
     useEffect(() => {
@@ -27,6 +33,10 @@ export default function TemplateList() {
     }, []);
     async function fetchTemplates() {
         try {
+            showLoader({
+                title: "Creating Template",
+                description: "Preparing your workspace..."
+            });
             const response = await templateService.getAllTemplates();
             if (response.success) {
                 console.log("Fetched templates:", response.data);
@@ -36,6 +46,8 @@ export default function TemplateList() {
             }
         } catch (error) {
             console.error("Error fetching templates:", error);
+        } finally {
+            hideLoader();
         }
     }
     const onEdit = (item: any) => {
@@ -52,38 +64,39 @@ export default function TemplateList() {
         <ListingPage
             title="Full Prescription Templates"
             onCreate={onCreate}
+            createButtonDisable={disableButton}
             description="Create and manage complete prescription templates combining headers, bodies, and footers."
             createLabel="New template"
             searchPlaceholder="Search templates"
             columns={[
                 { key: 'name', label: 'Name' },
-                {
-                    key: 'header', label: 'Header',
-                    render: (item) => (
-                        (item.is_header == 1 || item.is_header == true) &&
-                        <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
-                            {item?.section_name}
-                        </span>
-                    ),
-                },
-                {
-                    key: 'body', label: 'Body',
-                    render: (item) => (
-                        (item.is_body == 1 || item.is_body == true) &&
-                        <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
-                            {item?.section_name}
-                        </span>
-                    ),
-                },
-                {
-                    key: 'footer', label: 'Footer',
-                    render: (item) => (
-                        (item.is_footer == 1 || item.is_footer == true) &&
-                        <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
-                            {item?.section_name}
-                        </span>
-                    ),
-                },
+                // {
+                //     key: 'header', label: 'Header',
+                //     render: (item) => (
+                //         (item.is_header == 1 || item.is_header == true) &&
+                //         <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
+                //             {item?.section_name}
+                //         </span>
+                //     ),
+                // },
+                // {
+                //     key: 'body', label: 'Body',
+                //     render: (item) => (
+                //         (item.is_body == 1 || item.is_body == true) &&
+                //         <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
+                //             {item?.section_name}
+                //         </span>
+                //     ),
+                // },
+                // {
+                //     key: 'footer', label: 'Footer',
+                //     render: (item) => (
+                //         (item.is_footer == 1 || item.is_footer == true) &&
+                //         <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
+                //             {item?.section_name}
+                //         </span>
+                //     ),
+                // },
                 // {
                 //     key: 'status',
                 //     label: 'Status',
@@ -93,6 +106,18 @@ export default function TemplateList() {
                 //         </span>
                 //     ),
                 // },
+                {
+                    key: 'status', label: 'Status',
+                    render: (item) => (
+                        (item.is_draft == 1 || item.is_draft == true) ?
+                            <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
+                                Draft
+                            </span>
+                            : <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground">
+                                Active
+                            </span>
+                    ),
+                },
                 {
                     key: 'updated_at', label: 'Updated',
                     render: (item) => {

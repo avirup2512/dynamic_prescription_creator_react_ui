@@ -1,5 +1,27 @@
-import { useLoaderService } from "@/services/loader/LoaderProvider"
+import { useCallback } from "react";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "../store";
+import { hideLoader, showLoader, updateLoader } from "../store/loader/loaderSlice";
+import type { LoaderPayload } from "../store/loader/loaderSlice";
 
 export function useLoader() {
-  return useLoaderService()
+  const dispatch = useDispatch<AppDispatch>();
+
+  const handleShowLoader = useCallback((payload?: LoaderPayload) => {
+    dispatch(showLoader(payload));
+  }, [dispatch]);
+
+  const handleHideLoader = useCallback(() => {
+    dispatch(hideLoader());
+  }, [dispatch]);
+
+  const handleUpdateLoader = useCallback((payload?: LoaderPayload) => {
+    dispatch(updateLoader(payload));
+  }, [dispatch]);
+
+  return {
+    showLoader: handleShowLoader,
+    hideLoader: handleHideLoader,
+    updateLoader: handleUpdateLoader,
+  };
 }

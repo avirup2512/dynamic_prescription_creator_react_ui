@@ -19,4 +19,5 @@ export type ListingPageProps<T extends { id: string | number }> = {
   data: T[]
   actions?: ListingAction<T>[]
   onCreate?: () => void
+  createButtonDisable?: boolean
 }

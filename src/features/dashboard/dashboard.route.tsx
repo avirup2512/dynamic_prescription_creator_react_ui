@@ -13,7 +13,7 @@ import InputRoute from '../inputs/input.routes'
 function DashboardRoute() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="template" replace />} />
+      <Route path="/" element={<Navigate to="new-template" replace />} />
       <Route path="/template/*" element={<TemplateRoute />} />
       <Route path="/new-template/*" element={<NewTemplateRoute />} />
       <Route path="/section/*" element={<SectionRoute />} />

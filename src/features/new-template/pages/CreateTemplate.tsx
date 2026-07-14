@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { CurrentTemplate, SetCurrentTemplate } from "../store/TemplateSlice";
 import { redefineTemplate } from "../utils/TemplateUtilsService";
 import { toast } from "sonner"
+import { useLoader } from "@/hooks/useLoader";
 
 export default function CreateTemplate() {
   const templateService = TemplateService;
@@ -22,6 +23,12 @@ export default function CreateTemplate() {
   const isEditMode = Boolean(id);
   const [template, setTemplate] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const { showLoader, hideLoader } = useLoader();
+
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth < 768;
+  });
   useEffect(() => {
     if (TemplateState.callTemplateAPI) {
       if (id && isEditMode) {
@@ -31,6 +38,17 @@ export default function CreateTemplate() {
       }
     }
   }, [id, isEditMode]);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   useEffect(() => {
     console.log(TemplateState);
   }, [TemplateState.CurrentTemplate.header])
@@ -50,6 +68,10 @@ export default function CreateTemplate() {
 
   async function getTemplateInfoById(id: any) {
     try {
+      showLoader({
+        title: "Fetching Your Template",
+        description: "Preparing your workspace..."
+      });
       const fetchedTemplateData = await templateService.getTemplateById(id);
       if (fetchedTemplateData && fetchedTemplateData.success) {
         const templateData = fetchedTemplateData.data;
@@ -59,38 +81,45 @@ export default function CreateTemplate() {
       }
     } catch (error) {
 
+    } finally {
+      hideLoader()
     }
   }
   return (
     <>
       <BuilderProvider>
-        <ResizablePanelGroup
-          direction="horizontal"
-          className="h-screen"
-        >
-          <ResizablePanel
-            defaultSize={20}
-            minSize={15}
+        <div className="flex h-full min-h-0 flex-col overflow-hidden">
+          <ResizablePanelGroup
+            orientation={isMobile ? "vertical" : "horizontal"}
+            className="flex-1 min-h-0 overflow-hidden"
           >
-            <TemplateStructurePanel header={TemplateState.CurrentTemplate.header}
-              body={TemplateState.CurrentTemplate.body}
-              footer={TemplateState.CurrentTemplate.footer} />
-          </ResizablePanel>
+            <ResizablePanel
+              defaultSize={isMobile ? 32 : 20}
+              minSize={isMobile ? 22 : 15}
+              className="min-h-0 overflow-auto"
+            >
+              <TemplateStructurePanel header={TemplateState.CurrentTemplate.header}
+                body={TemplateState.CurrentTemplate.body}
+                footer={TemplateState.CurrentTemplate.footer} />
+            </ResizablePanel>
 
-          <ResizableHandle />
+            <ResizableHandle className={isMobile ? "h-2 w-full" : "w-2"} />
 
-          <ResizablePanel
-            defaultSize={55}
-          >
-            <BuilderCanvas header={TemplateState.CurrentTemplate.header}
-              body={TemplateState.CurrentTemplate.body}
-              footer={TemplateState.CurrentTemplate.footer} />
-          </ResizablePanel>
+            <ResizablePanel
+              defaultSize={isMobile ? 40 : 55}
+              minSize={isMobile ? 24 : 20}
+              className="min-h-0 overflow-auto"
+            >
+              <BuilderCanvas header={TemplateState.CurrentTemplate.header}
+                body={TemplateState.CurrentTemplate.body}
+                footer={TemplateState.CurrentTemplate.footer} />
+            </ResizablePanel>
 
-          <ResizableHandle />
+            <ResizableHandle className={isMobile ? "h-2 w-full" : "w-2"} />
 
-          <Outlet />
-        </ResizablePanelGroup>
+            <Outlet />
+          </ResizablePanelGroup>
+        </div>
       </BuilderProvider>
     </>
   )

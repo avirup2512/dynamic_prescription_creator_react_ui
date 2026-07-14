@@ -10,7 +10,7 @@ import {
 } from '../ui/dropdown-menu'
 import type { ListingAction, ListingPageProps } from './type/ListingType'
 
-function ListingPage<T extends { id: string | number }>({
+function ListingPage<T extends { id: string | number; name?: string; title?: string; mrn?: string | number }>({
   title,
   description,
   createLabel = 'Create',
@@ -18,9 +18,10 @@ function ListingPage<T extends { id: string | number }>({
   columns,
   data,
   actions,
+  createButtonDisable,
   onCreate,
 }: ListingPageProps<T>) {
-  const rowActions =
+  const rowActions: ListingAction<T>[] =
     actions ??
     ([
       { label: 'Edit', icon: <Edit className="size-3" /> },
@@ -31,7 +32,6 @@ function ListingPage<T extends { id: string | number }>({
 
   const allSelected = data.length > 0 && selectedIds.length === data.length
   const partiallySelected = selectedIds.length > 0 && selectedIds.length < data.length
-
   const accentColors = ['border-emerald-400', 'border-cyan-400', 'border-fuchsia-400', 'border-amber-400', 'border-rose-400']
 
   const selectedItems = useMemo(
@@ -85,12 +85,12 @@ function ListingPage<T extends { id: string | number }>({
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Breadcrumb + header */}
-      <div className="mb-4 flex items-start justify-between gap-6">
-        <div className="min-w-0 shrink-0">
+      <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-6">
+        <div className="min-w-0 w-full">
           <nav className="mb-2 text-sm text-slate-500">Dashboard &gt; <span className="text-slate-700">{title}</span></nav>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{title}</h1>
             <div className="text-sm text-slate-500">{data.length.toLocaleString()} records</div>
           </div>
@@ -101,7 +101,7 @@ function ListingPage<T extends { id: string | number }>({
           ) : null}
         </div>
 
-        <div className="flex shrink-0 items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 sm:justify-end">
           {/* <Button variant="outline" className="h-9 gap-2">
             <Search className="size-4" />
             Filter
@@ -115,7 +115,11 @@ function ListingPage<T extends { id: string | number }>({
             Sort: Last Visit
             <ChevronDown className="size-4" />
           </Button> */}
-          <Button className="h-9 bg-blue-600 text-white hover:bg-blue-700" onClick={onCreate}>
+          <Button
+            disabled={createButtonDisable}
+            className="h-9 w-full bg-blue-600 text-white hover:bg-blue-700 sm:w-auto"
+            onClick={() => { onCreate ? onCreate() : null }}
+          >
             <Plus className="size-4 text-white" />
             New {createLabel}
           </Button>
@@ -123,7 +127,7 @@ function ListingPage<T extends { id: string | number }>({
       </div>
 
       {/* Filters row (visual only) */}
-      <div className="mb-4 flex flex-wrap items-center gap-3">
+      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center">
         {/* <div className="flex gap-2">
           <select className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-slate-700">
             <option>Status</option>
@@ -142,7 +146,7 @@ function ListingPage<T extends { id: string | number }>({
           </select>
         </div> */}
 
-        <div className="ml-auto w-72">
+        <div className="w-full md:ml-auto md:w-72">
           <label className="relative block">
             <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
@@ -157,7 +161,7 @@ function ListingPage<T extends { id: string | number }>({
       {/* Table card */}
       <div className="overflow-hidden rounded-xl border border-border bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] table-fixed border-collapse text-left">
+          <table className="w-full min-w-[720px] table-fixed border-collapse text-left sm:min-w-[900px]">
             <thead className="bg-slate-50">
               <tr>
                 <th className="w-14 px-4 py-3">
@@ -264,9 +268,9 @@ function ListingPage<T extends { id: string | number }>({
         </div>
 
         {/* pagination footer */}
-        <div className="flex items-center justify-between border-t border-slate-100 bg-white px-4 py-3">
+        <div className="flex flex-col gap-3 border-t border-slate-100 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-xs text-slate-500">1-25 of {data.length.toLocaleString()}</div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <select className="h-8 rounded-md border border-input bg-background px-2 text-sm">
               <option>Rows per page: 25</option>
             </select>

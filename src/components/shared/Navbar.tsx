@@ -1,4 +1,4 @@
-import { Bell, LogOut, Search, UserRound } from 'lucide-react'
+import { Bell, LogOut, Menu, Search, UserRound, X } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { Button } from '../ui/button'
@@ -14,7 +14,7 @@ import {
 import AuthService from '@/features/auth/service/AuthService'
 import { SetLoggedInUser } from '@/features/auth/store/AuthSlice'
 
-function Navbar() {
+function Navbar({ onToggleSidebar, isSidebarCollapsed }: { onToggleSidebar?: () => void; isSidebarCollapsed?: boolean }) {
   const authSelector = useSelector((state: any) => state.auth);
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
@@ -30,10 +30,21 @@ function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 px-6 backdrop-blur">
-      <div className="min-w-0">
-        <p className="text-sm font-medium text-muted-foreground">Dashboard</p>
-        <h2 className="truncate text-lg font-semibold">My Prescription</h2>
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 px-4 sm:px-6 backdrop-blur">
+      <div className="flex items-center gap-3 min-w-0">
+        <button
+          aria-label={isSidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-background text-foreground md:hidden"
+          onClick={onToggleSidebar}
+          type="button"
+        >
+          {isSidebarCollapsed ? <Menu className="size-5" /> : <X className="size-5" />}
+        </button>
+
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-muted-foreground">Dashboard</p>
+          <h2 className="truncate text-lg font-semibold">My Prescription</h2>
+        </div>
       </div>
 
       <div className="flex items-center gap-3">
