@@ -70,6 +70,7 @@ export default function SectionRenderer({
     const onAddRow = (sectionId: string, sectionType: string) => {
         const payload = { sectionId, sectionType }
         dispatch(AddRowToTemplateSection(payload));
+        console.log(TemplateState)
     }
     return (
         <section

@@ -13,7 +13,10 @@ function NewTemplateRoute() {
       </Route>
       <Route path="/edit/:id/:sectionType" element={<CreateTemplate />} >
         <Route path="section/:sectionId/:sectionType/:tab" element={<EditorSheet editorType="section" />} />
+        {/* For Editing existing Input */}
         <Route path="inputEdit/:sectionId/:rowId/:columnId/:inputGroupId/:sectionType/:inputId/:inputType/:tab" element={<EditorSheet editorType="input" />} />
+        {/* For Adding new Input */}
+        <Route path="addInput/:sectionId/:rowId/:columnId/:inputGroupId/:sectionType" element={<EditorSheet editorType="addInput" />} />
         <Route path="section/:sectionId/:sectionType/:tab/:entityTypeForStyle/:entityId" element={<EditorSheet editorType="section" />} />
         <Route path="input/:sectionId/:rowId/:columnId/:inputGroupId/:sectionType/:tabType/:inputType" element={<MainInputDialogContainer />} />
         <Route path="input/:sectionId/:rowId/:columnId/:inputGroupId/:sectionType/:tabType/:inputType/:inputId" element={<MainInputDialogContainer />} />

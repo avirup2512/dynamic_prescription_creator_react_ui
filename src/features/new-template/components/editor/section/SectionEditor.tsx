@@ -226,13 +226,13 @@ export default function SectionEditor({ closeEditor }: SectionEditorProps) {
                 )}
             </div>
 
-            <div className="sticky bottom-0 z-10 shrink-0 border-t border-slate-200 bg-white px-3 py-2.5 shadow-[0_-4px_12px_rgba(15,23,42,0.08)]">
+            {/* <div className="sticky bottom-0 z-10 shrink-0 border-t border-slate-200 bg-white px-3 py-2.5 shadow-[0_-4px_12px_rgba(15,23,42,0.08)]">
                 <div className="text-xs text-slate-500 mb-2">Last edited by Dr. Patel - 2m ago</div>
                 <div className="space-y-2">
                     <ActionButtons onCancel={handleCancel} onSave={handleSave} />
                     {isSaving ? <p className="text-xs text-blue-600">Saving section…</p> : null}
                 </div>
-            </div>
+            </div> */}
 
             <style>{`
               .editor-scrollbar::-webkit-scrollbar {

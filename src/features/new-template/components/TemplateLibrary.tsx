@@ -226,22 +226,22 @@ export function TemplateLibrary() {
     };
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-slate-50">
             {/* Page Header */}
-            <div className="border-b border-slate-200 bg-white px-6 py-6 sm:px-8 sm:py-8">
+            <div className="border-b border-slate-200 bg-white px-5 py-4 sm:px-6 sm:py-5">
                 <div className="mx-auto max-w-7xl">
                     {/* Breadcrumb */}
-                    <nav className="mb-4 text-xs text-slate-500 sm:text-sm">
+                    <nav className="mb-3 text-xs text-slate-500">
                         Dashboard &gt; <span className="text-slate-700">Template Library</span>
                     </nav>
 
                     {/* Header Title and Description */}
-                    <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                    <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                         <div className="min-w-0">
-                            <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+                            <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
                                 Template Library
                             </h1>
-                            <p className="mt-1 text-sm text-slate-600 sm:text-base">
+                            <p className="mt-0.5 text-xs text-slate-600 sm:text-sm">
                                 Manage all your prescription templates.
                             </p>
                         </div>
@@ -250,7 +250,7 @@ export function TemplateLibrary() {
                         <button
                             onClick={handleCreateTemplate}
                             disabled={isCreating}
-                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed sm:px-6 sm:py-3"
+                            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-blue-600 px-3.5 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed sm:px-4 sm:py-2"
                         >
                             <Plus className="h-4 w-4" />
                             Create Template
@@ -260,9 +260,9 @@ export function TemplateLibrary() {
             </div>
 
             {/* Main Content */}
-            <div className="mx-auto max-w-7xl px-6 py-6 sm:px-8 sm:py-8">
+            <div className="mx-auto max-w-7xl px-5 py-4 sm:px-6 sm:py-5">
                 {/* Toolbar */}
-                <div className="mb-8">
+                <div className="mb-5">
                     <TemplateToolbar
                         searchQuery={searchQuery}
                         onSearchChange={setSearchQuery}
@@ -299,7 +299,7 @@ export function TemplateLibrary() {
 
                 {/* Results info when in search mode */}
                 {searchQuery && !isLoading && sortedTemplates.length > 0 && (
-                    <div className="mt-6 flex justify-center text-xs text-slate-500">
+                    <div className="mt-4 flex justify-center text-[11px] text-slate-500">
                         Showing {sortedTemplates.length} of {allTemplates.length}{' '}
                         {allTemplates.length === 1 ? 'template' : 'templates'}
                     </div>

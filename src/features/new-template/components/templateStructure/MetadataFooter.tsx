@@ -27,11 +27,11 @@ const MetadataFooter: React.FC = () => {
     };
 
     return (
-        <div className="px-1 pt-3">
+        <div className="px-0 pt-2.5">
             <button
                 type="button"
                 onClick={() => setOpen((o) => !o)}
-                className="flex items-center gap-1.5 py-1.5 text-slate-800"
+                className="flex items-center gap-1.5 py-1 px-1 text-slate-800 hover:bg-slate-50 rounded-sm transition-colors"
             >
                 {open ? (
                     <ChevronDown className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} />
@@ -39,19 +39,19 @@ const MetadataFooter: React.FC = () => {
                     <ChevronRight className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} />
                 )}
                 <List className="h-3.5 w-3.5 text-slate-500" strokeWidth={2} />
-                <span className="text-[12px] font-semibold text-slate-900">
+                <span className="text-[11px] font-semibold tracking-tight text-slate-900">
                     Template metadata
                 </span>
             </button>
 
             {open && (
-                <div className="mt-2 space-y-3">
+                <div className="mt-1.5 space-y-2.5">
                     {/* <div>
                         <p className="mb-1.5 text-[11px] text-slate-400">Specialty</p>
                         <Tag label="Cardiology" variant="specialty" />
                     </div> */}
                     <div>
-                        <p className="mb-1.5 text-[11px] text-slate-400">Tags</p>
+                        <p className="mb-1 text-[10px] font-medium text-slate-500 uppercase tracking-wider">Tags</p>
                         {tags.length === 0 ? (
                             <div className="flex items-center justify-between px-3 py-4 border border-dashed border-slate-200 rounded-md bg-slate-50">
                                 <div className="flex-1">

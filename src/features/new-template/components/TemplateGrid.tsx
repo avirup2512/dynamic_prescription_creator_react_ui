@@ -43,12 +43,12 @@ export function TemplateGrid({
     const getGridClasses = (): string => {
         switch (size) {
             case 'small':
-                return 'grid auto-rows-max gap-3.5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5';
+                return 'grid auto-rows-max gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5';
             case 'large':
-                return 'grid auto-rows-max gap-6 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2';
+                return 'grid auto-rows-max gap-5 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2';
             case 'medium':
             default:
-                return 'grid auto-rows-max gap-4.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
+                return 'grid auto-rows-max gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
         }
     };
 

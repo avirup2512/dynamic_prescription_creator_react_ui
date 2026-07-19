@@ -8,7 +8,19 @@ import ActionButtons from "./ActionButtons";
 import InputHeader from "./InputHeader";
 import StyleTab from "./StyleTab/StyleTab";
 import Style from "@/components/shared/StyleModule/Style";
-import { EditExtraNoteInTemplate, AddQuantityFieldToTemplate, AddVisibilityFieldToTemplate } from "@/features/new-template/store/TemplateSlice";
+import {
+    EditExtraNoteInTemplate,
+    AddQuantityFieldToTemplate,
+    AddVisibilityFieldToTemplate,
+    EditInputLabelToTemplate,
+    AddInputValueToTemplate,
+    AddQuantityToTemplate,
+    AddQuantityTextValueToTemplate,
+    EditExtraNoteValueInTemplate,
+    AddEditDropdownTextValueToTemplate,
+    AddQuantityTypeToTemplate,
+} from "@/features/new-template/store/TemplateSlice";
+import { INPUT_TYPE } from "@/constant/inputType.enum";
 
 interface InputEditorProps {
     closeEditor?: () => void;
@@ -22,6 +34,7 @@ export default function InputEditor({ closeEditor }: InputEditorProps) {
     const [inputName, setInputName] = useState<string>("");
     const [description, setDescription] = useState<string>("");
     const [isSaving, setIsSaving] = useState(false);
+    const [inputFormData, setInputFormData] = useState<any>(null);
     const { sectionId, rowId, columnId, inputGroupId, sectionType, inputId } = useParams();
     const currentInput = useMemo(() => {
 
@@ -73,12 +86,56 @@ export default function InputEditor({ closeEditor }: InputEditorProps) {
     const handleCancel = useCallback(() => closeEditor?.(), [closeEditor]);
 
     const handleSave = useCallback(() => {
+        const formData = inputFormData || {
+            label: currentInput?.input_name || currentInput?.name || "",
+            value: currentInput?.template_input_value || currentInput?.value || "",
+            dropdownValue: currentInput?.dropdown_option_value || "",
+            quantityEnabled: Boolean(currentInput?.show_quantity),
+            quantityMode: currentInput?.template_quantity_type_single ? "single" : "range",
+            quantityId: currentInput?.template_input_quantity_id || currentInput?.quantity_id || "",
+            quantityName: currentInput?.template_quantity_name || currentInput?.quantity_name || "",
+            extraNoteEnabled: Boolean(currentInput?.extra_note),
+            extraNoteValue: currentInput?.template_input_extranotes || currentInput?.extra_note_value || "",
+            visible: Boolean(currentInput?.is_visible),
+        };
+
+        const targetInputId = currentInput?.template_input_id || inputId;
+        const basePayload = {
+            sectionId,
+            rowId,
+            columnId,
+            inputGroupId,
+            sectionType,
+            inputId: targetInputId,
+        };
+        console.log(targetInputId)
+        console.log("InputEditor Save -> formData:", formData)
+        if (targetInputId) {
+            dispatch(EditInputLabelToTemplate({ ...basePayload, inputLabel: String(formData.label || "") }));
+            dispatch(AddInputValueToTemplate({ ...basePayload, inputValue: String(formData.value || "") }));
+            dispatch(AddQuantityFieldToTemplate({ ...basePayload, showQuantity: formData.quantityEnabled ? 1 : 0 }));
+            dispatch(AddQuantityTextValueToTemplate({ ...basePayload, quantityValueFrom: formData.quantityMode === "single" ? 1 : 0, quantityValueTo: formData.quantityMode === "single" ? 1 : 0 }));
+            dispatch(AddQuantityTypeToTemplate({ ...basePayload, quantityType: formData.quantityMode === "single" ? 1 : 0 }));
+            if (formData.quantityId) {
+                dispatch(AddQuantityToTemplate({ ...basePayload, quantityId: formData.quantityId }));
+            }
+            dispatch(EditExtraNoteInTemplate({ ...basePayload, extraNote: formData.extraNoteEnabled ? 1 : 0 }));
+            dispatch(EditExtraNoteValueInTemplate({ ...basePayload, extraNoteValue: String(formData.extraNoteValue || "") }));
+            dispatch(AddVisibilityFieldToTemplate({ ...basePayload, isVisible: formData.visible ? 1 : 0 }));
+            if (formData.dropdownValue && currentInput?.type === INPUT_TYPE.INPUTTYPE_2) {
+                dispatch(AddEditDropdownTextValueToTemplate({
+                    ...basePayload,
+                    dropdownOption: { id: formData.dropdownValue, value: formData.dropdownValue },
+                }));
+            }
+        }
+
         setIsSaving(true);
         window.setTimeout(() => {
             setIsSaving(false);
             closeEditor?.();
         }, 300);
-    }, [closeEditor]);
+    }, [closeEditor, currentInput, dispatch, inputFormData, inputGroupId, inputId, rowId, sectionId, sectionType, columnId]);
     const setExtraNote = (value: boolean) => {
         console.log(value)
         const payload = { sectionId, rowId, columnId, inputGroupId, sectionType, inputId, extraNote: value ? 1 : 0 }
@@ -124,9 +181,13 @@ export default function InputEditor({ closeEditor }: InputEditorProps) {
                 <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
             </div>
 
-            <div className="editor-scrollbar min-h-0 flex-1 overflow-y-auto bg-white px-3 py-3 pb-24" style={{ scrollbarWidth: "thin", scrollbarColor: "#cbd5e1 transparent" }}>
+            <div className="editor-scrollbar min-h-0 flex-1 overflow-y-auto bg-white px-3 py-3 pb-48" style={{ scrollbarWidth: "thin", scrollbarColor: "#cbd5e1 transparent" }}>
                 {activeTab === "Content" && (
-                    <InputHeader inputName={inputName} setInputName={setInputName} description={description} setDescription={setDescription} setExtraNote={setExtraNote} setQuantity={setQuantity} setVisibility={setVisibility} extraNote={currentInput?.extra_note} visibility={currentInput?.is_visible} quantity={currentInput?.show_quantity} />
+                    <InputHeader
+                        input={currentInput}
+                        onFormDataChange={setInputFormData}
+                        inputEntityId={currentInput?.input_entity_id || currentInput?.id}
+                    />
                 )}
 
                 {activeTab === "Layout" && (
@@ -159,7 +220,7 @@ export default function InputEditor({ closeEditor }: InputEditorProps) {
             </div>
 
             <div className="sticky bottom-0 z-10 shrink-0 border-t border-slate-200 bg-white px-3 py-2.5 shadow-[0_-4px_12px_rgba(15,23,42,0.08)]">
-                <div className="mb-2 text-xs text-slate-500">Last edited by Dr. Patel - 2m ago</div>
+                {/* <div className="mb-2 text-xs text-slate-500">Last edited by Dr. Patel - 2m ago</div> */}
                 <div className="space-y-2">
                     <ActionButtons onCancel={handleCancel} onSave={handleSave} />
                     {isSaving ? <p className="text-xs text-blue-600">Saving input…</p> : null}

@@ -8,6 +8,7 @@ export const INPUT_TYPE = {
     INPUTTYPE_7: "INPUT_TYPE_7",
     INPUTTYPE_8: "INPUT_TYPE_8",
     INPUTTYPE_9: "INPUT_TYPE_9",
+    INPUTTYPE_10: "INPUT_TYPE_10",
 } as const;
 
 export type InputType =

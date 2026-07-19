@@ -7,10 +7,18 @@ import EditableField from "./EditableField";
 import HoverToolbar from "./HoverToolbar";
 import { INPUT_TYPE } from "@/constant/inputType.enum";
 import { useDispatch } from "react-redux";
-import { AddEditDropdownTextValueToTemplate, AddInputValueToTemplate, EditInputLabelToTemplate, AddQuantityTextValueToTemplate, EditExtraNoteValueInTemplate, SetInputStatusInTemplate, RemoveInputTypeFromTemplate } from "@/features/new-template/store/TemplateSlice";
+import { AddEditDropdownTextValueToTemplate, AddInputValueToTemplate, EditInputLabelToTemplate, AddQuantityTextValueToTemplate, EditExtraNoteValueInTemplate, SetInputStatusInTemplate, RemoveInputTypeFromTemplate, AddQuantityOptionIdToTemplate } from "@/features/new-template/store/TemplateSlice";
 import SearchableOptionSelect from "@/components/shared/SearchableOptionSelect";
 import { useNavigate } from "react-router-dom";
 import type { ColumnInputItem } from "@/features/new-template/type/TemplateType";
+import { DateInput } from "./MiscInputsForRendering/DateInput";
+import { TimeInput } from "./MiscInputsForRendering/TimeInput";
+import { NumberInput } from "./MiscInputsForRendering/NumberInput";
+import {
+    type DateSelectorValue,
+} from "@/components/reui/date-selector"
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 interface InputRendererProps {
     input: ColumnInputItem;
     mode: CanvasMode;
@@ -42,7 +50,7 @@ function InputFrame({
         <div
             className={cn(
                 "group/input relative rounded-md",
-                mode === "edit" && "border border-transparent p-2 transition hover:border-dashed hover:border-sky-200 hover:bg-sky-50/20",
+                mode === "edit" && "border border-transparent transition border-dashed border-sky-200 bg-sky-50/20 p-1",
                 mode === "edit" && selected && "border-sky-300 bg-sky-50/40 ring-1 ring-sky-200"
             )}
             onClick={onSelect}
@@ -308,7 +316,8 @@ export default function InputRenderer({ input, mode, selection, sectionType, onS
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [debounceQueryForExtraNote, setDebounceQueryForExtraNote] = useState(input?.template_input_extranotes);
-    const [debounceQueryForQuantity, setDebounceQueryForQuantity] = useState(input?.template_quantity_value);
+    const [debounceQueryForQuantityTextFrom, setDebounceQueryForQuantityTextFrom] = useState(input?.template_quantity_valueFrom);
+    const [debounceQueryForQuantityTextTo, setDebounceQueryForQuantityTextTo] = useState(input?.template_quantity_valueTo);
     useEffect(() => {
         if (debounceQueryForExtraNote !== null) {
             const timeout = setTimeout(() => {
@@ -319,19 +328,27 @@ export default function InputRenderer({ input, mode, selection, sectionType, onS
         }
     }, [debounceQueryForExtraNote])
     useEffect(() => {
-        if (debounceQueryForQuantity !== null) {
+        if (debounceQueryForQuantityTextFrom !== null) {
             const timeout = setTimeout(() => {
-                const payload = { sectionId, rowId, columnId, inputGroupId, sectionType, inputId: input.template_input_id, quantityValue: debounceQueryForQuantity }
+                const payload = { sectionId, rowId, columnId, inputGroupId, sectionType, inputId: input.template_input_id, quantityValueFrom: debounceQueryForQuantityTextFrom, quantityValueTo: debounceQueryForQuantityTextTo }
                 dispatch(AddQuantityTextValueToTemplate(payload));
             }, 500); // or 300–500ms
             return () => clearTimeout(timeout);
         }
-    }, [debounceQueryForQuantity])
+    }, [debounceQueryForQuantityTextFrom])
     useEffect(() => {
-        console.log(input)
+        if (debounceQueryForQuantityTextTo !== null) {
+            const timeout = setTimeout(() => {
+                const payload = { sectionId, rowId, columnId, inputGroupId, sectionType, inputId: input.template_input_id, quantityValueTo: debounceQueryForQuantityTextTo, quantityValueFrom: debounceQueryForQuantityTextFrom }
+                dispatch(AddQuantityTextValueToTemplate(payload));
+            }, 500); // or 300–500ms
+            return () => clearTimeout(timeout);
+        }
+    }, [debounceQueryForQuantityTextTo])
+    useEffect(() => {
         const inputType = input.input_type_name || input?.type_name
         if (inputType) {
-            const variant = inputType === INPUT_TYPE.INPUTTYPE_1 ? "field" : inputType === INPUT_TYPE.INPUTTYPE_2 ? "dropdown" : inputType === INPUT_TYPE.INPUTTYPE_3 ? "address" : inputType === INPUT_TYPE.INPUTTYPE_4 ? "recipe" : inputType === INPUT_TYPE.INPUTTYPE_5 ? "medicines" : inputType === INPUT_TYPE.INPUTTYPE_6 ? "tests" : inputType === INPUT_TYPE.INPUTTYPE_7 ? "field" : inputType === INPUT_TYPE.INPUTTYPE_8 ? "signature" : inputType === INPUT_TYPE.INPUTTYPE_9 ? "recipe" : 'field';
+            const variant = inputType === INPUT_TYPE.INPUTTYPE_1 ? "field" : inputType === INPUT_TYPE.INPUTTYPE_2 ? "dropdown" : inputType === INPUT_TYPE.INPUTTYPE_3 ? "address" : inputType === INPUT_TYPE.INPUTTYPE_4 ? "recipe" : inputType === INPUT_TYPE.INPUTTYPE_5 ? "medicines" : inputType === INPUT_TYPE.INPUTTYPE_6 ? "date" : inputType === INPUT_TYPE.INPUTTYPE_7 ? "field" : inputType === INPUT_TYPE.INPUTTYPE_8 ? "time" : inputType === INPUT_TYPE.INPUTTYPE_9 ? "recipe" : inputType === INPUT_TYPE.INPUTTYPE_10 ? "number" : 'field';
             setVariant(variant);
         } else {
             setVariant('field');
@@ -344,8 +361,6 @@ export default function InputRenderer({ input, mode, selection, sectionType, onS
         dispatch(AddEditDropdownTextValueToTemplate(payload))
     }
     const EditFieldValue = (value: string) => {
-        console.log(value);
-        console.log(input)
         switch (input?.input_type_name) {
             case "INPUT_TYPE_1":
             case "INPUT_TYPE_7": {
@@ -373,8 +388,22 @@ export default function InputRenderer({ input, mode, selection, sectionType, onS
         const payload = { sectionId, rowId, columnId, inputGroupId, sectionType, inputId: input?.template_input_id }
         dispatch(RemoveInputTypeFromTemplate(payload));
     }
-    const openInputModal = () => {
-
+    const onDateChange = (dateValue: DateSelectorValue | undefined) => {
+        const date = dateValue?.startDate ? dateValue?.startDate?.toUTCString() : undefined;
+        const payload = { sectionId, rowId, columnId, inputId: input.template_input_id || input?.id, inputGroupId, inputValue: date, sectionType }
+        dispatch(AddInputValueToTemplate(payload))
+    }
+    const onTimeChange = (timeValue: string) => {
+        const payload = { sectionId, rowId, columnId, inputId: input.template_input_id || input?.id, inputGroupId, inputValue: timeValue, sectionType }
+        dispatch(AddInputValueToTemplate(payload))
+    }
+    const onNumberChange = (numberValue: number) => {
+        const payload = { sectionId, rowId, columnId, inputId: input.template_input_id || input?.id, inputGroupId, inputValue: numberValue, sectionType }
+        dispatch(AddInputValueToTemplate(payload))
+    }
+    const onQuantityChange = (optionId: number) => {
+        const payload = { sectionId, rowId, columnId, inputId: input.template_input_id || input?.id, inputGroupId, quantityOptionId: optionId, sectionType }
+        dispatch(AddQuantityOptionIdToTemplate(payload))
     }
     const openInputEditor = () => {
         navigate(`./inputEdit/${sectionId}/${rowId}/${columnId}/${inputGroupId}/${sectionType}/${input.template_input_id || input?.id}/${input.input_type_name || input?.type_name}/content`);
@@ -388,31 +417,40 @@ export default function InputRenderer({ input, mode, selection, sectionType, onS
         EditFieldLabel(value?.label);
         EditFieldValue(value?.value);
     }
+    const addQuantityTextValue = (value: string) => {
+        const payload = { sectionId, rowId, columnId, inputId: input.template_input_id || input?.id, inputGroupId, quantityValueFrom: value, sectionType }
+        dispatch(AddQuantityTextValueToTemplate(payload));
+    }
     if (variant === "field") {
         return (
             <InputFrame input={input} mode={mode} selected={selected} onSelect={selectInput}>
-                <HoverToolbar
-                    mode={mode}
-                    label={"Input"}
-                    visible={mode === "edit"}
-                    showSettings={false}
-                    showDeleteIcon={false}
-                    className="absolute right-2 top-2 z-10 group-hover/input:flex"
-                    // onDelete={onDeleteColumn ? () => onDeleteColumn(sectionId, rowId, column.id) : undefined}
-                    quickActions={[
-                        { label: "Quick Style", icon: <Palette className="h-3.5 w-3.5" />, onClick: () => { quickStyleInput() } },
-                        { label: "Hide input", disabled: true, icon: input?.isVisible === false ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />, onClick: () => { } },
-                        {
-                            label: "Delete input", icon: <Trash2 className="h-3.5 w-3.5" />, onClick: () => { deleteInput() },
-                        },
-                        {
-                            label: "Open input modal", icon: <Settings className="h-3.5 w-3.5" />, onClick: () => { openInputEditor() },
-                        },
-                        {
-                            label: "Add input", icon: <Plus className="h-3.5 w-3.5" />, onClick: () => { openInputModal() },
-                        },
-                    ]}
-                />
+                {
+                    mode === "edit" && (<div className="flex items-center justify-end gap-1 ">
+                        <>
+                            <button
+                                type="button"
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    openInputEditor();
+                                }}
+                                className="flex h-7 w-7 items-center justify-center text-slate-500 hover:text-slate-700"
+                            >
+                                <Settings className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                                type="button"
+                                title="Delete"
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    deleteInput();
+                                }}
+                                className="flex h-6 w-6 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-rose-600"
+                            >
+                                <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                        </>
+                    </div>)
+                }
                 <EditableField input={input} mode={mode} onValueChanges={EditFieldValue} onLabelChanges={EditFieldLabel} selected={selected} onSelect={selectInput} sectionId={sectionId} rowId={rowId} columnId={columnId} onSettings={() => onOpenFieldEditor?.(input.id)} onStatusChange={onStatusChange} />
                 {
                     input?.extra_note == 1 &&
@@ -428,22 +466,49 @@ export default function InputRenderer({ input, mode, selection, sectionType, onS
                 }
                 {
                     input?.show_quantity == 1 &&
-                    <div className=" mt-3 flex flex-col gap-1 rounded-md border border-slate-200 bg-slate-50 p-2 text-[11px] text-slate-700">
-                        <label>Quantity</label>
-                        <input
-                            value={debounceQueryForQuantity}
-                            onChange={(event) => { setDebounceQueryForQuantity?.(event.target.value) }}
-                            className="w-full border-0 p-0 pr-7 placeholder:text-slate-300"
-                            placeholder="Enter value"
+                    <>
+                        <div className="grid grid-cols-2 gap-2">
+                            {
+                                (input?.template_quantity_type_single && input?.template_quantity_type_single == 1) ?
+                                    <>
+                                        <div className="space-y-1.5">
+                                            <Label className="text-[11px] font-semibold full-width tracking-wide text-slate-600">
+                                                Quantity Value
+                                            </Label>
+                                            <Input placeholder="Quantity Value" onChange={(event) => { setDebounceQueryForQuantityTextFrom?.(event.target.value); }} />
+                                        </div>
+                                    </> : <>
+                                        <div className="space-y-1.5">
+                                            <Label className="text-[11px] font-semibold tracking-wide text-slate-600">
+                                                From
+                                            </Label>
+                                            <Input placeholder="From" onChange={(event) => { setDebounceQueryForQuantityTextFrom?.(event.target.value); }} />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <Label className="text-[11px] font-semibold tracking-wide text-slate-600">
+                                                To
+                                            </Label>
+                                            <Input placeholder="To" onChange={(event) => { setDebounceQueryForQuantityTextTo?.(event.target.value); }} />
+                                        </div>
+                                    </>
+                            }
+                        </div>
+                        <SearchableOptionSelect
+                            value={input?.template_input_quantity_id}
+                            input_entity_id={input?.template_input_id}
+                            placeholder="Select Quantity"
+                            searchPlaceholder="Search Quantity..."
+                            emptyMessage="No Quantity found."
+                            onChange={(option: any) => onQuantityChange(option?.id || "")}
                         />
-                    </div>
+                    </>
                 }
             </InputFrame>
         );
     }
     const content = {
         clinic: <ClinicInput input={input} />,
-        dropdown: <DropdownInput input={input} mode={mode} onValueChange={AddEditDropdownValue} onExtranoteChange={setDebounceQueryForExtraNote} onQuantityChange={setDebounceQueryForQuantity} />,
+        dropdown: <DropdownInput input={input} mode={mode} onValueChange={AddEditDropdownValue} onExtranoteChange={setDebounceQueryForExtraNote} />,
         address: <AddressInput input={input} />,
         metric: <MetricInput input={input} />,
         medicines: <MedicineList input={input} />,
@@ -451,32 +516,40 @@ export default function InputRenderer({ input, mode, selection, sectionType, onS
         list: <InstructionList input={input} />,
         signature: <SignatureInput input={input} />,
         recipe: <RecipeInput input={input} />,
+        date: <DateInput input={input} mode={mode} onChange={onDateChange} />,
+        time: <TimeInput input={input} mode={mode} onChange={onTimeChange} />,
+        number: <NumberInput input={input} mode={mode} onChange={onNumberChange} />,
         field: null,
     }[variant];
     return (
         <InputFrame input={input} mode={mode} selected={selected} onSelect={selectInput}>
-            <HoverToolbar
-                mode={mode}
-                label={"Input"}
-                visible={mode === "edit"}
-                showSettings={false}
-                showDeleteIcon={false}
-                className="absolute right-2 top-2 z-10 group-hover/input:flex"
-                // onDelete={onDeleteColumn ? () => onDeleteColumn(sectionId, rowId, column.id) : undefined}
-                quickActions={[
-                    { label: "Quick Style", icon: <Palette className="h-3.5 w-3.5" />, onClick: () => { } },
-                    { label: "Hide input", disabled: true, icon: input?.isVisible === false ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />, onClick: () => { } },
-                    {
-                        label: "Delete input", icon: <Trash2 className="h-3.5 w-3.5" />, onClick: () => { deleteInput() },
-                    },
-                    {
-                        label: "Open input modal", icon: <Settings className="h-3.5 w-3.5" />, onClick: () => openInputEditor(),
-                    },
-                    {
-                        label: "Add input", icon: <Plus className="h-3.5 w-3.5" />, onClick: () => { openInputModal() },
-                    },
-                ]}
-            />
+            {
+                mode === "edit" && (<div className="flex items-center justify-end gap-1 ">
+                    <>
+                        <button
+                            type="button"
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                openInputEditor();
+                            }}
+                            className="flex h-7 w-7 items-center justify-center text-slate-500 hover:text-slate-700"
+                        >
+                            <Settings className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                            type="button"
+                            title="Delete"
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                deleteInput();
+                            }}
+                            className="flex h-6 w-6 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-rose-600"
+                        >
+                            <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                    </>
+                </div>)
+            }
             {content}
         </InputFrame>
     );

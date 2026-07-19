@@ -17,7 +17,7 @@ const ActionButtons: FC<ActionButtonsProps> = ({ onCancel, onSave }) => {
                 className="flex h-7 flex-1 items-center justify-center gap-1 rounded-md bg-blue-600 px-2.5 text-[11px] font-medium text-white transition-colors hover:bg-blue-700"
             >
                 Save
-                <span className="rounded bg-white/15 px-1 py-0.5 text-[9px]">Ctrl S</span>
+                {/* <span className="rounded bg-white/15 px-1 py-0.5 text-[9px]">Ctrl S</span> */}
             </button>
         </div>
     );

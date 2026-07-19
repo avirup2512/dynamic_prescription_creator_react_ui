@@ -35,24 +35,25 @@ const FolderSection: React.FC<{ folder: any, sectionType: string }> = ({ folder,
                 title: `Creating section in ${sectionType.toUpperCase()}`,
                 description: "Preparing your workspace..."
             });
-            const section: any = {
-                id: uuid(),
+            const templateSection: Section = {
+                template_section_id: uuid(),
                 name: 'Untitled-Section' + TemplateState?.CurrentTemplate?.[sectionType].length + 1,
                 section_order: TemplateState?.CurrentTemplate?.[sectionType].length + 1,
                 isVisible: true,
+                section_id: "",
                 rows: [
                     {
-                        id: uuid(),
+                        template_row_id: uuid(),
                         name: "Row" + 1,
-                        row_order: 0,
+                        row_order: 1,
                         columns: [{
-                            id: uuid(),
+                            template_column_id: uuid(),
                             name: "Column" + 1,
                             width: '12',
                             column_order: 1,
                             inputGroup: [
                                 {
-                                    id: uuid(),
+                                    template_input_group_id: uuid(),
                                     input_group_order: 1,
                                     inputs: []
                                 }
@@ -61,42 +62,7 @@ const FolderSection: React.FC<{ folder: any, sectionType: string }> = ({ folder,
                     }
                 ]
             }
-            const createdSection = await sectionService.createSection({ data: section });
-            if (createdSection?.success) {
-                const templateSection: Section = {
-                    template_section_id: uuid(),
-                    name: 'Untitled-Section' + TemplateState?.CurrentTemplate?.[sectionType].length + 1,
-                    section_order: TemplateState?.CurrentTemplate?.[sectionType].length + 1,
-                    isVisible: true,
-                    section_id: createdSection?.data?.id,
-                    rows: [
-                        {
-                            template_row_id: uuid(),
-                            name: "Row" + 1,
-                            row_order: 1,
-                            columns: [{
-                                template_column_id: uuid(),
-                                name: "Column" + 1,
-                                width: '12',
-                                column_order: 1,
-                                inputGroup: [
-                                    {
-                                        template_input_group_id: uuid(),
-                                        input_group_order: 1,
-                                        inputs: []
-                                    }
-                                ]
-                            }]
-                        }
-                    ]
-                }
-                const payload = JSON.parse(JSON.stringify(TemplateState?.CurrentTemplate));
-                payload?.[sectionType].push(templateSection);
-                const createdTemplateSection = await templateService.updateTemplate(id as string, { data: payload });
-                if (createdTemplateSection?.success) {
-                    dispatch(AppendSectionInTemplate({ section: templateSection, sectionType }));
-                }
-            }
+            dispatch(AppendSectionInTemplate({ section: templateSection, sectionType }));
         } catch (error) {
             console.log(error)
         } finally {

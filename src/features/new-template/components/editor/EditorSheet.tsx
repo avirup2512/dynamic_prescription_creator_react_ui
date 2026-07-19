@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import SectionEditor from "./section/SectionEditor";
 import InputEditor from "./input/InputEditor";
+import AddNewInputEditor from "./input/AddNewInputEditor";
 
 export default function EditorSheet({ editorType }: { editorType: string }) {
     const navigate = useNavigate();
@@ -12,6 +13,7 @@ export default function EditorSheet({ editorType }: { editorType: string }) {
         <>
             {editorType === "section" && <SectionEditor closeEditor={closeEditor} />}
             {editorType === "input" && <InputEditor closeEditor={closeEditor} />}
+            {editorType === "addInput" && <AddNewInputEditor closeEditor={closeEditor} />}
         </>
     );
 }

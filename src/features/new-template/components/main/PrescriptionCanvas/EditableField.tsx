@@ -63,6 +63,14 @@ export default function EditableField({ input, mode, selected, onSelect, onSetti
     const [debounceQuery, setDebounceQuery] = useState(input.value || input?.template_input_value || input?.input_entity_value);
     const [debounceQueryForLabel, setDebounceQueryForLabel] = useState(input.name || input.input_name);
     useEffect(() => {
+        if ((input.value || input?.template_input_value || input?.input_entity_value) !== undefined) {
+            setDebounceQuery(input.value || input?.template_input_value || input?.input_entity_value);
+        }
+        if (input.name || input.input_name) {
+            setDebounceQueryForLabel(input.name || input.input_name);
+        }
+    }, [input])
+    useEffect(() => {
         if (debounceQuery) {
             const timeout = setTimeout(() => {
                 onValueChanges?.(debounceQuery);
@@ -137,7 +145,7 @@ export default function EditableField({ input, mode, selected, onSelect, onSetti
                 mode === "edit" && "transition",
                 mode === "edit" && selected && "ring-1 ring-sky-200"
             )}
-            style={containerStyle}
+            // style={containerStyle}
             onClick={onSelect}
         >
             {mode === "edit" && (

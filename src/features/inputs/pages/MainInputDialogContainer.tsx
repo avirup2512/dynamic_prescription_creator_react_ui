@@ -15,7 +15,11 @@ const MainInputDialogContainer = function () {
     const templateId = routeTemplateId ?? id;
     const handleClose = () => {
         console.log(RouterState.lastVisitedRoute)
-        navigate(RouterState.lastVisitedRoute);
+        if (RouterState.lastVisitedRoute) {
+            navigate(RouterState.lastVisitedRoute);
+        } else {
+            navigate(`/dashboard/new-template/edit/${templateId}/${sectionType}`);
+        }
         dispatch(toggleCallTemplateAPI(false));
     };
     useEffect(() => {

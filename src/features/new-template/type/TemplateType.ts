@@ -14,13 +14,14 @@ export type ColumnInputItem = {
   type: InputType,
   input_type_name?: string,
   label?: string
+  input_name?: string
   show_label?: boolean
   is_bold?: boolean
   extra_note?: boolean
   font_size?: string
   show_quantity?: boolean
-  quantity_id?: string,
-  quantity_name?: string,
+  template_input_quantity_id?: string,
+  template_quantity_name?: string,
   quantity_option_values?: Array<any>
   quantity_option_id?: string
   template_input_quantity_option_id?: string,
@@ -38,11 +39,14 @@ export type ColumnInputItem = {
   inputEntityTypeId?: string
   input_entity_id?: string,
   formatArray?: Array<Format>
-  isVisible?: boolean,
+  is_visible?: boolean,
   general?: FieldGeneralConfig;
   style?: FieldStyleConfig;
   logic?: FieldLogicConfig;
-  status?: string
+  status?: string,
+  template_quantity_type_single?: number,
+  template_quantity_valueFrom?: string,
+  template_quantity_valueTo?: string,
 }
 export type InputGroup = {
   template_input_group_id: string,
@@ -119,3 +123,11 @@ export type FieldType =
   | "medicine"
   | "diagnosis"
   | "advice";
+
+export type UpdateTemplateType = {
+  UpdatedSections: Array<any>,
+  UpdatedRows: Array<any>,
+  UpdatedColumns: Array<any>,
+  UpdatedInputGroups: Array<any>,
+  UpdatedInputs: Array<any>,
+}

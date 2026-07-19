@@ -40,8 +40,8 @@ const Footer: React.FC<{ lastSavedTime?: number | null }> = ({ lastSavedTime }) 
     }, [lastSavedTime]);
 
     return (
-        <div className="mt-3 flex items-center justify-between border-t border-slate-100 px-1 pb-0.5 pt-2.5">
-            <span className="text-[11px] text-slate-400">Auto-saved {elapsedTime}</span>
+        <div className="mt-2.5 flex items-center justify-between border-t border-slate-200 px-0 pb-0 pt-2">
+            <span className="text-[10px] text-slate-500 font-medium">Auto-saved {elapsedTime}</span>
             <div className="flex items-center gap-1.5">
                 {/* <img
                     src="https://i.pravatar.cc/64?img=12"
