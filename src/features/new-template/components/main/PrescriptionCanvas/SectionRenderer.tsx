@@ -54,13 +54,11 @@ export default function SectionRenderer({
     const TemplateState = useSelector((state: any) => state.template);
     if (section.isVisible === false) return null;
     const editSection = () => {
-        console.log(section)
         const sectionType = section?.is_header ? "header" : section?.is_body ? "body" : "footer";
         navigate("/dashboard/new-template/edit/" + id + "/section/" + section?.template_section_id + "/" + sectionType + "/content")
     }
     const onCopySection = (sectionId: string, sectionType: string) => {
         const payload = { sectionId, sectionType }
-        console.log(TemplateState?.CurrentTemplate)
         dispatch(CopyTemplateSection(payload))
     }
     const onHideSection = (sectionId: string, sectionType: string) => {
@@ -70,7 +68,6 @@ export default function SectionRenderer({
     const onAddRow = (sectionId: string, sectionType: string) => {
         const payload = { sectionId, sectionType }
         dispatch(AddRowToTemplateSection(payload));
-        console.log(TemplateState)
     }
     return (
         <section
@@ -94,6 +91,7 @@ export default function SectionRenderer({
                     </div>
                     <HoverToolbar
                         mode={mode}
+                        showSettings={false}
                         label={sectionLabel}
                         visible={mode === "edit"}
                         onSettings={editSection}

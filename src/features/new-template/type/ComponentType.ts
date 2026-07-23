@@ -14,6 +14,7 @@ export interface Row {
 
 export interface TabNavigationProps {
     activeTab: string;
+    entityType?: string;
     setActiveTab: (tab: string) => void;
 }
 

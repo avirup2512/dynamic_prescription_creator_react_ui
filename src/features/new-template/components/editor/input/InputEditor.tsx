@@ -19,6 +19,7 @@ import {
     EditExtraNoteValueInTemplate,
     AddEditDropdownTextValueToTemplate,
     AddQuantityTypeToTemplate,
+    AddConditionToTemplateInput,
 } from "@/features/new-template/store/TemplateSlice";
 import { INPUT_TYPE } from "@/constant/inputType.enum";
 
@@ -36,6 +37,8 @@ export default function InputEditor({ closeEditor }: InputEditorProps) {
     const [isSaving, setIsSaving] = useState(false);
     const [inputFormData, setInputFormData] = useState<any>(null);
     const { sectionId, rowId, columnId, inputGroupId, sectionType, inputId } = useParams();
+    const [hasPreviousInput, setHasPreviousInput] = useState(false);
+    const [previousInputId, setPreviousInputId] = useState<string | null>(null);
     const currentInput = useMemo(() => {
 
         const walk = (sections: any[] = []): any => {
@@ -49,9 +52,14 @@ export default function InputEditor({ closeEditor }: InputEditorProps) {
             if (currentColumn && currentColumn?.inputGroup && Array.isArray(currentColumn.inputGroup)) {
                 const inputGroup = currentColumn.inputGroup.find((g: any) => g.template_input_group_id === inputGroupId);
                 if (inputGroup && inputGroup?.inputs) {
-                    const input = inputGroup?.inputs.find((input: any) => input?.template_input_id == inputId);
-                    if (input)
-                        return input;
+                    const inputIndex = inputGroup?.inputs.findIndex((input: any) => input?.template_input_id == inputId);
+                    const previousInput = inputGroup?.inputs[inputIndex - 1];
+                    if (previousInput && Object.keys(previousInput).length > 0) {
+                        setHasPreviousInput(true);
+                        setPreviousInputId(previousInput?.template_input_id || null);
+                    }
+                    if (inputIndex >= 0)
+                        return inputGroup?.inputs[inputIndex];
                 }
             }
             return undefined;
@@ -128,6 +136,10 @@ export default function InputEditor({ closeEditor }: InputEditorProps) {
                     dropdownOption: { id: formData.dropdownValue, value: formData.dropdownValue },
                 }));
             }
+            if (hasPreviousInput && previousInputId) {
+                alert()
+                dispatch(AddConditionToTemplateInput({ ...basePayload, previousInputId, conditionName: formData?.selectedRelationshipValue }))
+            }
         }
 
         setIsSaving(true);
@@ -178,13 +190,14 @@ export default function InputEditor({ closeEditor }: InputEditorProps) {
             </div>
 
             <div className="shrink-0 border-b border-slate-200">
-                <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
+                <TabNavigation entityType="INPUT" activeTab={activeTab} setActiveTab={setActiveTab} />
             </div>
 
             <div className="editor-scrollbar min-h-0 flex-1 overflow-y-auto bg-white px-3 py-3 pb-48" style={{ scrollbarWidth: "thin", scrollbarColor: "#cbd5e1 transparent" }}>
                 {activeTab === "Content" && (
                     <InputHeader
                         input={currentInput}
+                        hasPreviousInput={hasPreviousInput}
                         onFormDataChange={setInputFormData}
                         inputEntityId={currentInput?.input_entity_id || currentInput?.id}
                     />

@@ -14,24 +14,9 @@ import { setLastVisitedRoute } from "@/global_store/RouterSlice";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { CONDITION_TYPE } from "@/constant/condition.enum";
+import SearchableOptionSelect from "@/components/shared/SearchableOptionSelect";
 
-interface ColumnRendererProps {
-    column: CanvasColumn;
-    mode: CanvasMode;
-    selection: CanvasSelection;
-    columnIndex: number;
-    onSelect: (selection: CanvasSelection) => void;
-    sectionType: "header" | "body" | "footer";
-    sectionId: string;
-    rowId: string;
-    columnLength?: number;
-    onDeleteColumn?: (sectionId: string, rowId: string, columnId: string) => void;
-    onHideColumn?: (sectionId: string, rowId: string, columnId: string) => void;
-    onQuickStyleInput?: (sectionId: string, rowId: string, columnId: string, inputId: string) => void;
-    onOpenFieldEditor?: (inputId: string) => void;
-}
-
-export default function ColumnRenderer({ column, mode, selection, columnLength, columnIndex, sectionType, onSelect, sectionId, rowId, onDeleteColumn, onHideColumn, onQuickStyleInput, onOpenFieldEditor }: ColumnRendererProps) {
+export default function ColumnRenderer({ column, mode, selection, columnLength, columnIndex, sectionType, onSelect, sectionId, rowId, onDeleteColumn, onHideColumn, onQuickStyleInput, onOpenFieldEditor }: any) {
     const dispatch = useDispatch();
     const location = useLocation();
     const columnLabel = `Column ${columnIndex + 1}`;
@@ -62,9 +47,15 @@ export default function ColumnRenderer({ column, mode, selection, columnLength, 
     const addInPutGroup = () => {
         const inputGroup = {
             "template_input_group_id": uuid(),
-            "relation": "",
-            "inputs": []
-        }
+            input_group_name: 'Input Group',
+            input_group_order: column?.inputGroup?.length ? column?.inputGroup?.length + 1 : 1,
+            "inputs": [],
+            previous_related_input_group_id: "",
+            condition_with_previous_input_group_name: "",
+            input_group_visibility: 1
+
+        };
+        console.log(inputGroup);
         const payload = { sectionId, rowId, columnId: column?.template_column_id, inputGroup, sectionType }
         dispatch(AddInputGroupToTemplateColumn(payload))
     }
@@ -78,6 +69,25 @@ export default function ColumnRenderer({ column, mode, selection, columnLength, 
     const navigateToAddInput = (inputGroupId: string) => {
         dispatch(setLastVisitedRoute(location.pathname))
         navigate(`./addInput/${sectionId}/${rowId}/${column?.template_column_id}/${inputGroupId}/${sectionType}`);
+    }
+    const navigateToInputGroupEditor = (inputGroupId: string) => {
+        dispatch(setLastVisitedRoute(location.pathname))
+        navigate(`./inputGroupEdit/${sectionId}/${rowId}/${column?.template_column_id}/${inputGroupId}/${sectionType}`);
+    }
+    const setSelectedRelationshipValue = (inputGroupId: string, conditionName: string, inputGroupIndex: number) => {
+        const basePayload = {
+            sectionId,
+            rowId,
+            columnId: column?.template_column_id,
+            inputGroupId,
+            sectionType,
+        };
+        if (column.inputGroup && Array.isArray(column.inputGroup)) {
+            const previousInputGroup = column.inputGroup[inputGroupIndex - 1];
+            if (previousInputGroup)
+                dispatch(AddConditionInputGroupToTemplateColumn({ ...basePayload, previousInputGroupId: previousInputGroup?.template_input_group_id, conditionName }))
+        }
+
     }
     return (
         <div
@@ -97,31 +107,18 @@ export default function ColumnRenderer({ column, mode, selection, columnLength, 
                     <div className="min-w-0 flex-1">
                         <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">{columnLabel}</p>
                     </div>
-                    {/* <HoverToolbar
-                        mode={mode}
-                        label={columnLabel}
-                        visible={mode === "edit"}
-                        showSettings={false}
-                        showDeleteIcon={false}
-                        onDelete={onDeleteColumn ? () => onDeleteColumn(sectionId, rowId, column.id) : undefined}
-                        quickActions={[
-                            { label: "Copy column", icon: <Copy className="h-3.5 w-3.5" />, onClick: () => { } },
-                            { label: "Hide column", disabled: true, icon: column?.isVisible === false ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />, onClick: () => { } },
-                            { label: "Delete section", disabled: columnLength && columnLength > 1 ? false : true, icon: <Trash2 className="h-3.5 w-3.5" />, onClick: () => { removeColumnFromRow() } },
-                        ]}
-                        className="group-hover/column:flex"
-                    /> */}
-                    {/* {(columnLength && columnLength < 3) && <button
+                    <button
                         key={'action.label'}
                         type="button"
                         aria-label={'action.label'}
                         onClick={(event) => {
                             event.stopPropagation();
+                            addInPutGroup()
                         }}
-                        className="flex h-7 w-7 items-center justify-center text-slate-500 hover:text-slate-700"
+                        className="flex h-6 w-6 items-center justify-center text-slate-500 hover:text-slate-700"
                     >
-                        <Copy className="h-3.5 w-3.5" />
-                    </button>} */}
+                        <Plus className="h-3.5 w-3.5" />
+                    </button>
                     {(columnLength && columnLength > 1) &&
                         <button
                             key={'action.label'}
@@ -141,14 +138,18 @@ export default function ColumnRenderer({ column, mode, selection, columnLength, 
                 {column?.inputGroup?.map((group: any, groupIndex: number) => (
                     <div key={group.id}>
                         {
-                            group.condition_linked_input_group_id && groupIndex > 0 && mode === "edit" && (
-                                <div className="flex items-center justify-center gap-2 py-2 px-1.5">
-                                    <span className="h-0.5 flex-1 bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200" />
-                                    <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-full whitespace-nowrap">
-                                        <CircleSlash className="h-3.5 w-3.5 text-blue-600" />
-                                        <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-blue-700">{group?.condition_name || group?.condition_input_group_name}</span>
-                                    </div>
-                                    <span className="h-0.5 flex-1 bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200" />
+                            group.previous_related_input_group_id && groupIndex > 0 && mode === "edit" && (
+                                <div className="relative my-4 flex items-center justify-center">
+
+                                    <div className="absolute left-0 right-0 h-px bg-slate-200" />
+                                    <SearchableOptionSelect
+                                        isConnector={true}
+                                        entityType="RELATIONSHIP"
+                                        value={group.condition_with_previous_input_group_name}
+                                        placeholder="Select relationship"
+                                        searchPlaceholder="Search relationship..."
+                                        emptyMessage="No relationships found."
+                                        onChange={(option: any) => setSelectedRelationshipValue(group?.template_input_group_id, option?.value, groupIndex)} />
                                 </div>
                             )
                         }
@@ -162,63 +163,21 @@ export default function ColumnRenderer({ column, mode, selection, columnLength, 
                                 mode === "edit" &&
                                 <>
                                     <div className="flex items-center justify-between gap-2">
-                                        <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-400">Group {groupIndex + 1}</p>
+                                        <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-400">{group?.input_group_name || 'Group' + groupIndex + 1} </p>
                                         <div className="flex justify-ends items-center gap-1">
-                                            {
-                                                !group.condition_linked_input_group_id &&
-                                                <>
-                                                    {/* <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button
-                                                                size="icon"
-                                                                type="button"
-                                                                variant="ghost"
-                                                                className="gap-2 mt-2"
-                                                            >
-                                                                <Plus className="size-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent>
-                                                            <DropdownMenuLabel>Add Condition</DropdownMenuLabel>
-                                                            <DropdownMenuSeparator />
-                                                            {
-                                                                Object.keys(CONDITION_TYPE).map((key) => {
-                                                                    const condition = CONDITION_TYPE[key as keyof typeof CONDITION_TYPE];
-                                                                    return (
-                                                                        <DropdownMenuItem key={condition} onClick={() => { AddConditionInputGroup(group, key) }}>
-                                                                            <span className="font-medium">{condition}</span>
-                                                                        </DropdownMenuItem>
-                                                                    )
-                                                                })
-                                                            }
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu> */}
-                                                    {/* <button
-                                                    key={'action.label'}
-                                                    type="button"
-                                                    aria-label={'action.label'}
-                                                    onClick={(event) => {
-                                                        event.stopPropagation();
-                                                        AddOrInputGroup(group)
-                                                    }}
-                                                    className="flex h-7 w-7 items-center justify-center text-slate-500 hover:text-slate-700"
-                                                >
-                                                    <CircleSlash className="h-3.5 w-3.5" />
-                                                </button> */}
-                                                    <button
-                                                        key={'action.label'}
-                                                        type="button"
-                                                        aria-label={'action.label'}
-                                                        onClick={(event) => {
-                                                            event.stopPropagation();
-                                                            addInPutGroup()
-                                                        }}
-                                                        className="flex h-6 w-6 items-center justify-center text-slate-500 hover:text-slate-700"
-                                                    >
-                                                        <Settings className="h-3.5 w-3.5" />
-                                                    </button>
-                                                </>
-                                            }
+
+                                            <button
+                                                key={'action.label'}
+                                                type="button"
+                                                aria-label={'action.label'}
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    navigateToInputGroupEditor(group?.template_input_group_id)
+                                                }}
+                                                className="flex h-6 w-6 items-center justify-center text-slate-500 hover:text-slate-700"
+                                            >
+                                                <Settings className="h-3.5 w-3.5" />
+                                            </button>
 
                                             <button
                                                 key={'action.label'}
@@ -237,9 +196,11 @@ export default function ColumnRenderer({ column, mode, selection, columnLength, 
                                 </>
                             }
 
-                            {group.inputs.map((input: any) => (
+                            {group.inputs.map((input: any, index: number) => (
                                 <InputRenderer
                                     key={input.template_input_id}
+                                    inputIndex={index}
+                                    previousInputId={group.inputs[index - 1]?.template_input_id}
                                     input={input}
                                     mode={mode}
                                     sectionType={sectionType}
@@ -279,6 +240,6 @@ export default function ColumnRenderer({ column, mode, selection, columnLength, 
                     </div>
                 ))}
             </div>
-        </div>
+        </div >
     );
 }

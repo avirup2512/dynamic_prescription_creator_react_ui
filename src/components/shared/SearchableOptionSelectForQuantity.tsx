@@ -92,22 +92,26 @@ const SearchableOptionSelectForQuantity = function ({
                         </CommandEmpty>
                         <CommandGroup>
                             {options &&
-                                options.map((option: any) => (
-                                    <CommandItem
-                                        key={option?.id}
-                                        value={quantityValue}
-                                        onSelect={() => {
-                                            const selectedOption = { id: option?.id, name: option?.name };
-                                            setQuantityValue(option?.id);
-                                            setQuantityName(option?.name);
-                                            onChange?.(selectedOption);
-                                            setOpen(false);
-                                        }}
-                                        data-checked={option?.id == quantityValue}
-                                    >
-                                        <span className="truncate">{option?.name}</span>
-                                    </CommandItem>
-                                ))}
+                                options?.map((option: any) => {
+                                    if (!option) return null;
+                                    console.log(option)
+                                    return (
+                                        <CommandItem
+                                            key={option?.id}
+                                            value={String(option.id)}
+                                            onSelect={() => {
+                                                const selectedOption = { id: option?.id, name: option?.name };
+                                                setQuantityValue(option?.id);
+                                                setQuantityName(option?.name);
+                                                onChange?.(selectedOption);
+                                                setOpen(false);
+                                            }}
+                                            data-checked={option?.id == quantityValue}
+                                        >
+                                            <span className="truncate">{option?.name}</span>
+                                        </CommandItem>
+                                    )
+                                })}
                         </CommandGroup>
                     </CommandList>
                 </Command>

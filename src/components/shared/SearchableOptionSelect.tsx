@@ -17,6 +17,7 @@ import {
     CommandItem,
     CommandList,
 } from "@/components/ui/command";
+import { CONDITION_TYPE } from "@/constant/condition.enum";
 
 const SearchableOptionSelect = function ({
     value,
@@ -24,6 +25,8 @@ const SearchableOptionSelect = function ({
     placeholder = "Select an option",
     searchPlaceholder = "Search option...",
     emptyMessage = "No option found.",
+    entityType = "INPUT",
+    isConnector = false,
     onChange,
 }: {
     value?: string;
@@ -31,21 +34,37 @@ const SearchableOptionSelect = function ({
     placeholder?: string;
     searchPlaceholder?: string;
     emptyMessage?: string;
+    entityType?: string;
+    isConnector?: boolean;
     onChange: (option: any) => void;
 }) {
     const [open, setOpen] = useState(false);
-    const [options, setOptions] = useState([]);
+    const [options, setOptions] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const callDropdwonApi = async (open: any) => {
-        if (open && input_entity_id) {
+        if (open) {
             setIsLoading(true);
-            const dropdownOptions =
-                await InputEntityTypeService.getByAllDropdownInputInformationById(
-                    input_entity_id,
-                );
-            if (dropdownOptions && dropdownOptions.success) {
-                setOptions(dropdownOptions?.data?.dropdown_options);
+            switch (entityType) {
+                case "INPUT":
+                    if (input_entity_id) {
+                        const dropdownOptions =
+                            await InputEntityTypeService.getByAllDropdownInputInformationById(
+                                input_entity_id,
+                            );
+                        if (dropdownOptions && dropdownOptions.success) {
+                            setOptions(dropdownOptions?.data?.dropdown_options);
+                        }
+                    }
+                    break;
+                case "RELATIONSHIP":
+                    const options = Object.keys(CONDITION_TYPE).map((rel: any) => ({ value: rel, id: rel }));
+                    console.log(options)
+                    setOptions(options);
+                    break;
+                default:
+                    return []
             }
+
             setIsLoading(false);
         }
     };
@@ -56,7 +75,7 @@ const SearchableOptionSelect = function ({
                 (setOptions([]), callDropdwonApi(e), setOpen(e));
             }}
         >
-            <PopoverTrigger asChild>
+            {!isConnector ? <PopoverTrigger asChild>
                 <Button
                     type="button"
                     variant="outline"
@@ -67,7 +86,53 @@ const SearchableOptionSelect = function ({
                     <span className="truncate">{value || placeholder}</span>
                     <ChevronsUpDown className="ml-2 size-3 shrink-0 opacity-50" />
                 </Button>
-            </PopoverTrigger>
+            </PopoverTrigger> :
+                <PopoverTrigger asChild>
+                    <button
+                        type="button"
+                        className="
+group
+relative
+mx-auto
+flex
+h-8
+min-w-[90px]
+items-center
+justify-center
+rounded-full
+border
+border-dashed
+border-emerald-200
+bg-emerald-50
+px-4
+text-[11px]
+font-semibold
+uppercase
+tracking-wide
+text-emerald-700
+transition-all
+hover:border-emerald-500
+hover:bg-emerald-100
+hover:text-emerald-800
+focus:outline-none
+focus:ring-2
+focus:ring-emerald-200
+"
+                    >
+                        <span>{value || placeholder}</span>
+
+                        <ChevronsUpDown
+                            className="
+                ml-1
+                h-3
+                w-3
+                opacity-50
+                transition-opacity
+                group-hover:opacity-100
+            "
+                        />
+                    </button>
+                </PopoverTrigger>}
             <PopoverContent
                 align="start"
                 className="w-[var(--radix-popover-trigger-width)] p-0"

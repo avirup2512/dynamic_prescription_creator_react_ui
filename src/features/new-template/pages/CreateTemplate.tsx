@@ -5,12 +5,12 @@ import {
 } from "@/components/ui/resizable";
 import BuilderCanvas from "../components/main/BuilderCanvas";
 import { BuilderProvider } from "../context/BuilderContext";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import TemplateStructurePanel from "../components/templateStructure/TemplateStructurePanel";
 import TemplateService from "../service/TemplateService";
 import { Outlet, useParams, useNavigationType } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { CurrentTemplate, SetCurrentTemplate } from "../store/TemplateSlice";
+import { CurrentTemplate, SetCurrentTemplate, ResetUpdatedTemplate, RemoveAlreadyUpdatedDataFromUpdatedTemplate, AddUpdatedFlagInUpdatedTemplate } from "../store/TemplateSlice";
 import { redefineTemplate } from "../utils/TemplateUtilsService";
 import { toast } from "sonner"
 import { useLoader } from "@/hooks/useLoader";
@@ -41,23 +41,19 @@ export default function CreateTemplate() {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-
     handleResize();
     window.addEventListener("resize", handleResize);
-
+    dispatch(ResetUpdatedTemplate());
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  useEffect(() => {
-    console.log(TemplateState);
-  }, [TemplateState.CurrentTemplate.header])
-
+  const savingRef = useRef(false);
+  const pendingChangeRef = useRef(false);
   // Auto-save on every change (debounced)
   useEffect(() => {
     const timer = setTimeout(async () => {
       setIsSaving(true);
-      await templateService.updateTemplate(id as string, { data: TemplateState.CurrentTemplate });
       setLastSavedTime(Date.now());
+      triggerSave();
       toast("Template is saved.", {
         description: "",
       })
@@ -65,7 +61,27 @@ export default function CreateTemplate() {
     }, 10000); // Debounce 10 seconds
     return () => clearTimeout(timer);
   }, [TemplateState?.CurrentTemplate]);
-
+  async function triggerSave() {
+    if (savingRef.current) {
+      pendingChangeRef.current = true; // mark: another save needed after this one
+      return;
+    }
+    savingRef.current = true;
+    try {
+      // ADDING FLAG
+      dispatch(AddUpdatedFlagInUpdatedTemplate());
+      const savedTemplate = await templateService.updateTemplate(id as string, { data: TemplateState.UpdatedTemplate });
+      if (savedTemplate && savedTemplate.success) {
+        dispatch(RemoveAlreadyUpdatedDataFromUpdatedTemplate());
+      }
+    } finally {
+      savingRef.current = false;
+      if (pendingChangeRef.current) {
+        pendingChangeRef.current = false;
+        triggerSave(); // fire the queued save with fresh data
+      }
+    }
+  }
   async function getTemplateInfoById(id: any) {
     try {
       showLoader({

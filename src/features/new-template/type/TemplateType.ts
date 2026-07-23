@@ -1,6 +1,8 @@
 import type { INPUT_TYPE } from "../../../constant/inputType.enum";
 import { FORMAT } from "../../../constant/globalType";
 import type { FieldGeneralConfig, FieldLogicConfig, FieldStyleConfig } from "./FieldType";
+import { TEMPLATE_OPERATION } from "@/constant/template-operation.enum";
+
 export type InputType = typeof INPUT_TYPE[keyof typeof INPUT_TYPE]
 export type FormatType = typeof FORMAT[keyof typeof FORMAT]
 export type Format = {
@@ -47,9 +49,12 @@ export type ColumnInputItem = {
   template_quantity_type_single?: number,
   template_quantity_valueFrom?: string,
   template_quantity_valueTo?: string,
+  previous_related_input_id?: string
+  condition_with_previous_input_name?: string
 }
 export type InputGroup = {
   template_input_group_id: string,
+  condition_with_previous_input_group_name?: string,
   input_group_order: number;
   name?: string,
   relation?: "or";
@@ -131,3 +136,97 @@ export type UpdateTemplateType = {
   UpdatedInputGroups: Array<any>,
   UpdatedInputs: Array<any>,
 }
+
+export const TEMPLATEENTITYTYPE = {
+  SECTION: "section",
+  ROW: "row",
+  COLUMN: "column",
+  GROUP: "group",
+  INPUT: "input",
+} as const;
+export type ConditionType =
+  (typeof TEMPLATEENTITYTYPE)[keyof typeof TEMPLATEENTITYTYPE];
+
+const ENTITY_CONFIG = {
+
+  [TEMPLATEENTITYTYPE.SECTION]: {
+
+    list: "UpdatedSections",
+
+    nestedKey: "section",
+
+    idKey: "template_section_id",
+
+    addType: TEMPLATE_OPERATION.SECTION_ADD,
+
+    updateType: TEMPLATE_OPERATION.SECTION_UPDATE,
+
+    removeType: TEMPLATE_OPERATION.SECTION_REMOVE,
+
+  },
+
+  [TEMPLATEENTITYTYPE.ROW]: {
+
+    list: "UpdatedRows",
+
+    nestedKey: "row",
+
+    idKey: "template_row_id",
+
+    addType: TEMPLATE_OPERATION.ROW_ADD,
+
+    updateType: TEMPLATE_OPERATION.ROW_UPDATE,
+
+    removeType: TEMPLATE_OPERATION.ROW_REMOVE,
+
+  },
+
+  [TEMPLATEENTITYTYPE.COLUMN]: {
+
+    list: "UpdatedColumns",
+
+    nestedKey: "column",
+
+    idKey: "template_column_id",
+
+    addType: TEMPLATE_OPERATION.COLUMN_ADD,
+
+    updateType: TEMPLATE_OPERATION.COLUMN_UPDATE,
+
+    removeType: TEMPLATE_OPERATION.COLUMN_REMOVE,
+
+  },
+
+  [TEMPLATEENTITYTYPE.GROUP]: {
+
+    list: "UpdatedInputGroups",
+
+    nestedKey: "inputGroup",
+
+    idKey: "template_input_group_id",
+
+    addType: TEMPLATE_OPERATION.GROUP_ADD,
+
+    updateType: TEMPLATE_OPERATION.GROUP_UPDATE,
+
+    removeType: TEMPLATE_OPERATION.GROUP_REMOVE,
+
+  },
+
+  [TEMPLATEENTITYTYPE.INPUT]: {
+
+    list: "UpdatedInputs",
+
+    nestedKey: "input",
+
+    idKey: "template_input_id",
+
+    addType: TEMPLATE_OPERATION.INPUT_ADD,
+
+    updateType: TEMPLATE_OPERATION.INPUT_UPDATE,
+
+    removeType: TEMPLATE_OPERATION.INPUT_REMOVE,
+
+  }
+
+};

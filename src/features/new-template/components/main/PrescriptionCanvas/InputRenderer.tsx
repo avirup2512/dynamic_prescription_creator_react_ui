@@ -7,7 +7,7 @@ import EditableField from "./EditableField";
 import HoverToolbar from "./HoverToolbar";
 import { INPUT_TYPE } from "@/constant/inputType.enum";
 import { useDispatch } from "react-redux";
-import { AddEditDropdownTextValueToTemplate, AddInputValueToTemplate, EditInputLabelToTemplate, AddQuantityTextValueToTemplate, EditExtraNoteValueInTemplate, SetInputStatusInTemplate, RemoveInputTypeFromTemplate, AddQuantityOptionIdToTemplate } from "@/features/new-template/store/TemplateSlice";
+import { AddEditDropdownTextValueToTemplate, AddInputValueToTemplate, EditInputLabelToTemplate, AddQuantityTextValueToTemplate, EditExtraNoteValueInTemplate, SetInputStatusInTemplate, RemoveInputTypeFromTemplate, AddQuantityOptionIdToTemplate, AddConditionToTemplateInput } from "@/features/new-template/store/TemplateSlice";
 import SearchableOptionSelect from "@/components/shared/SearchableOptionSelect";
 import { useNavigate } from "react-router-dom";
 import type { ColumnInputItem } from "@/features/new-template/type/TemplateType";
@@ -29,6 +29,8 @@ interface InputRendererProps {
     sectionId: string;
     rowId: string;
     columnId: string;
+    inputIndex: number;
+    previousInputId: string;
     onQuickStyleInput?: (sectionId: string, rowId: string, columnId: string, inputId: string) => void;
     onOpenFieldEditor?: (inputId: string) => void;
 }
@@ -309,7 +311,7 @@ function SignatureInput({ input }: { input: ColumnInputItem }) {
     );
 }
 
-export default function InputRenderer({ input, mode, selection, sectionType, onSelect, sectionId, rowId, columnId, inputGroupId, onOpenFieldEditor }: InputRendererProps) {
+export default function InputRenderer({ input, mode, selection, sectionType, onSelect, sectionId, rowId, columnId, inputGroupId, inputIndex, previousInputId, onOpenFieldEditor }: InputRendererProps) {
     const selected = selection.inputId === input.template_input_id;
     const selectInput = () => onSelect({ inputId: input.template_input_id });
     const [variant, setVariant] = useState('');
@@ -421,12 +423,41 @@ export default function InputRenderer({ input, mode, selection, sectionType, onS
         const payload = { sectionId, rowId, columnId, inputId: input.template_input_id || input?.id, inputGroupId, quantityValueFrom: value, sectionType }
         dispatch(AddQuantityTextValueToTemplate(payload));
     }
+    const setSelectedRelationshipValue = (conditionName: string) => {
+        const basePayload = {
+            sectionId,
+            rowId,
+            columnId,
+            inputGroupId,
+            inputId: input?.template_input_id,
+            sectionType,
+        };
+        if (previousInputId) {
+            dispatch(AddConditionToTemplateInput({ ...basePayload, previousInputId, conditionName }))
+        }
+
+    }
     if (variant === "field") {
         return (
             <InputFrame input={input} mode={mode} selected={selected} onSelect={selectInput}>
                 {
                     mode === "edit" && (<div className="flex items-center justify-end gap-1 ">
                         <>
+                            {
+                                input.previous_related_input_id && mode === "edit" && (
+                                    <div className="relative my-4 flex items-center justify-center">
+                                        <div className="absolute left-0 right-0 h-px bg-slate-200" />
+                                        <SearchableOptionSelect
+                                            isConnector={true}
+                                            entityType="RELATIONSHIP"
+                                            value={input.condition_with_previous_input_name}
+                                            placeholder="Select relationship"
+                                            searchPlaceholder="Search relationship..."
+                                            emptyMessage="No relationships found."
+                                            onChange={(option: any) => setSelectedRelationshipValue(option?.value)} />
+                                    </div>
+                                )
+                            }
                             <button
                                 type="button"
                                 onClick={(event) => {
@@ -524,6 +555,22 @@ export default function InputRenderer({ input, mode, selection, sectionType, onS
     return (
         <InputFrame input={input} mode={mode} selected={selected} onSelect={selectInput}>
             {
+                input.previous_related_input_id && mode === "edit" && (
+                    <div className="relative my-4 flex items-center justify-center">
+                        <div className="absolute left-0 right-0 h-px bg-slate-200" />
+                        <SearchableOptionSelect
+                            isConnector={true}
+                            entityType="RELATIONSHIP"
+                            value={input.condition_with_previous_input_name}
+                            placeholder="Select relationship"
+                            searchPlaceholder="Search relationship..."
+                            emptyMessage="No relationships found."
+                            onChange={(option: any) => setSelectedRelationshipValue(option?.value)} />
+                    </div>
+                )
+            }
+            {
+
                 mode === "edit" && (<div className="flex items-center justify-end gap-1 ">
                     <>
                         <button

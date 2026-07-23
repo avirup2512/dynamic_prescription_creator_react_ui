@@ -17,6 +17,7 @@ import SearchableOptionSelectForQuantity from "@/components/shared/SearchableOpt
 interface InputHeaderProps {
     input: ColumnInputItem;
     inputEntityId?: string;
+    hasPreviousInput?: boolean;
     onFormDataChange?: (data: InputFormData) => void;
 }
 
@@ -38,6 +39,7 @@ interface InputFormData {
 export default function InputHeader({
     input,
     inputEntityId,
+    hasPreviousInput = false,
     onFormDataChange,
 }: InputHeaderProps) {
     const [inputLabel, setInputLabel] = useState<string>((input as any)?.input_name || (input as any)?.name || "Untitled")
@@ -51,8 +53,8 @@ export default function InputHeader({
     const [selectedExtraNote, setSelectedExtraNote] = useState<string>(String((input as any)?.template_input_extranotes ?? (input as any)?.extra_note ?? ""));
     const [showExtraNote, setShowExtraNote] = useState<boolean>(Boolean((input as any)?.extra_note));
     const [visible, setVisible] = useState<boolean>(Boolean((input as any)?.is_visible));
-    const [selectedRelationshipValue, setSelectedRelationshipValue] = useState("");
-    const [selectedDropdownValue, setSelectedDropdownValue] = useState<string>((input as any)?.template_input_value || (input as any)?.value || "");
+    const [selectedRelationshipValue, setSelectedRelationshipValue] = useState((input as any)?.condition_with_previous_input_name || (input as any)?.name || "");
+    const [selectedDropdownValue, setSelectedDropdownValue] = useState<string>((input as any)?.template_input_value || "");
 
     useEffect(() => {
         if ((input as any)?.input_name !== undefined) {
@@ -88,12 +90,16 @@ export default function InputHeader({
         if ((input as any)?.template_input_value !== undefined) {
             setSelectedDropdownValue((input as any)?.template_input_value || (input as any)?.value || "")
         }
+        if ((input as any)?.condition_with_previous_input_name !== undefined) {
+            setSelectedRelationshipValue((input as any)?.condition_with_previous_input_name || "")
+        }
     }, [input])
 
     const formData = useMemo<InputFormData>(() => ({
         label: inputLabel,
         value: inputValue,
         dropdownValue: selectedDropdownValue,
+        selectedRelationshipValue,
         quantityEnabled: showQuantity,
         quantityMode,
         quantityId: selectedQuantity,
@@ -101,7 +107,7 @@ export default function InputHeader({
         extraNoteEnabled: showExtraNote,
         extraNoteValue: selectedExtraNote,
         visible,
-    }), [inputLabel, inputValue, selectedDropdownValue, showQuantity, quantityMode, selectedQuantity, selectedQuantityName, showExtraNote, selectedExtraNote, visible]);
+    }), [inputLabel, inputValue, selectedDropdownValue, showQuantity, quantityMode, selectedQuantity, selectedQuantityName, showExtraNote, selectedExtraNote, visible, selectedRelationshipValue]);
 
     useEffect(() => {
         onFormDataChange?.(formData);
@@ -225,17 +231,25 @@ export default function InputHeader({
 
                 <Section value="relationship" icon={<MessageSquareText size={12} />} title="Relationship with Previous">
                     <div className="space-y-1.5">
-                        <Label className="text-[11px] font-semibold tracking-wide text-slate-600">
-                            Dropdown
-                        </Label>
-                        <SearchableOptionSelect
-                            value={selectedRelationshipValue}
-                            input_entity_id={inputEntityId}
-                            placeholder="Select relationship"
-                            searchPlaceholder="Search relationship..."
-                            emptyMessage="No relationships found."
-                            onChange={(option: any) => setSelectedRelationshipValue(option?.value || option?.label || "")}
-                        />
+                        {
+                            hasPreviousInput ?
+                                <>
+                                    <Label className="text-[11px] font-semibold tracking-wide text-slate-600">
+                                        Dropdown
+                                    </Label>
+                                    <SearchableOptionSelect
+                                        entityType="RELATIONSHIP"
+                                        value={selectedRelationshipValue}
+                                        placeholder="Select relationship"
+                                        searchPlaceholder="Search relationship..."
+                                        emptyMessage="No relationships found."
+                                        onChange={(option: any) => setSelectedRelationshipValue(option?.value || option?.label || "")}
+                                    />
+                                </> : <div className="flex flex-col items-center justify-center py-4 text-center h-full rounded-md border border-dashed border-slate-200 bg-white shadow-[0_1px_1px_rgba(15,23,42,0.02)]">
+                                    <p className="text-xs font-medium text-foreground mb-0.5">No Previous Input.</p>
+                                    <p className="text-[11px] text-muted-foreground">Create an Input before this.</p>
+                                </div>
+                        }
                     </div>
                 </Section>
 

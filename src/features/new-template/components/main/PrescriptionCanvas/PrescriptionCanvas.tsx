@@ -17,8 +17,8 @@ interface PrescriptionCanvasProps {
 }
 
 export default function PrescriptionCanvas({ header, body, footer }: PrescriptionCanvasProps) {
+    const TemplateState = useSelector((state: any) => state.template);
     const dispatch = useDispatch();
-    console.log(header)
     const { openEditor } = useBuilder();
     const [mode, setMode] = useState<CanvasMode>("edit");
     const [selection, setSelection] = useState<CanvasSelection>({});
@@ -29,10 +29,6 @@ export default function PrescriptionCanvas({ header, body, footer }: Prescriptio
     useEffect(() => {
         setSections(initialSections);
     }, [initialSections]);
-
-    const saveTemplate = () => {
-        
-    }
 
     const createId = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -205,6 +201,9 @@ export default function PrescriptionCanvas({ header, body, footer }: Prescriptio
     const handleOpenFieldEditor = (inputId: string) => {
         openEditor("field", inputId);
     };
+    const handleSave = () => {
+        console.log(TemplateState);
+    }
 
     const pages = useMemo(() => paginateSections(sections.filter((section) => section.isVisible !== false)), [sections]);
     console.log(pages)
@@ -246,7 +245,7 @@ export default function PrescriptionCanvas({ header, body, footer }: Prescriptio
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <button type="button" className="text-[12px] font-semibold text-slate-400 transition hover:text-slate-700">
+                    <button onClick={handleSave} type="button" className="text-[12px] font-semibold text-slate-400 transition hover:text-slate-700">
                         Save
                     </button>
                     <button type="button" className="text-[12px] font-semibold text-slate-400 transition hover:text-slate-700">
