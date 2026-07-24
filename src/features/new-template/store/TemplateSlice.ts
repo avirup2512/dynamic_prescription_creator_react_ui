@@ -34,6 +34,7 @@ export const UpdatedTemplate: UpdateTemplateType = {
     UpdatedInputGroups: [],
     UpdatedInputs: [],
 }
+const MethodsQueue: Array<any> = [];
 
 const sectionTypes = ["header", "body", "footer"] as const;
 
@@ -179,8 +180,9 @@ const TemplateSlice = createSlice({
         allSavedBody: [],
         CurrentTemplate,
         currentSavedBody: {},
-        callTemplateAPI: true,
-        UpdatedTemplate
+        callingTheTemplateAPI: false,
+        UpdatedTemplate,
+        MethodsQueue
     },
     reducers: {
         SetAllTemplateList: (state, action) => {
@@ -198,6 +200,64 @@ const TemplateSlice = createSlice({
 
             state.CurrentTemplate = { ...state.CurrentTemplate, header, body, footer, created_by, created_at, name };
             recalculateSectionOrder(state.CurrentTemplate);
+        },
+        togglecallingTheTemplateAPI: (state, action) => {
+            state.callingTheTemplateAPI = action.payload;
+        },
+        callMethodQueue: (state) => {
+            for (let x = 0; x < state?.MethodsQueue?.length; x++) {
+                const { sectionId, rowId, columnId, inputGroupId, inputId, input, inputGroup, column, row, section, sectionType } = state?.MethodsQueue[x].payload
+                switch (state?.MethodsQueue[x]?.type) {
+                    case TEMPLATE_OPERATION.INPUT_UPDATE:
+                        InputTracker.update(state?.UpdatedTemplate, sectionId, rowId, columnId, inputGroupId, input)
+                        break;
+                    case TEMPLATE_OPERATION.INPUT_ADD:
+                        InputTracker.add(state?.UpdatedTemplate, sectionId, rowId, columnId, inputGroupId, input)
+                        break;
+                    case TEMPLATE_OPERATION.INPUT_REMOVE:
+                        InputTracker.remove(state?.UpdatedTemplate, sectionId, rowId, columnId, inputGroupId, inputId);
+                        break;
+                    case TEMPLATE_OPERATION.COLUMN_ADD:
+                        ColumnTracker.add(state?.UpdatedTemplate, sectionId, rowId, column)
+                        break;
+                    case TEMPLATE_OPERATION.COLUMN_REMOVE:
+                        ColumnTracker.remove(state?.UpdatedTemplate, sectionId, rowId, columnId);
+                        break;
+                    case TEMPLATE_OPERATION.ROW_ADD:
+                        RowTracker.add(state?.UpdatedTemplate, sectionId, row);
+                        break;
+                    case TEMPLATE_OPERATION.ROW_UPDATE:
+                        RowTracker.update(state?.UpdatedTemplate, sectionId, row);
+                        break;
+                    case TEMPLATE_OPERATION.ROW_REMOVE:
+                        RowTracker.remove(state?.UpdatedTemplate, sectionId, rowId);
+                        break;
+                    case TEMPLATE_OPERATION.SECTION_ADD:
+                        SectionTracker.add(state?.UpdatedTemplate, section, sectionType);
+                        break;
+                    case TEMPLATE_OPERATION.SECTION_REMOVE:
+                        SectionTracker.remove(state?.UpdatedTemplate, sectionId);
+                        break;
+                    case TEMPLATE_OPERATION.SECTION_UPDATE:
+                        SectionTracker.update(state?.UpdatedTemplate, section, sectionType)
+                        break;
+                    case TEMPLATE_OPERATION.GROUP_ADD:
+                        InputGroupTracker.add(state?.UpdatedTemplate, sectionId, rowId, columnId, inputGroup);
+                        break;
+                    case TEMPLATE_OPERATION.GROUP_REMOVE:
+                        InputGroupTracker.remove(state?.UpdatedTemplate, sectionId, rowId, columnId, inputGroupId);
+                        break;
+                    case TEMPLATE_OPERATION.GROUP_UPDATE
+                        :
+                        InputGroupTracker.update(state?.UpdatedTemplate, sectionId, rowId, columnId, inputGroup);
+                        break;
+                    default:
+                        break;
+                }
+                if (typeof state?.MethodsQueue[x] == "function")
+                    state?.MethodsQueue[x]();
+            }
+            state.MethodsQueue = [];
         },
         AddRowToTemplateSection: (state, action) => {
             const { sectionId, sectionType } = action.payload;
@@ -223,7 +283,11 @@ const TemplateSlice = createSlice({
                 };
                 currentSection.rows.push(newRow);
                 recalculateRowOrder(state.CurrentTemplate);
-                RowTracker.add(state.UpdatedTemplate, currentSection.template_section_id, newRow);
+                if (state.callingTheTemplateAPI) {
+                    state.MethodsQueue.push({ type: TEMPLATE_OPERATION.ROW_ADD, payload: { sectionId: currentSection.template_section_id, row: newRow } })
+                } else {
+                    RowTracker.add(state.UpdatedTemplate, currentSection.template_section_id, newRow);
+                }
             }
         },
         RemoveRowFromTemplateSection: (state, action) => {
@@ -245,7 +309,12 @@ const TemplateSlice = createSlice({
             if (rowIndex === -1) return;
             currentSection.rows.splice(rowIndex, 1);
             recalculateRowOrder(state.CurrentTemplate);
-            RowTracker.remove(state.UpdatedTemplate, currentSection.template_section_id, rowId);
+            if (state.callingTheTemplateAPI) {
+                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.ROW_REMOVE, payload: { sectionId: currentSection.template_section_id, rowId } })
+            } else {
+                RowTracker.remove(state.UpdatedTemplate, currentSection.template_section_id, rowId);
+            }
+
         },
         AddColumnToTemplateRow: (state, action) => {
             const { sectionId, rowId, sectionType } = action.payload;
@@ -270,7 +339,11 @@ const TemplateSlice = createSlice({
                     currentRow.columns.push(newColumn);
                 else
                     alert("Oye tu ki kartah..");
-                ColumnTracker.add(state.UpdatedTemplate, currentSection.template_section_id, currentRow.template_row_id, newColumn)
+                if (state.callingTheTemplateAPI) {
+                    state.MethodsQueue.push({ type: TEMPLATE_OPERATION.COLUMN_ADD, payload: { sectionId: currentSection.template_section_id, rowId: currentRow.template_row_id, column: newColumn } })
+                } else {
+                    ColumnTracker.add(state.UpdatedTemplate, currentSection.template_section_id, currentRow.template_row_id, newColumn)
+                }
                 recalculateColumnOrder(state.CurrentTemplate);
             }
         },
@@ -297,7 +370,11 @@ const TemplateSlice = createSlice({
             );
             if (columnIndex !== -1) {
                 currentRow.columns.splice(columnIndex, 1);
-                ColumnTracker.remove(state.UpdatedTemplate, currentSection.template_section_id, currentRow.template_row_id, columnId)
+                if (state.callingTheTemplateAPI) {
+                    state.MethodsQueue.push({ type: TEMPLATE_OPERATION.COLUMN_REMOVE, payload: { sectionId: currentSection.template_section_id, rowId: currentRow.template_row_id, column: columnId } })
+                } else {
+                    ColumnTracker.remove(state.UpdatedTemplate, currentSection.template_section_id, currentRow.template_row_id, columnId)
+                }
                 recalculateColumnOrder(state.CurrentTemplate);
             }
         },
@@ -313,7 +390,11 @@ const TemplateSlice = createSlice({
             if (currentSection) {
                 section.isVisible = true;
                 currentSection.push({ ...section });
-                SectionTracker.add(state.UpdatedTemplate, section, sectionType)
+                if (state.callingTheTemplateAPI) {
+                    state.MethodsQueue.push({ type: TEMPLATE_OPERATION.SECTION_ADD, payload: { section, sectionType } })
+                } else {
+                    SectionTracker.add(state.UpdatedTemplate, section, sectionType)
+                }
                 recalculateSectionOrder(state.CurrentTemplate);
             }
         },
@@ -345,7 +426,11 @@ const TemplateSlice = createSlice({
             if (toIndex < 0 || toIndex >= currentSection.length) return;
             const [movedSection] = currentSection.splice(fromIndex, 1);
             currentSection.splice(toIndex, 0, movedSection);
-            SectionTracker.update(state.UpdatedTemplate, movedSection, sectionType);
+            if (state.callingTheTemplateAPI) {
+                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.SECTION_UPDATE, payload: { section: movedSection, sectionType } });
+            } else {
+                SectionTracker.update(state.UpdatedTemplate, movedSection, sectionType);
+            }
             recalculateSectionOrder(state.CurrentTemplate);
         },
         SetTemplateVisibility: (state, action) => {
@@ -368,7 +453,11 @@ const TemplateSlice = createSlice({
                     const inputGroup = currentColumn.inputGroup.find((g: any) => g.template_input_group_id === inputGroupId);
                     if (inputGroup) {
                         inputGroup.inputs?.push(input);
-                        InputTracker.add(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                        if (state.callingTheTemplateAPI) {
+                            state.MethodsQueue.push({ type: TEMPLATE_OPERATION.INPUT_ADD, payload: { sectionId: section.template_section_id, rowId: targetRow.template_row_id, columnId: currentColumn.template_column_id, inputGroupId: inputGroup.template_input_group_id, input } })
+                        } else {
+                            InputTracker.add(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                        }
                         reCalculateInputOrder(state.CurrentTemplate)
                     }
                 }
@@ -396,7 +485,11 @@ const TemplateSlice = createSlice({
                                 id: inputId,
                                 removeType: TEMPLATE_OPERATION.INPUT_REMOVE,
                             });
-                            InputTracker.remove(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, inputId);
+                            if (state.callingTheTemplateAPI) {
+                                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.INPUT_REMOVE, payload: { sectionId: section.template_section_id, rowId: targetRow.template_row_id, columnId: currentColumn.template_column_id, inputGroupId: inputGroup.template_input_group_id, inputId } })
+                            } else {
+                                InputTracker.remove(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, inputId);
+                            }
                             reCalculateInputOrder(state?.CurrentTemplate);
                         }
                     }
@@ -417,7 +510,11 @@ const TemplateSlice = createSlice({
                         const input = inputGroup?.inputs.find((input: any) => input?.template_input_id == inputId);
                         if (input) {
                             input.template_input_value = inputValue;
-                            InputTracker.update(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                            if (state.callingTheTemplateAPI) {
+                                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.INPUT_UPDATE, payload: { sectionId: section.template_section_id, rowId: targetRow.template_row_id, columnId: currentColumn.template_column_id, inputGroupId: inputGroup.template_input_group_id, input } })
+                            } else {
+                                InputTracker.update(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                            }
                         }
                     }
                 }
@@ -438,7 +535,11 @@ const TemplateSlice = createSlice({
                         const input = inputGroup?.inputs.find((input: any) => input?.template_input_id == inputId);
                         if (input) {
                             input.input_name = inputLabel;
-                            InputTracker.update(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                            if (state.callingTheTemplateAPI) {
+                                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.INPUT_UPDATE, payload: { sectionId: section.template_section_id, rowId: targetRow.template_row_id, columnId: currentColumn.template_column_id, inputGroupId: inputGroup.template_input_group_id, input } })
+                            } else {
+                                InputTracker.update(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                            }
                         }
 
                     }
@@ -512,7 +613,11 @@ const TemplateSlice = createSlice({
                         if (input) {
                             input.template_quantity_valueFrom = quantityValueFrom;
                             input.template_quantity_valueTo = quantityValueTo;
-                            InputTracker.update(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                            if (state.callingTheTemplateAPI) {
+                                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.INPUT_UPDATE, payload: { sectionId: section.template_section_id, rowId: targetRow.template_row_id, columnId: currentColumn.template_column_id, inputGroupId: inputGroup.template_input_group_id, input } })
+                            } else {
+                                InputTracker.update(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                            }
                         }
                     }
                 }
@@ -534,7 +639,11 @@ const TemplateSlice = createSlice({
                         const input = inputGroup?.inputs.find((input: any) => input?.template_input_id == inputId);
                         if (input) {
                             input.template_input_quantity_option_id = quantityOptionId;
-                            InputTracker.update(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                            if (state.callingTheTemplateAPI) {
+                                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.INPUT_UPDATE, payload: { sectionId: section.template_section_id, rowId: targetRow.template_row_id, columnId: currentColumn.template_column_id, inputGroupId: inputGroup.template_input_group_id, input } })
+                            } else {
+                                InputTracker.update(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                            }
                         }
                     }
                 }
@@ -556,7 +665,11 @@ const TemplateSlice = createSlice({
                         const input = inputGroup?.inputs.find((input: any) => input?.template_input_id == inputId);
                         if (input) {
                             input.template_quantity_type_single = quantityType;
-                            InputTracker.update(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                            if (state.callingTheTemplateAPI) {
+                                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.INPUT_UPDATE, payload: { sectionId: section.template_section_id, rowId: targetRow.template_row_id, columnId: currentColumn.template_column_id, inputGroupId: inputGroup.template_input_group_id, input } })
+                            } else {
+                                InputTracker.update(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                            }
                         }
                     }
                 }
@@ -578,7 +691,11 @@ const TemplateSlice = createSlice({
                         const input = inputGroup?.inputs.find((input: any) => input?.template_input_id == inputId);
                         if (input) {
                             input.template_input_quantity_id = quantityId;
-                            InputTracker.update(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                            if (state.callingTheTemplateAPI) {
+                                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.INPUT_UPDATE, payload: { sectionId: section.template_section_id, rowId: targetRow.template_row_id, columnId: currentColumn.template_column_id, inputGroupId: inputGroup.template_input_group_id, input } })
+                            } else {
+                                InputTracker.update(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                            }
                         }
                     }
                 }
@@ -618,7 +735,11 @@ const TemplateSlice = createSlice({
                         const input = inputGroup?.inputs.find((input: any) => input?.template_input_id == inputId);
                         if (input) {
                             input.show_quantity = showQuantity;
-                            InputTracker.update(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                            if (state.callingTheTemplateAPI) {
+                                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.INPUT_UPDATE, payload: { sectionId: section.template_section_id, rowId: targetRow.template_row_id, columnId: currentColumn.template_column_id, inputGroupId: inputGroup.template_input_group_id, input } })
+                            } else {
+                                InputTracker.update(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                            }
                         }
 
                     }
@@ -640,7 +761,11 @@ const TemplateSlice = createSlice({
                         const input = inputGroup?.inputs.find((input: any) => input?.template_input_id == inputId);
                         if (input) {
                             input.is_visible = isVisible;
-                            InputTracker.update(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                            if (state.callingTheTemplateAPI) {
+                                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.INPUT_UPDATE, payload: { sectionId: section.template_section_id, rowId: targetRow.template_row_id, columnId: currentColumn.template_column_id, inputGroupId: inputGroup.template_input_group_id, input } })
+                            } else {
+                                InputTracker.update(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                            }
                         }
                     }
                 }
@@ -661,7 +786,11 @@ const TemplateSlice = createSlice({
                         const input = inputGroup?.inputs.find((input: any) => input?.template_input_id == inputId);
                         if (input) {
                             input.extra_note = extraNote;
-                            InputTracker.update(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                            if (state.callingTheTemplateAPI) {
+                                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.INPUT_UPDATE, payload: { sectionId: section.template_section_id, rowId: targetRow.template_row_id, columnId: currentColumn.template_column_id, inputGroupId: inputGroup.template_input_group_id, input } })
+                            } else {
+                                InputTracker.update(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                            }
                         }
                     }
                 }
@@ -682,7 +811,11 @@ const TemplateSlice = createSlice({
                         const input = inputGroup?.inputs.find((input: any) => input?.template_input_id == inputId);
                         if (input) {
                             input.template_input_extranotes = extraNoteValue;
-                            InputTracker.update(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                            if (state.callingTheTemplateAPI) {
+                                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.INPUT_UPDATE, payload: { sectionId: section.template_section_id, rowId: targetRow.template_row_id, columnId: currentColumn.template_column_id, inputGroupId: inputGroup.template_input_group_id, input } })
+                            } else {
+                                InputTracker.update(state.UpdatedTemplate, section.template_section_id, targetRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                            }
                         }
                     }
                 }
@@ -718,7 +851,11 @@ const TemplateSlice = createSlice({
                 if (input) {
                     input.previous_related_input_id = previousInputId;
                     input.condition_with_previous_input_name = conditionName;
-                    InputTracker.update(state.UpdatedTemplate, currentSection.template_section_id, currentRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                    if (state.callingTheTemplateAPI) {
+                        state.MethodsQueue.push({ type: TEMPLATE_OPERATION.INPUT_UPDATE, payload: { sectionId: currentSection.template_section_id, rowId: currentRow.template_row_id, columnId: currentColumn.template_column_id, inputGroupId: inputGroup.template_input_group_id, input } })
+                    } else {
+                        InputTracker.update(state.UpdatedTemplate, currentSection.template_section_id, currentRow.template_row_id, currentColumn.template_column_id, inputGroup.template_input_group_id, input);
+                    }
                 }
             }
         },
@@ -734,9 +871,6 @@ const TemplateSlice = createSlice({
             const currentSection = currentTemplate?.children ? currentTemplate?.children[sectionIndex] : [];
             if (currentSection)
                 currentSection.selected = true;
-        },
-        toggleCallTemplateAPI: (state, action) => {
-            state.callTemplateAPI = action.payload;
         },
         CopyTemplateSection: (state, action) => {
             const { sectionId, sectionType } = action.payload;
@@ -767,7 +901,11 @@ const TemplateSlice = createSlice({
                 }
             }
             currentSectionArray.push({ ...currentSection });
-            SectionTracker.add(state.UpdatedTemplate, currentSection, sectionType);
+            if (state.callingTheTemplateAPI) {
+                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.SECTION_ADD, payload: { section: currentSection, sectionType } })
+            } else {
+                SectionTracker.add(state.UpdatedTemplate, currentSection, sectionType);
+            }
             recalculateSectionOrder(state.CurrentTemplate);
         },
         CopyTemplateSectionRow: (state, action) => {
@@ -808,7 +946,11 @@ const TemplateSlice = createSlice({
             copiedRow.row_order = originalRow.row_order + 1;
             currentSection.rows.push(copiedRow);
             recalculateRowOrder(state.CurrentTemplate);
-            RowTracker.add(state.UpdatedTemplate, currentSection.template_section_id, copiedRow)
+            if (state.callingTheTemplateAPI) {
+                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.ROW_ADD, payload: { sectionId: currentSection.template_section_id, row: copiedRow } })
+            } else {
+                RowTracker.add(state.UpdatedTemplate, currentSection.template_section_id, copiedRow);
+            }
         },
         ToggleVisibilityInTemplate: (state, action) => {
             const { sectionId, sectionType } = action.payload;
@@ -818,7 +960,11 @@ const TemplateSlice = createSlice({
             const currentSection = currentSectionArray.find((section: any) => (section?.template_section_id == sectionId));
             if (currentSection) {
                 currentSection.is_visible = currentSection.is_visible == 1 ? 0 : 1;
-                SectionTracker.update(state.UpdatedTemplate, currentSection, sectionType)
+                if (state.callingTheTemplateAPI) {
+                    state.MethodsQueue.push({ type: TEMPLATE_OPERATION.SECTION_UPDATE, payload: { section: currentSection, sectionType } });
+                } else {
+                    SectionTracker.update(state.UpdatedTemplate, currentSection, sectionType)
+                }
             }
         },
         ToggleRowVisibilityInTemplate: (state, action) => {
@@ -840,7 +986,11 @@ const TemplateSlice = createSlice({
             );
             if (!currentRow) return;
             currentRow.is_visible = currentRow.is_visible ? 0 : 1;
-            RowTracker.update(state.UpdatedTemplate, currentSection.template_section_id, currentRow)
+            if (state.callingTheTemplateAPI) {
+                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.ROW_UPDATE, payload: { sectionId: currentSection.template_section_id, row: currentRow } });
+            } else {
+                RowTracker.update(state.UpdatedTemplate, currentSection.template_section_id, currentRow)
+            }
         },
         AddInputGroupToTemplateColumn: (state, action) => {
             const { sectionId, rowId, columnId, inputGroup, sectionType } = action.payload;
@@ -865,7 +1015,11 @@ const TemplateSlice = createSlice({
             if (!currentColumn || !Array.isArray(currentColumn.inputGroup)) return;
             currentColumn.inputGroup.push(inputGroup);
             reCalculateInputGroupOrder(state.CurrentTemplate);
-            InputGroupTracker.add(state.UpdatedTemplate, currentSection.template_section_id, currentRow.template_row_id, currentColumn.template_column_id, inputGroup);
+            if (state.callingTheTemplateAPI) {
+                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.GROUP_ADD, payload: { sectionId: currentSection.template_section_id, rowId: currentRow?.template_row_id, columnId: currentColumn.template_column_id, inputGroup } });
+            } else {
+                InputGroupTracker.add(state.UpdatedTemplate, currentSection.template_section_id, currentRow.template_row_id, currentColumn.template_column_id, inputGroup);
+            }
         },
         RemoveInputGroupFromTemplate: (state, action) => {
             const { sectionId, rowId, columnId, inputGroupId, sectionType } = action.payload;
@@ -893,7 +1047,11 @@ const TemplateSlice = createSlice({
             );
             if (inputGroupIndex === -1) return;
             currentColumn.inputGroup.splice(inputGroupIndex, 1);
-            InputGroupTracker.remove(state.UpdatedTemplate, currentSection.template_section_id, currentRow.template_row_id, currentColumn.template_column_id, inputGroupId);
+            if (state.callingTheTemplateAPI) {
+                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.GROUP_REMOVE, payload: { sectionId: currentSection.template_section_id, rowId: currentRow?.template_row_id, columnId: currentColumn.template_column_id, inputGroupId } });
+            } else {
+                InputGroupTracker.remove(state.UpdatedTemplate, currentSection.template_section_id, currentRow.template_row_id, currentColumn.template_column_id, inputGroupId);
+            }
             reCalculateInputGroupOrder(state.CurrentTemplate);
         },
         AddConditionInputGroupToTemplateColumn: (state, action) => {
@@ -923,7 +1081,11 @@ const TemplateSlice = createSlice({
             if (!inputGroup) return;
             inputGroup.previous_related_input_group_id = previousInputGroupId;
             inputGroup.condition_with_previous_input_group_name = conditionName;
-            InputGroupTracker.update(state.UpdatedTemplate, currentSection.template_section_id, currentRow.template_row_id, currentColumn.template_column_id, inputGroup);
+            if (state.callingTheTemplateAPI) {
+                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.GROUP_UPDATE, payload: { sectionId: currentSection.template_section_id, rowId: currentRow?.template_row_id, columnId: currentColumn.template_column_id, inputGroup } });
+            } else {
+                InputGroupTracker.update(state.UpdatedTemplate, currentSection.template_section_id, currentRow.template_row_id, currentColumn.template_column_id, inputGroup);
+            }
             reCalculateInputGroupOrder(state.CurrentTemplate);
         },
         UpdateVisibilityInputGroupToTemplate: (state, action) => {
@@ -952,7 +1114,11 @@ const TemplateSlice = createSlice({
             );
             if (!inputGroup) return;
             inputGroup.is_visible = isVisible;
-            InputGroupTracker.update(state.UpdatedTemplate, currentSection.template_section_id, currentRow.template_row_id, currentColumn.template_column_id, inputGroup);
+            if (state.callingTheTemplateAPI) {
+                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.GROUP_UPDATE, payload: { sectionId: currentSection.template_section_id, rowId: currentRow?.template_row_id, columnId: currentColumn.template_column_id, inputGroup } });
+            } else {
+                InputGroupTracker.update(state.UpdatedTemplate, currentSection.template_section_id, currentRow.template_row_id, currentColumn.template_column_id, inputGroup);
+            }
         },
         InputGroupNameUpdateInTemplate: (state, action) => {
             const { sectionId, rowId, columnId, sectionType, inputGroupName, inputGroupId } = action.payload;
@@ -980,7 +1146,11 @@ const TemplateSlice = createSlice({
             );
             if (!inputGroup) return;
             inputGroup.input_group_name = inputGroupName;
-            InputGroupTracker.update(state.UpdatedTemplate, currentSection.template_section_id, currentRow.template_row_id, currentColumn.template_column_id, inputGroup);
+            if (state.callingTheTemplateAPI) {
+                state.MethodsQueue.push({ type: TEMPLATE_OPERATION.GROUP_UPDATE, payload: { sectionId: currentSection.template_section_id, rowId: currentRow?.template_row_id, columnId: currentColumn.template_column_id, inputGroup } });
+            } else {
+                InputGroupTracker.update(state.UpdatedTemplate, currentSection.template_section_id, currentRow.template_row_id, currentColumn.template_column_id, inputGroup);
+            }
         },
         RemoveAlreadyUpdatedDataFromUpdatedTemplate: (state: any) => {
             for (let x in state.UpdatedTemplate) {
@@ -1002,7 +1172,9 @@ export const {
     SelectHeaderTemplate,
     SelectBodyTemplate,
     ResetUpdatedTemplate,
+    togglecallingTheTemplateAPI,
     AddInputTypeToTemplate,
+    callMethodQueue,
     RemoveInputTypeFromTemplate,
     AddInputValueToTemplate, //1
     AddQuantityOptionIdToTemplate, // Quantity Option Id
@@ -1028,7 +1200,6 @@ export const {
     SelectTemplateSection,
     AddRowToTemplateSection,
     AddColumnToTemplateRow,
-    toggleCallTemplateAPI,
     RemoveColumnToTemplateRow,
     CopyTemplateSection,
     CopyTemplateSectionRow, //ROW COPY

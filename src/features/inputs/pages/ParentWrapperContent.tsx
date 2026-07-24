@@ -12,7 +12,7 @@ import StylePanel from "../component/StylePanel";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelectedInput } from "../store/InputSlice";
-import { AddInputTypeToTemplate, SetCurrentTemplate, toggleCallTemplateAPI } from "@/features/new-template/store/TemplateSlice";
+import { AddInputTypeToTemplate, SetCurrentTemplate } from "@/features/new-template/store/TemplateSlice";
 import TemplateService from "@/features/new-template/service/TemplateService";
 import { redefineTemplate } from "@/features/new-template/utils/TemplateUtilsService";
 import InputEntityTypeService from "@/features/inputEntityType/services/InputEntityTypeService";

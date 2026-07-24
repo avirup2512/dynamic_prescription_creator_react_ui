@@ -21,7 +21,7 @@ export class TrackerHelper {
         const id = payload?.[nestedKey]?.[idKey];
 
         const index = list.findIndex(
-            item => item?.[nestedKey]?.[idKey] === id
+            item => id && item?.[nestedKey]?.[idKey] === id
         );
 
         if (index >= 0) {

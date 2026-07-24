@@ -80,7 +80,7 @@ export class InputTracker {
         groupId: string,
         input: any
     ) {
-
+        console.log("CALLED====================")
         AggregateHelper.executeOnAggregate(
 
             updatedTemplate,

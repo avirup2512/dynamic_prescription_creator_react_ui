@@ -10,7 +10,7 @@ import TemplateStructurePanel from "../components/templateStructure/TemplateStru
 import TemplateService from "../service/TemplateService";
 import { Outlet, useParams, useNavigationType } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { CurrentTemplate, SetCurrentTemplate, ResetUpdatedTemplate, RemoveAlreadyUpdatedDataFromUpdatedTemplate, AddUpdatedFlagInUpdatedTemplate } from "../store/TemplateSlice";
+import { CurrentTemplate, SetCurrentTemplate, ResetUpdatedTemplate, RemoveAlreadyUpdatedDataFromUpdatedTemplate, AddUpdatedFlagInUpdatedTemplate, togglecallingTheTemplateAPI, callMethodQueue } from "../store/TemplateSlice";
 import { redefineTemplate } from "../utils/TemplateUtilsService";
 import { toast } from "sonner"
 import { useLoader } from "@/hooks/useLoader";
@@ -53,6 +53,10 @@ export default function CreateTemplate() {
     const timer = setTimeout(async () => {
       setIsSaving(true);
       setLastSavedTime(Date.now());
+      if (UpdateTemplateIsEmpty()) {
+        setIsSaving(false);
+        return;
+      }
       triggerSave();
       toast("Template is saved.", {
         description: "",
@@ -60,7 +64,16 @@ export default function CreateTemplate() {
       setIsSaving(false);
     }, 10000); // Debounce 10 seconds
     return () => clearTimeout(timer);
-  }, [TemplateState?.CurrentTemplate]);
+  }, [TemplateState?.UpdatedTemplate]);
+  function UpdateTemplateIsEmpty() {
+    let isEmpty = true;
+    Object.keys(TemplateState.UpdatedTemplate).forEach(key => {
+      if (TemplateState.UpdatedTemplate[key].length > 0) {
+        isEmpty = false;
+      }
+    })
+    return isEmpty;
+  }
   async function triggerSave() {
     if (savingRef.current) {
       pendingChangeRef.current = true; // mark: another save needed after this one
@@ -70,11 +83,17 @@ export default function CreateTemplate() {
     try {
       // ADDING FLAG
       dispatch(AddUpdatedFlagInUpdatedTemplate());
+      dispatch(togglecallingTheTemplateAPI(true));
       const savedTemplate = await templateService.updateTemplate(id as string, { data: TemplateState.UpdatedTemplate });
       if (savedTemplate && savedTemplate.success) {
         dispatch(RemoveAlreadyUpdatedDataFromUpdatedTemplate());
+        dispatch(togglecallingTheTemplateAPI(false));
+        dispatch(callMethodQueue());
       }
+    } catch {
+      dispatch(callMethodQueue());
     } finally {
+      dispatch(callMethodQueue());
       savingRef.current = false;
       if (pendingChangeRef.current) {
         pendingChangeRef.current = false;

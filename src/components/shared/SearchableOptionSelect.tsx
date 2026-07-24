@@ -18,6 +18,7 @@ import {
     CommandList,
 } from "@/components/ui/command";
 import { CONDITION_TYPE } from "@/constant/condition.enum";
+import QuantityService from "@/features/inputEntityType/services/quantityService";
 
 const SearchableOptionSelect = function ({
     value,
@@ -58,8 +59,15 @@ const SearchableOptionSelect = function ({
                     break;
                 case "RELATIONSHIP":
                     const options = Object.keys(CONDITION_TYPE).map((rel: any) => ({ value: rel, id: rel }));
-                    console.log(options)
                     setOptions(options);
+                    break;
+                case "QUANTITY":
+                    if (input_entity_id) {
+                        const quantityOptions = await QuantityService.getQuantityById(input_entity_id);
+                        if (quantityOptions && quantityOptions.success) {
+                            setOptions(quantityOptions?.data?.quantity_values);
+                        }
+                    }
                     break;
                 default:
                     return []

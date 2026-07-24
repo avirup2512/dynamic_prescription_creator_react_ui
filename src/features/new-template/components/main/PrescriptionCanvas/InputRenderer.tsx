@@ -525,8 +525,9 @@ export default function InputRenderer({ input, mode, selection, sectionType, onS
                             }
                         </div>
                         <SearchableOptionSelect
+                            entityType="QUANTITY"
                             value={input?.template_input_quantity_id}
-                            input_entity_id={input?.template_input_id}
+                            input_entity_id={input?.template_input_quantity_id}
                             placeholder="Select Quantity"
                             searchPlaceholder="Search Quantity..."
                             emptyMessage="No Quantity found."

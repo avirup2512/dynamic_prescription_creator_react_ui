@@ -1,7 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 
 import ParentWrapperContent from "./ParentWrapperContent";
-import { toggleCallTemplateAPI } from "@/features/new-template/store/TemplateSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
@@ -20,7 +19,6 @@ const MainInputDialogContainer = function () {
         } else {
             navigate(`/dashboard/new-template/edit/${templateId}/${sectionType}`);
         }
-        dispatch(toggleCallTemplateAPI(false));
     };
     useEffect(() => {
         console.log(location);

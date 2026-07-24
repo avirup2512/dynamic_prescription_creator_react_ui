@@ -14,7 +14,7 @@ import type { InputEntityType } from "@/features/inputEntityType/type/InputEntit
 import { isValidUUID } from "../../utils/utilsService";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { AddInputTypeToTemplate, toggleCallTemplateAPI } from "@/features/new-template/store/TemplateSlice";
+import { AddInputTypeToTemplate } from "@/features/new-template/store/TemplateSlice";
 import { addNewInput, deleteInput, setAllInputs, setSelectedInput, updateInput, setSearchItems, updateInputAfterSaveAPICall } from "../../store/InputSlice";
 
 const createInput = (index: number): InputEntityType => ({
@@ -149,7 +149,6 @@ const UserInputEditor = memo(() => {
   const addInputToSection = async () => {
     const payload = { sectionId, rowIndex: parseInt((rowIndex ? rowIndex : '')), columnIndex: parseInt((columnIndex ? columnIndex : '')), input: selected, inputGroupIndex: parseInt((inputGroupIndex ? inputGroupIndex : '')), sameGroup: true, sectionType: sectionType ? sectionType : '' }
     dispatch(AddInputTypeToTemplate(payload));
-    dispatch(toggleCallTemplateAPI(false));
     navigate(-1);
   }
   return (

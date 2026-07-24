@@ -218,12 +218,12 @@ export default function ColumnRenderer({ column, mode, selection, columnLength, 
                                 <>
                                     {
                                         group.inputs.length === 0 && mode === "edit" &&
-                                        <div className="flex flex-col items-center justify-center py-4 text-center h-full rounded-md border border-dashed border-slate-200 bg-white shadow-[0_1px_1px_rgba(15,23,42,0.02)]">
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted mb-2">
+                                        <div className="flex flex-col items-center justify-center py-4 text-center h-full rounded-md border border-dashed border-slate-200 bg-red-50 shadow-[0_1px_1px_rgba(15,23,42,0.02)]">
+                                            {/* <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted mb-2">
                                                 <TextCursorInput className="h-4 w-4 text-muted-foreground/50" />
-                                            </div>
-                                            <p className="text-xs font-medium text-foreground mb-0.5">No Input selected</p>
-                                            <p className="text-[11px] text-muted-foreground">Create Input to get started.</p>
+                                            </div> */}
+                                            <p className="text-xs font-medium text-foreground text-red-500 mb-0.5">No Input selected</p>
+                                            <p className="text-[11px]  text-muted-foreground text-red-400">Create Input to get started.</p>
                                         </div>
                                     }
                                 </>
@@ -234,7 +234,7 @@ export default function ColumnRenderer({ column, mode, selection, columnLength, 
                             </div> */}
                             <div className="mt-2 flex flex-col gap-1.5 items-center justify-center">
                                 <InsertPlaceholder mode={mode} label="Add input" onClick={() => { navigateToAddInput(group?.template_input_group_id) }} />
-                                <InsertPlaceholder mode={mode} label="Add Related group" onClick={() => { navigateToAddInput(group?.template_input_group_id) }} />
+                                {/* <InsertPlaceholder mode={mode} label="Add Related group" onClick={() => { navigateToAddInput(group?.template_input_group_id) }} /> */}
                             </div>
                         </div>
                     </div>
