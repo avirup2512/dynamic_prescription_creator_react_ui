@@ -18,15 +18,15 @@ export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
           <span className="flex h-8 w-8 items-center justify-center rounded-md bg-white/10 font-mono text-cyan-400">
             {'</>'}
           </span>
-          Acme
+          Cliniure
         </div>
 
         <div className="relative z-10 max-w-md space-y-3">
           <p className="text-3xl font-semibold leading-tight text-white">
-            Ship faster. Sleep better.
+            Create Prescription faster.
           </p>
           <p className="text-sm text-slate-400">
-            Everything you need to manage your account, projects and team — in one place.
+            Everything you need to manage your Prescription — in one place.
           </p>
         </div>
 
